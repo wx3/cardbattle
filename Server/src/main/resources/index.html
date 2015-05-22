@@ -1,0 +1,60 @@
+
+<html><head><title>Web Socket Server</title></head>
+<body onload="init();">
+<script type="text/javascript">
+
+var socket;
+var commandArea;
+var cmdId = 0;
+
+function init() {
+	commandArea = document.getElementById('command');
+}
+
+if (!window.WebSocket) {
+  window.WebSocket = window.MozWebSocket;
+}
+if (window.WebSocket) {
+  socket = new WebSocket("ws://localhost:8080/websocket");
+  socket.onmessage = function(event) {
+    var ta = document.getElementById('responseText');
+    ta.value = ta.value + '\n' + event.data
+  };
+  socket.onopen = function(event) {
+    var ta = document.getElementById('responseText');
+    ta.value = "Web Socket opened!";
+    commandArea.disabled = false;
+  };
+  socket.onclose = function(event) {
+    var ta = document.getElementById('responseText');
+    ta.value = ta.value + "Web Socket closed";
+    commandArea.disabled = false;
+  };
+} else {
+  alert("Your browser does not support Web Socket.");
+}
+
+function send(message) {
+  if (!window.WebSocket) { return; }
+  if (socket.readyState == WebSocket.OPEN) {
+    socket.send(message);
+  } else {
+    alert("The socket is not open.");
+  }
+}
+</script>
+<h1>Web Socket Server Default Page</h1>
+<form onsubmit="return false;">
+<input type="text" name="message" value="Enter auth token"/><input type="button" value="Authenticate"
+       onclick="send(this.form.message.value)" />
+<h3>Command</h3>
+<p><textarea id="command" style="width:500px;height:300px;" disabled></textarea>
+<br/>
+<input type="button" value="Send Command"
+       onclick="send(this.form.command.value)" />
+</p>
+<h3>Output</h3>
+<p><textarea id="responseText" style="width:500px;height:300px;"></textarea></p>
+</form>
+</body>
+</html>
