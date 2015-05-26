@@ -32,7 +32,7 @@ public abstract class GameCommand {
 		if(game == null) {
 			throw new CommandException(this, "Game is null");
 		}
-		if(game.getCurrentPlayer() != player) {
+		if(game.getRules().getCurrentPlayer() != player) {
 			throw new CommandException(this, "Not your turn");
 		}
 	}

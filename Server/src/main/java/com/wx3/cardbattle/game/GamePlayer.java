@@ -5,21 +5,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
-import javax.persistence.JoinColumn;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.ManyToOne;
 import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.OrderBy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +27,6 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
-import com.wx3.cardbattle.netty.WebsocketMessageHandler;
 
 @Entity
 @Table(name="game_players")
@@ -76,7 +71,7 @@ public class GamePlayer {
 		return id;
 	}
 	
-	public void setId(long id) {
+	void setId(long id) {
 		this.id = id;
 	}
 	
@@ -88,7 +83,7 @@ public class GamePlayer {
 		return gameId;
 	}
 
-	public void setGameId(long gameId) {
+	void setGameId(long gameId) {
 		this.gameId = gameId;
 	}
 
@@ -96,11 +91,11 @@ public class GamePlayer {
 		return position;
 	}
 
-	public void setPosition(int position) {
+	void setPosition(int position) {
 		this.position = position;
 	}
 
-	public void setGame(GameInstance game) {
+	void setGame(GameInstance game) {
 		this.game = game;
 	}
 	
@@ -129,6 +124,10 @@ public class GamePlayer {
 	public void connect(IMessageHandler messageHandler) {
 		if(this.game == null) {
 			throw new RuntimeException("Player has no game.");
+		}
+		if(this.messageHandler != null) {
+			logger.warn("Replacing existing message handler, booting old.");
+			this.messageHandler.disconnect();
 		}
 		this.messageHandler = messageHandler;
 		// Send the player the current state of the game:

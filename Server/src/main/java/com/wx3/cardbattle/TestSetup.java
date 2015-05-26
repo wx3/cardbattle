@@ -6,9 +6,11 @@ import java.util.List;
 
 import com.wx3.cardbattle.datastore.Datastore;
 import com.wx3.cardbattle.game.Card;
+import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.User;
+import com.wx3.cardbattle.game.rules.EntityRule;
 
 public class TestSetup {
 	
@@ -20,10 +22,17 @@ public class TestSetup {
 	
 	public GameInstance setup() {
 		
+		String s1 = "rules.drawCard(entity.getOwner());";
+		EntityRule rule1 = new EntityRule("PlayCardEvent", s1);
+		rule1.name = "Draw on Play";
+		datastore.createRule(rule1);
+		
     	Card card1 = new Card("Crappy Minion", "Ugh...");
     	card1.setTag(Tag.MINION);
+    	card1.getStats().put(EntityStats.MAX_HEALTH, 2);
     	datastore.createCard(card1);
     	Card card2 = new Card("Super Card", "What an amazing card!");
+    	card2.getRules().add(rule1);
     	datastore.createCard(card2);
     	Card card3 = new Card("OK Card", "This card is alright.");
     	datastore.createCard(card3);

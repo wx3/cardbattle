@@ -3,6 +3,8 @@ package com.wx3.cardbattle.game;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.Transient;
+
 /**
  * A collection of named, positive integer values, such as "MAX_HEALTH"
  * 
@@ -13,10 +15,11 @@ public class EntityStats {
 	
 	public static final String COST = "COST";
 	public static final String MAX_HEALTH = "MAX_HEALTH";
-	public static final String DAMAGE_TAKEN = "DAMAGE_TAKEN";
 	public static final String ATTACK = "ATTACK";
 
 	private Map<String, Integer> baseValues = new HashMap<String,Integer>();
+	
+	@Transient
 	private Map<String, Integer> currentValues = new HashMap<String,Integer>();
 	
 	public int getValue(String stat) {

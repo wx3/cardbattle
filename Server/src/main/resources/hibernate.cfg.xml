@@ -18,7 +18,7 @@
   ~
   ~ You should have received a copy of the GNU Lesser General Public License
   ~ along with this distribution; if not, write to:
-  ~ Free Software Foundation, Inc.
+  ~ Free Software Foundation, Inc. 
   ~ 51 Franklin Street, Fifth Floor
   ~ Boston, MA  02110-1301  USA
   -->
@@ -34,11 +34,23 @@
 	    <property name="hibernate.connection.driver_class">org.hsqldb.jdbcDriver</property>
 		<property name="hibernate.connection.url">jdbc:hsqldb:mem:testdb;shutdown=false</property>
 		<property name="hibernate.connection.username">sa</property>
+		<property name="dialect">org.hibernate.dialect.HSQLDialect</property>
 		<property name="hibernate.connection.password"/>
+		
+		<!--  MySQL settings>
+		<property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/openccg</property>
+        <property name="connection.username">root</property>
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="connection.password"></property-->
+		
+		
+		
 		<property name="hibernate.connection.pool_size">10</property>
 		<property name="hibernate.connection.autocommit">true</property>
 		<property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
-		<property name="dialect">org.hibernate.dialect.HSQLDialect</property>
+		
+
         
 		<property name="current_session_context_class">thread</property>
         <!-- Disable the second-level cache  -->
@@ -55,6 +67,7 @@
         <mapping class="com.wx3.cardbattle.game.User"/>
         <mapping class="com.wx3.cardbattle.game.GamePlayer"/>
         <mapping class="com.wx3.cardbattle.game.Card"/>
+        <mapping class="com.wx3.cardbattle.game.rules.EntityRule"/>
         <mapping class="com.wx3.cardbattle.datastore.PlayerAuthtoken"/>
 
     </session-factory>

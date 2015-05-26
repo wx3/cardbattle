@@ -17,6 +17,8 @@ import com.wx3.cardbattle.game.messages.IMessageHandler;
 public class TestMessageHandler implements IMessageHandler {
 	
 	private List<GameMessage> messageHistory = new ArrayList<GameMessage>();
+	
+	public void disconnect() {}
 
 	@Override
 	public void handleMessage(GameMessage message) {

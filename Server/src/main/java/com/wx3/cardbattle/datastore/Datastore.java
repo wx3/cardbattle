@@ -19,6 +19,7 @@ import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
+import com.wx3.cardbattle.game.rules.EntityRule;
 
 /**
  * Handles persistence for the game, both long term via hibernate and 
@@ -90,6 +91,13 @@ public class Datastore {
 	
 	public GameInstance getGame(long id) {
 		return gameInstances.get(id);
+	}
+	
+	public void createRule(EntityRule rule) {
+		Session session = sessionFactory.getCurrentSession();
+    	session.beginTransaction();
+    	session.save(rule);
+    	session.getTransaction().commit();
 	}
 	
 	public void createCard(Card card) {

@@ -12,6 +12,7 @@ package com.wx3.cardbattle.game.messages;
  */
 public interface IMessageHandler {
 
+	public void disconnect();
 	public void handleMessage(GameMessage message);
 	
 }

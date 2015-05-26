@@ -36,6 +36,10 @@ public class WebsocketMessageHandler implements IMessageHandler {
 		this.player = player;
 	}
 	
+	public void disconnect() {
+		channel.disconnect();
+	}
+	
 	public void handleMessage(GameMessage message) {
 		GsonBuilder builder = new GsonBuilder();
 		

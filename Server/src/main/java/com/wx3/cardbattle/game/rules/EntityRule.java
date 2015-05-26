@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.google.common.base.Strings;
@@ -19,11 +20,12 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
  *
  */
 @Entity
+@Table(name="rules")
 public class EntityRule {
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
-	private long id;
+	private int id;
 	
 	public String name;
 	public String description;
@@ -34,17 +36,14 @@ public class EntityRule {
 	private String eventTrigger;
 	
 	/**
-	 * The script code that evaluates whether the target object
-	 * is valid.
-	 */
-	private String validateScript;
-	
-	/**
 	 * The script code that is eval'd when the trigger is fired.
 	 */
 	private String triggeredScript;
 	
-	private String buffScript;
+	/**
+	 * Permanent rules can't be removed during gameplay.
+	 */
+	private boolean permanent;
 	
 	@Transient
 	private GameEntity entity;
@@ -58,7 +57,7 @@ public class EntityRule {
 		this.setScript(script);
 	}
 	
-	public String getTrigger() {
+	public String getEventTrigger() {
 		return eventTrigger;
 	}
 	
