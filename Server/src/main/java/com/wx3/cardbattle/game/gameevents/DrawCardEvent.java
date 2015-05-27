@@ -11,7 +11,9 @@ import com.wx3.cardbattle.game.GamePlayer;
  */
 public class DrawCardEvent extends GameEvent {
 
+	@SuppressWarnings("unused")
 	private long playerId;
+	@SuppressWarnings("unused")
 	private int entityId;
 
 	public DrawCardEvent(GamePlayer player, GameEntity entity) {
@@ -19,11 +21,4 @@ public class DrawCardEvent extends GameEvent {
 		this.entityId = entity.getId();
 	}
 
-	@Override
-	public Object getVisibleObject(GamePlayer player) {
-		return this;
-	}
-	
-	
-	
 }

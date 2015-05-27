@@ -17,10 +17,4 @@ public class ChatEvent extends GameEvent {
 		this.username = username;
 		this.message = message;
 	}
-
-	@Override
-	public Object getVisibleObject(GamePlayer player) {
-		return this;
-	}
-
 }

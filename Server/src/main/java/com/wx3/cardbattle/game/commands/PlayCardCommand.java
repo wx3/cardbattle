@@ -14,6 +14,13 @@ public class PlayCardCommand extends GameCommand {
 	private GameEntity cardEntity;
 	private GameEntity targetEntity;
 	
+	public PlayCardCommand() {}
+	
+	public PlayCardCommand(int entityId, int targetId) {
+		this.entityId = entityId;
+		this.targetId = targetId;
+	}
+	
 	@Override 
 	public void parse() {
 		cardEntity = game.getEntity(entityId);

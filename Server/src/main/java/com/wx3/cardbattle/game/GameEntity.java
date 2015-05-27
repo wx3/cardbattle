@@ -74,8 +74,25 @@ public class GameEntity {
 		return card;
 	}
 
-	void setCreatingCard(Card creatingCard) {
-		this.card = creatingCard;
+	/**
+	 * Initialize the entity from a card, copying its tags, stats and rules.
+	 * 
+	 * @param card
+	 */
+	void copyFromCard(Card card) {
+		this.card = card;
+		this.name = card.getName();
+		for(String tag : card.getTags()) {
+			setTag(tag);
+		}
+		Map<String, Integer> cardStats = card.getStats();
+		for(String stat: cardStats.keySet()) {
+			stats.setBase(stat, cardStats.get(stat));
+		}
+		for(EntityRule rule : card.getRules()) {
+			rules.add(rule);
+		}
+		rules = new ArrayList<EntityRule>(card.getRules());
 	}
 	
 	/**
@@ -130,7 +147,6 @@ public class GameEntity {
 	
 	void addRule(EntityRule rule) {
 		this.rules.add(rule);
-		rule.setEntity(this);
 	}
 
 	List<EntityRule> getRules() {
@@ -140,6 +156,26 @@ public class GameEntity {
 	void setRules(List<EntityRule> rules) {
 		this.rules = rules;
 	}
+	
+	public boolean isInHand() {
+		return hasTag(Tag.IN_HAND);
+	}
+	
+	public boolean isInPlay() {
+		return hasTag(Tag.IN_PLAY);
+	}
+	
+	public boolean isMinion() {
+		return hasTag(Tag.MINION);
+	}
+	
+	public int getMaxHealth() {
+		return getStat(EntityStats.MAX_HEALTH);
+	}
 
+	@Override
+	public String toString() {
+		return "GameEntity(" + name + " id" + id + ")";
+	}
 
 }

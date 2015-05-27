@@ -1,10 +1,13 @@
 package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
@@ -30,6 +33,7 @@ import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
+import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
 
@@ -59,6 +63,12 @@ public class GameInstance {
 	
 	@Transient
 	private int entityIdCounter = 1;
+	
+	@Transient
+	private Map<Integer, Card> cardsById = new HashMap<Integer, Card>();
+	
+	@Transient
+	private Map<String, Card> cardsByName = new HashMap<String, Card>();
 	
 	@Transient
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
@@ -102,6 +112,21 @@ public class GameInstance {
 		return ruleProcessor;
 	}
 	
+	public void setCards(Collection<Card> cards) {
+		this.cardsById = new HashMap<Integer, Card>();
+		this.cardsByName = new HashMap<String, Card>();
+		for(Card card : cards) {
+			if(cardsById.containsKey(card.getId())) {
+				logger.warn("Duplicate card id: " + card.getId());
+			}
+			cardsById.put(card.getId(), card);
+			if(cardsByName.containsKey(card.getName())) {
+				logger.warn("Duplicate card name: " + card.getName());
+			}
+			cardsByName.put(card.getName(), card);
+		}
+	}
+	
 	public void addPlayer(GamePlayer player) {
 		// The player's position is equal to the size of the player list
 		// prior to adding. E.g., the first player added is in position 0
@@ -113,9 +138,10 @@ public class GameInstance {
 		GameEntity playerEntity = spawnEntity();
 		playerEntity.name = player.getUsername() + "_" + playerEntity.getId();
 		playerEntity.setTag(Tag.PLAYER);
+		playerEntity.setTag(Tag.IN_PLAY);
 		playerEntity.setOwner(player);
 		String script = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {rules.drawCard(entity.getOwner())}";
-		EntityRule drawRule = new EntityRule(StartTurnEvent.class.getSimpleName(), script);
+		EntityRule drawRule = new EntityRule(StartTurnEvent.class, script, "Player Draw");
 		playerEntity.addRule(drawRule);
 	}
 	
@@ -139,6 +165,14 @@ public class GameInstance {
 		return players;
 	}
 	
+	public Card getCard(int cardId) {
+		return cardsById.get(cardId);
+	}
+	
+	public Card getCard(String cardName) {
+		return cardsByName.get(cardName);
+	}
+	
 	public void addEvent(GameEvent event) {
 		logger.info("Adding event " + event);
 		eventQueue.add(event);
@@ -150,6 +184,10 @@ public class GameInstance {
 				player.handleEvent(event);
 			}
 		}
+	}
+	
+	public List<GameEvent> getEventHistory() {
+		return eventHistory;
 	}
 	
 	public void start() {
@@ -185,8 +223,7 @@ public class GameInstance {
 	}
 	
 	/**
-	 * Play a card from a player's hand to the board with an optional
-	 * targetEntity
+	 * Play a card onto the board with an optional targetEntity
 	 * 
 	 * @param cardEntity
 	 */
@@ -195,6 +232,9 @@ public class GameInstance {
 		cardEntity.clearTag(Tag.IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
 		addEvent(event);
+		if(cardEntity.hasTag(Tag.MINION)) {
+			addEvent(new SummonMinionEvent(cardEntity));
+		}
 	}
 	
  	synchronized void update() {
@@ -230,17 +270,24 @@ public class GameInstance {
 		while(!eventQueue.isEmpty()) {
 			GameEvent event = eventQueue.poll();
 			eventHistory.add(event);
+			// Iterate over a copy of entities to avoid ConcurrentModification exceptions
+			// if a rule spawns an entity:
 			List<GameEntity> entityList = new ArrayList<GameEntity>(entities);
 			for(GameEntity entity : entityList) {
-				for(EntityRule rule : entity.getRules()) {
-					ruleProcessor.processRule(event, rule);
+				if(entity.isInPlay()) {
+					for(EntityRule rule : entity.getRules()) {
+						ruleProcessor.processRule(event, rule, entity);
+					}
 				}
 			}
 			// Try to remove any entities marked for removal after 
 			// each event is processed:
 			if(!markedForRemoval.isEmpty()) {
 				for(GameEntity entity : markedForRemoval) {
-					entityList.remove(entity);
+					logger.info("Removing " + entity);
+					if(!entities.remove(entity)) {
+						logger.warn("Failed to find " + entity + " for removal");
+					}
 				}
 				markedForRemoval.clear();
 			}

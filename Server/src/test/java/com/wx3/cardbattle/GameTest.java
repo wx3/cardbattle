@@ -1,11 +1,18 @@
 package com.wx3.cardbattle;
 
 import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.game.Card;
+import com.wx3.cardbattle.game.EntityStats;
+import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.GameRuleProcessor;
+import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.commands.ChatCommand;
 import com.wx3.cardbattle.game.commands.EndTurnCommand;
+import com.wx3.cardbattle.game.commands.PlayCardCommand;
+import com.wx3.cardbattle.game.gameevents.DamageEvent;
+import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameMessage;
@@ -29,7 +36,7 @@ public class GameTest extends TestCase {
 	
 	protected void setUp() {
 		Datastore datastore = new Datastore();
-		TestSetup testSetup = new TestSetup(datastore);
+		Bootstrap testSetup = new Bootstrap(datastore);
 		game = testSetup.setup();
 		p1 = game.getPlayerInPosition(0);
 		p1handler = new TestMessageHandler();
@@ -39,6 +46,13 @@ public class GameTest extends TestCase {
 		p2.connect(p2handler);
 		game.start();
 		rules = game.getRules();
+	}
+	
+	private GameEntity putCardInHand(Card card, GamePlayer player) {
+		GameEntity entity = rules.instantiateCard(card);
+		entity.setTag(Tag.IN_HAND);
+		entity.setOwner(player);
+		return entity;
 	}
 	
 	/**
@@ -51,6 +65,7 @@ public class GameTest extends TestCase {
 		assertTrue(p1.getPlayerDeck().size() > 0);
 		assertTrue(p2.getPlayerDeck().size() > 0);
 	}
+
 	
 	/**
 	 * Test that a player can send a chat message
@@ -83,13 +98,46 @@ public class GameTest extends TestCase {
 	}
 	
 	/**
+	 * Test that we can get a card by name from the game
+	 */
+	public void testGetCard() {
+		Card c1 = game.getCard("Aggro Card");
+		assertTrue(c1.getRules().size() > 0);
+		assertTrue(c1.getTags().contains(Tag.MINION));
+		assertTrue(c1.getStats().containsKey(EntityStats.MAX_HEALTH));
+	}
+	
+	/**
 	 * Test card playing
 	 */
 	public void testPlayCard() {
-		rules.drawCard(p1);
+		GameEntity e1 = rules.drawCard(p1);
 		assertTrue(p1.getPlayerDeck().size() > 0);
-		game.playCard(p1.getPlayerHand().get(0), null);
-		//assertTrue(p1.getPlayerHand().size() == 0);
+		PlayCardCommand command = new PlayCardCommand(e1.getId(),0);
+		p1.handleCommand(command);
+		// We should be able to get the entity by id and it should be in play: 
+		assertTrue(game.getEntity(e1.getId()).hasTag(Tag.IN_PLAY));
+	}
+	
+	/**
+	 * If an aggro card is played after an aggro card, the second aggro card 
+	 * should take damage and die.
+	 */
+	public void testDamage() {
+		Card c1 = game.getCard("Aggro Card");
+		GameEntity e1 = putCardInHand(c1, p1);
+		GameEntity e2 = putCardInHand(c1, p1);
+		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
+		p1.handleCommand(com1);
+		// Make sure we can find the first card we played:
+		assertNotNull(game.getEntity(e1.getId()));
+		assertTrue(e1.isInPlay());
+		PlayCardCommand com2 = new PlayCardCommand(e2.getId(),0);
+		p1.handleCommand(com2);
+		// The second entity should be dead now:
+		assertNull(game.getEntity(e2.getId()));
+		// There should be at least one damage event in the event history now:
+		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
 	}
 	
 }

@@ -10,36 +10,44 @@ import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.User;
+import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
+import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 
-public class TestSetup {
+public class Bootstrap {
 	
 	private Datastore datastore;
 	
-	public TestSetup(Datastore datastore) {
+	public Bootstrap(Datastore datastore) {
 		this.datastore = datastore;
 	}
 	
 	public GameInstance setup() {
 		
-		String s1 = "rules.drawCard(entity.getOwner());";
-		EntityRule rule1 = new EntityRule("PlayCardEvent", s1);
-		rule1.name = "Draw on Play";
+		String s1 = "if(event.minion !== entity) {rules.damageEntity(event.minion,2)}";
+		EntityRule rule1 = new EntityRule(SummonMinionEvent.class, s1, "Deal 2 to Summoned");
 		datastore.createRule(rule1);
 		
-    	Card card1 = new Card("Crappy Minion", "Ugh...");
+		String s2 = "rules.drawCard(entity.getOwner());";
+		EntityRule rule2 = new EntityRule(PlayCardEvent.class, s2, "Draw on Play");
+		datastore.createRule(rule2);
+
+    	Card card1 = new Card("Aggro Card", "Deals 2 damage to any minion played");
     	card1.setTag(Tag.MINION);
+    	card1.getStats().put(EntityStats.ATTACK, 1);
     	card1.getStats().put(EntityStats.MAX_HEALTH, 2);
+    	card1.getRules().add(rule1);
     	datastore.createCard(card1);
+    	
     	Card card2 = new Card("Super Card", "What an amazing card!");
-    	card2.getRules().add(rule1);
+    	card2.getRules().add(rule2);
     	datastore.createCard(card2);
     	Card card3 = new Card("OK Card", "This card is alright.");
     	datastore.createCard(card3);
 		
     	List<Card> deck1 = new ArrayList<Card>();
-    	deck1.add(card2);
     	deck1.add(card1);
+    	deck1.add(card2);
     	deck1.add(card3);
     	deck1.add(card1);
     	

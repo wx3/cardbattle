@@ -31,7 +31,7 @@ public class App
     	
     	GameServer gameserver = new GameServer(datastore);
     	
-    	TestSetup test = new TestSetup(datastore);
+    	Bootstrap test = new Bootstrap(datastore);
     	GameInstance game = test.setup();
     	game.start();
     	

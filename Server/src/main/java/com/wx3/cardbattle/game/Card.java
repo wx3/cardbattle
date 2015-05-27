@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -20,6 +22,8 @@ import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cascade;
 
 import com.wx3.cardbattle.game.rules.EntityRule;
 
@@ -41,17 +45,17 @@ public class Card {
 	private String name;
 	private String description;
 	
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "card_tags")
 	private Set<String> tags = new HashSet<String>();
 	
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "card_stats")
 	@Column(name="stat_value")
 	@MapKeyColumn(name="stat_name")
 	private Map<String,Integer> stats = new HashMap<String,Integer>();
 	
-	@ManyToMany
+	@ManyToMany(cascade={CascadeType.ALL}, fetch = FetchType.EAGER)
 	@JoinTable(name="card_rules", 
 		joinColumns = @JoinColumn(name="cardId"),
 		inverseJoinColumns = @JoinColumn(name="ruleId"))
@@ -93,6 +97,10 @@ public class Card {
 		tags.add(tag);
 	}
 	
+	public Set<String> getTags() {
+		return tags;
+	}
+	
 	public Map<String,Integer> getStats() {
 		return stats;
 	}
@@ -109,7 +117,5 @@ public class Card {
 	public void setRules(List<EntityRule> rules) {
 		this.rules = rules;
 	}
-
-
 	
 }

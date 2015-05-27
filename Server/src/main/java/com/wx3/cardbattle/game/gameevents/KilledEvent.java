@@ -15,9 +15,4 @@ public class KilledEvent extends GameEvent {
 		return entityId;
 	}
 
-	@Override
-	public Object getVisibleObject(GamePlayer player) {
-		return this;
-	}
-
 }

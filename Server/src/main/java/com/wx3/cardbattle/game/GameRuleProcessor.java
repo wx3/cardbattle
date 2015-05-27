@@ -1,5 +1,7 @@
 package com.wx3.cardbattle.game;
 
+import java.util.Queue;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
@@ -70,13 +73,22 @@ public class GameRuleProcessor {
 		}
 	}
 	
-	void processRule(GameEvent event, EntityRule rule) {
+	/**
+	 * Evaluate the {@link EntityRule} in the context of a particular event for the entity that
+	 * this rule is attached to.
+	 * 
+	 * @param event
+	 * @param rule
+	 * @param entity
+	 */
+	void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
 		try {
 			if(rule.isTriggered(event)) {
 				// Let the rule access the event, game and entity objects
 				engine.put("event", event);
 				engine.put("rules", this);
-				engine.put("entity", rule.getEntity());
+				engine.put("entity", entity);
+				logger.info("Executing " + rule + " for " + event + " on " + entity);
 				engine.eval(rule.getScript());
 			}
 		} catch (final ScriptException se) {
@@ -109,6 +121,27 @@ public class GameRuleProcessor {
 	}
 	
 	/**
+	 * Deliver damage to an entity, destroying it if total
+	 * damage exceeds its max health.
+	 * 
+	 * @param entity
+	 * @param damage
+	 */
+	public void damageEntity(GameEntity entity, int damage) {
+		// Cap damage at the entity's max health:
+		if(damage > entity.getMaxHealth()) {
+			damage = entity.getMaxHealth();
+		}
+		int currentDam = entity.getVar(GameEntity.DAMAGE_TAKEN);
+		currentDam += damage;
+		entity.setVar(GameEntity.DAMAGE_TAKEN, currentDam);
+		game.addEvent(new DamageEvent(entity, damage));
+		if(currentDam >= entity.getMaxHealth()) {
+			killEntity(entity);
+		}
+	}
+	
+	/**
 	 * Mark an entity for removal without firing a {@link KilledEvent}
 	 * 
 	 * @param entity
@@ -137,8 +170,7 @@ public class GameRuleProcessor {
 	public GameEntity drawCard(GamePlayer player) {
 		Card card = player.drawCard();
 		if(card != null) {
-			GameEntity entity = game.spawnEntity();
-			entity.setCreatingCard(card);
+			GameEntity entity = instantiateCard(card);
 			entity.setTag(Tag.IN_HAND);
 			entity.setOwner(player);
 			game.addEvent(new DrawCardEvent(player, entity));
@@ -148,4 +180,18 @@ public class GameRuleProcessor {
 			return null;
 		}
 	}
+	
+	/**
+	 * Create a {@link GameEntity} from a {@link Card}, acquiring the card's
+	 * name, stats, tags and rules.
+	 * 
+	 * @param card
+	 * @return
+	 */
+	public GameEntity instantiateCard(Card card) {
+		GameEntity entity = game.spawnEntity();
+		entity.copyFromCard(card);
+		return entity;
+	}
+
 }

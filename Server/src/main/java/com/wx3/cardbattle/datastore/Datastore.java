@@ -3,6 +3,7 @@ package com.wx3.cardbattle.datastore;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,14 @@ public class Datastore {
 		return user;
 	}
 	
+	public Collection<Card> getCards() {
+		Session session = sessionFactory.getCurrentSession();
+    	session.beginTransaction();
+    	List<Card> cardList = session.createCriteria(Card.class).list();
+    	session.getTransaction().commit();
+    	return cardList;
+	}
+	
 	/**
 	 * Create a new game instance and the corresponding game players, persisting them
 	 * to the database.
@@ -62,6 +71,7 @@ public class Datastore {
 	 */
 	public GameInstance createGame(List<User> users) {
 		GameInstance game = new GameInstance();
+		game.setCards(getCards());
 		Session session = sessionFactory.getCurrentSession();
 		SecureRandom random = new SecureRandom();
     	session.beginTransaction();

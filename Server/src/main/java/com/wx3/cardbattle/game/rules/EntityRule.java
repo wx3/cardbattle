@@ -16,6 +16,9 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
  * GameEvent. The eventTrigger is the (simple) name of the GameEvent
  * class this rule can respond to. E.g., DrawCardEvent.
  * 
+ * Rules should not be modifiable during play, because an entity's rules
+ * may be references to the underlying card. 
+ * 
  * @author Kevin
  *
  */
@@ -27,8 +30,7 @@ public class EntityRule {
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private int id;
 	
-	public String name;
-	public String description;
+	private String description;
 	
 	/**
 	 * The simple name of the GameEvent that triggers this rule
@@ -40,21 +42,14 @@ public class EntityRule {
 	 */
 	private String triggeredScript;
 	
-	/**
-	 * Permanent rules can't be removed during gameplay.
-	 */
-	private boolean permanent;
-	
-	@Transient
-	private GameEntity entity;
-	
 	public EntityRule() {
 		
 	}
 	
-	public EntityRule(String trigger, String script) {
-		this.eventTrigger = trigger;
-		this.setScript(script);
+	public EntityRule(Class<? extends GameEvent> trigger, String script, String description) {
+		this.description = description;
+		this.eventTrigger = trigger.getSimpleName();
+		this.triggeredScript = script;
 	}
 	
 	public String getEventTrigger() {
@@ -83,17 +78,10 @@ public class EntityRule {
 	public String getScript() {
 		return triggeredScript;
 	}
-
-	public void setScript(String script) {
-		this.triggeredScript = script;
-	}
-
-	public GameEntity getEntity() {
-		return entity;
-	}
-
-	public void setEntity(GameEntity entity) {
-		this.entity = entity;
+	
+	@Override
+	public String toString() {
+		return "EntityRule." + description;
 	}
 
 }

@@ -16,8 +16,4 @@ public class EndTurnEvent extends GameEvent {
 		return turn;
 	}
 
-	@Override
-	public Object getVisibleObject(GamePlayer player) {
-		return this;
-	}
 }

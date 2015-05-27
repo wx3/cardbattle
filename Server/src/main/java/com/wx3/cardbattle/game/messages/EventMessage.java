@@ -11,7 +11,7 @@ public class EventMessage extends GameMessage {
 	public EventMessage(GameEvent event, GamePlayer recipient) {
 		this.messageClass = this.getClass().getSimpleName();
 		this.eventClass = event.getClass().getSimpleName();
-		this.event = event.getVisibleObject(recipient);
+		this.event = event;
 	}
 
 	public String getEventClass() {

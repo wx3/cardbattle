@@ -22,9 +22,4 @@ public class PlayCardEvent extends GameEvent {
 		return target;
 	}
 	
-	@Override
-	public Object getVisibleObject(GamePlayer player) {
-		return GameEntityView.createViewForPlayer(entity, player);
-	}
-	
 }
