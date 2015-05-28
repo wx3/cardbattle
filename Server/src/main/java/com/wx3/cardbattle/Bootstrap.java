@@ -30,13 +30,9 @@ public class Bootstrap {
 		EntityRule rule1 = new EntityRule(SummonMinionEvent.class, s1, "DMG_2_SUMMONED", "Deal 2 to Summoned");
 		datastore.createRule(rule1);
 		
-		String s2 = "if(event.target == entity) {rules.drawCard(entity.getOwner());}";
+		String s2 = "if(event.entity == entity) {rules.drawCard(entity.getOwner());}";
 		EntityRule rule2 = new EntityRule(DamageEvent.class, s2, "DRAW_ON_DAMAGE", "Draw on damage to this entity.");
 		datastore.createRule(rule2);
-		
-		String s3 = "rules.enchantEntity(event.getTarget(),'DRAW_ON_PLAY')";
-		EntityRule rule3 = new EntityRule(PlayCardEvent.class, s3, "ENCHANT_DRAW_ON_PLAY", "Enchant an Entity with Draw on Play");
-		datastore.createRule(rule3);
 		
 		String s4 = "rules.damageEntity(event.getTarget(),2)";
 		EntityRule rule4 = new EntityRule(PlayCardEvent.class, s4, "DMG_2_TARGET", "Deal 2 Damage to a Minion");
@@ -48,16 +44,19 @@ public class Bootstrap {
 
     	Card card1 = new Card("Weak Minion", "A measly little minion");
     	card1.setTag(Tag.MINION);
-    	card1.getStats().put(EntityStats.ATTACK, 1);
+    	card1.getStats().put(EntityStats.ATTACK, 2);
     	card1.getStats().put(EntityStats.MAX_HEALTH, 2);
     	datastore.createCard(card1);
     	
-    	Card card2 = new Card("Weak Sauce", "Deals 2 damage to a minion");
+    	Card card2 = new Card("Deal 2 Minion", "Deals 2 damage to a minion");
     	card2.getRules().add(rule4);
     	card2.setValidator(pv1);
     	datastore.createCard(card2);
     	
     	Card card3 = new Card("Damage Draw", "Draw a card whenever this minion takes damage");
+    	card3.setTag(Tag.MINION);
+    	card3.getStats().put(EntityStats.ATTACK, 1);
+    	card3.getStats().put(EntityStats.MAX_HEALTH, 4);
     	card3.getRules().add(rule2);
     	datastore.createCard(card3);
 		

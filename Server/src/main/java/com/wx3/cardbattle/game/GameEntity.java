@@ -93,6 +93,7 @@ public class GameEntity {
 			rules.add(new EntityRule(rule));
 		}
 		rules = new ArrayList<EntityRule>(card.getRules());
+		stats.reset();
 	}
 	
 	/**
@@ -120,6 +121,10 @@ public class GameEntity {
 	
 	public boolean hasTag(String tag) {
 		return tags.contains(tag);
+	}
+	
+	public void resetStats() {
+		stats.reset();
 	}
 	
 	public int getStat(String stat) {
@@ -167,6 +172,10 @@ public class GameEntity {
 	
 	public boolean isMinion() {
 		return hasTag(Tag.MINION);
+	}
+	
+	public int getCurrentHealth() {
+		return getMaxHealth() - getVar(DAMAGE_TAKEN);
 	}
 	
 	public int getMaxHealth() {

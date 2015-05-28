@@ -51,7 +51,7 @@ public class EntityStats {
 	}
 	
 	public void reset() {
-		currentValues.clear();
+		currentValues = new HashMap<String,Integer>(baseValues);
 	}
 	
 }

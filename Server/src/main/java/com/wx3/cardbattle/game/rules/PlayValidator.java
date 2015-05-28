@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * A rule for whether a particular card can be played, and 
@@ -13,6 +14,7 @@ import javax.persistence.Id;
  *
  */
 @Entity
+@Table(name="validators")
 public class PlayValidator {
 
 	@Id

@@ -26,23 +26,23 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
- * The GameRuleProcessor uses the Nashorn javascript engine to process
+ * The GameRuleEngine uses the Nashorn javascript engine to process
  * entity rules. The engine is created with a restrictive filter
  * to prevent rules from calling any Java objects/classes except
  * those supplied by the processor.
  * <p>
- * The rule processor provides common utility methods for accessing 
+ * The Rule Engine also provides common utility methods for accessing 
  * game logic from scripts. 
  *  
  * @author Kevin
  *
  */
-public class GameRuleProcessor {
+public class GameRuleEngine {
 	
-	final Logger logger = LoggerFactory.getLogger(GameRuleProcessor.class);
+	final Logger logger = LoggerFactory.getLogger(GameRuleEngine.class);
 
 	private GameInstance game;
-	private ScriptEngine engine;
+	private ScriptEngine scriptEngine;
 	
 	class RestrictiveFilter implements ClassFilter {
 
@@ -53,12 +53,12 @@ public class GameRuleProcessor {
 		
 	}
 	
-	GameRuleProcessor(GameInstance game) {
+	GameRuleEngine(GameInstance game) {
 		this.game = game;
 		NashornScriptEngineFactory factory = new NashornScriptEngineFactory(); 
 		
-		this.engine = factory.getScriptEngine(new RestrictiveFilter());
-		if(this.engine == null) {
+		this.scriptEngine = factory.getScriptEngine(new RestrictiveFilter());
+		if(this.scriptEngine == null) {
 			throw new RuntimeException("Unable to get script engine");
 		}
 	}
@@ -70,8 +70,8 @@ public class GameRuleProcessor {
 		try {
 			String script = game.getStartupScript();
 			if(!Strings.isNullOrEmpty(script)) {
-				engine.put("game", game);
-				engine.eval(game.getStartupScript());
+				scriptEngine.put("game", game);
+				scriptEngine.eval(game.getStartupScript());
 			}
 		} catch (final ScriptException se) {
 			logger.error("Exception processing startup script: " + se.getMessage());
@@ -91,11 +91,11 @@ public class GameRuleProcessor {
 		try {
 			if(rule.isTriggered(event)) {
 				// Let the rule access the event, game and entity objects
-				engine.put("event", event);
-				engine.put("rules", this);
-				engine.put("entity", entity);
+				scriptEngine.put("event", event);
+				scriptEngine.put("rules", this);
+				scriptEngine.put("entity", entity);
 				logger.info("Executing " + rule + " for " + event + " on " + entity);
-				engine.eval(rule.getScript());
+				scriptEngine.eval(rule.getScript());
 			}
 		} catch (final ScriptException se) {
 			logger.error("ScriptException processing rule: " + se.getMessage());
@@ -108,18 +108,18 @@ public class GameRuleProcessor {
 		// If the command's card has no validator, we don't need to do anything
 		if(command.getCard().getValidator() == null) return;
 		try {
-			engine.put("command", command);
-			engine.put("target", command.getTarget());
-			engine.put("rules", this);
+			scriptEngine.put("command", command);
+			scriptEngine.put("target", command.getTarget());
+			scriptEngine.put("rules", this);
 			PlayValidator validator = command.getCard().getValidator();
-			engine.eval(validator.getScript());
-			if(engine.get("error") != null) {
-				throw new RuntimeException("Validation exception: " + engine.get("error"));
+			scriptEngine.eval(validator.getScript());
+			if(scriptEngine.get("error") != null) {
+				throw new RuleException("Validation exception: " + scriptEngine.get("error"));
 			}
 		} catch (final ScriptException se) {
-			throw new RuntimeException("ScriptException processing validator: " + se.getMessage());
+			throw new RuleException("ScriptException processing validator: " + se.getMessage());
 		} catch (Exception ex) {
-			throw new RuntimeException("Exception processing validator: " + ex.getMessage());
+			throw new RuleException("Exception processing validator: " + ex.getMessage());
 		}
 	}
 	
@@ -149,7 +149,7 @@ public class GameRuleProcessor {
 	
 	public void enchantEntity(GameEntity entity, String ruleId) {
 		if(entity == null) {
-			throw new RuntimeException("Entity is null");
+			throw new RuleException("Entity is null");
 		}
 		EntityRule rule = game.getRule(ruleId);
 		entity.addRule(rule);
@@ -158,10 +158,11 @@ public class GameRuleProcessor {
 	/**
 	 * Remove all non-permanent rules from an entity
 	 * @param entity
+	 * @throws RuleException 
 	 */
-	public void disenchantEntity(GameEntity entity) {
+	public void disenchantEntity(GameEntity entity)  {
 		if(entity == null) {
-			throw new RuntimeException("Entity is null");
+			throw new RuleException("Entity is null");
 		}
 		List<EntityRule> rules = entity.getRules();
 		Iterator<EntityRule> iter = rules.iterator();
@@ -175,6 +176,35 @@ public class GameRuleProcessor {
 	}
 	
 	/**
+	 * Deliver damage from attacker to the target equal to its attack stat,
+	 * and vice versa.
+	 * 
+	 * @param attacker
+	 * @param target
+	 */
+	public void attack(GameEntity attacker, GameEntity target) {
+		if(attacker == null) {
+			throw new RuleException("Attacker is null");
+		}
+		if(target == null) {
+			throw new RuleException("Target is null");
+		}
+		if(!attacker.isInPlay()) {
+			throw new RuleException("Attacker is not in play");
+		}
+		if(!target.isInPlay()) {
+			throw new RuleException("Target is not in play");
+		}
+		int attackerAttack = attacker.getStat(EntityStats.ATTACK);
+		int targetAttack = target.getStat(EntityStats.ATTACK);
+		if(attackerAttack <= 0) {
+			throw new RuleException("Attacker has no attack value");
+		}
+		damageEntity(target, attackerAttack);
+		damageEntity(attacker, targetAttack);
+	}
+	
+	/**
 	 * Deliver damage to an entity, destroying it if total
 	 * damage exceeds its max health.
 	 * 
@@ -185,10 +215,14 @@ public class GameRuleProcessor {
 		if(entity == null) {
 			throw new RuntimeException("Entity is null");
 		}
-		// Cap damage at the entity's max health:
-		if(damage > entity.getMaxHealth()) {
-			damage = entity.getMaxHealth();
+		if(!entity.isInPlay()) {
+			throw new RuntimeException("Entity is not in play");
 		}
+		// Cap damage at the entity's max health:
+		if(damage > entity.getCurrentHealth()) {
+			damage = entity.getCurrentHealth();
+		}
+		if(damage <= 0) return;
 		int currentDam = entity.getVar(GameEntity.DAMAGE_TAKEN);
 		currentDam += damage;
 		entity.setVar(GameEntity.DAMAGE_TAKEN, currentDam);
@@ -204,6 +238,7 @@ public class GameRuleProcessor {
 	 * @param entity
 	 */
 	public void removeEntity(GameEntity entity) {
+		entity.clearTag(Tag.IN_PLAY);
 		game.removeEntity(entity);
 	}
 	

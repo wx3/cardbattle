@@ -6,8 +6,9 @@ import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.GameRuleProcessor;
+import com.wx3.cardbattle.game.GameRuleEngine;
 import com.wx3.cardbattle.game.Tag;
+import com.wx3.cardbattle.game.commands.AttackCommand;
 import com.wx3.cardbattle.game.commands.ChatCommand;
 import com.wx3.cardbattle.game.commands.EndTurnCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
@@ -29,7 +30,7 @@ import junit.framework.TestCase;
 public class GameTest extends TestCase {
 
 	protected GameInstance game;
-	protected GameRuleProcessor rules;
+	protected GameRuleEngine rules;
 	protected GamePlayer p1;
 	protected TestMessageHandler p1handler;
 	protected GamePlayer p2;
@@ -46,14 +47,34 @@ public class GameTest extends TestCase {
 		p2handler = new TestMessageHandler();
 		p2.connect(p2handler);
 		game.start();
-		rules = game.getRules();
+		rules = game.getRuleEngine();
 	}
 	
+	/**
+	 * Put a card in a player's hand as if drawn
+	 * 
+	 * @param card
+	 * @param player
+	 * @return
+	 */
 	private GameEntity putCardInHand(Card card, GamePlayer player) {
 		GameEntity entity = rules.instantiateCard(card);
 		entity.setTag(Tag.IN_HAND);
 		entity.setOwner(player);
 		return entity;
+	}
+	
+	/**
+	 * Play a specific named card as a player
+	 * @param cardname
+	 * @param player
+	 */
+	private GameEntity playCard(String cardname, GamePlayer player, int target) {
+		Card c1 = game.getCard(cardname);
+		GameEntity e1 = putCardInHand(c1, player);
+		PlayCardCommand command = new PlayCardCommand(e1.getId(),target);
+		player.handleCommand(command);
+		return e1;
 	}
 	
 	/**
@@ -112,14 +133,21 @@ public class GameTest extends TestCase {
 	 * Test card playing
 	 */
 	public void testPlayCard() {
-		Card c1 = game.getCard("Weak Minion");
-		GameEntity e1 = putCardInHand(c1, p1);
-		PlayCardCommand command = new PlayCardCommand(e1.getId(),0);
-		p1.handleCommand(command);
+		GameEntity e1 = playCard("Weak Minion", p1, 0);
 		CommandResponseMessage resp = (CommandResponseMessage) p1handler.getLastMessage();
 		assertTrue(resp.isSuccess());
 		// We should be able to get the entity by id and it should be in play: 
 		assertTrue(game.getEntity(e1.getId()).hasTag(Tag.IN_PLAY));
+	}
+	
+	public void testAttack() {
+		GameEntity e1 = playCard("Weak Minion", p1, 0);
+		p1.handleCommand(new EndTurnCommand());
+		GameEntity e2 = playCard("Weak Minion", p2, 0);
+		p2.handleCommand(new EndTurnCommand());
+		AttackCommand com1 = new AttackCommand(e1.getId(),e2.getId());
+		p1.handleCommand(com1);
+		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
 	}
 	
 	/**
@@ -128,7 +156,7 @@ public class GameTest extends TestCase {
 	 */
 	public void testValidation() {
 		Card c1 = game.getCard("Weak Minion");
-		Card c2 = game.getCard("Weak Sauce");
+		Card c2 = game.getCard("Deal 2 Minion");
 		GameEntity e1 = putCardInHand(c1, p1);
 		GameEntity e2 = putCardInHand(c2, p1);
 		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
@@ -139,6 +167,17 @@ public class GameTest extends TestCase {
 		p1.handleCommand(com2);
 		CommandResponseMessage resp = (CommandResponseMessage) p1handler.getLastMessage();
 		assertFalse(resp.isSuccess());
+	}
+	
+	/**
+	 * Test that our "Damage Draw" minion draws us a card when it takes damage
+	 */
+	public void testDrawCardEnchantment() {
+		GameEntity e1 = playCard("Damage Draw", p1, 0);
+		int oldHandSize = p1.getPlayerHand().size();
+		GameEntity e2 = playCard("Deal 2 Minion", p1, e1.getId());
+		int newSize = p1.getPlayerHand().size();
+		assertTrue(newSize > oldHandSize);
 	}
 	
 	/**
@@ -160,7 +199,7 @@ public class GameTest extends TestCase {
 	 */
 	public void testDamage() {
 		Card c1 = game.getCard("Weak Minion");
-		Card c2 = game.getCard("Weak Sauce");
+		Card c2 = game.getCard("Deal 2 Minion");
 		GameEntity e1 = putCardInHand(c1, p1);
 		GameEntity e2 = putCardInHand(c2, p1);
 		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);

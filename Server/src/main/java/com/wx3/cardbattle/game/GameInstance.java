@@ -93,7 +93,7 @@ public class GameInstance {
 	private GameUpdateTask updateTask;
 	
 	@Transient
-	private GameRuleProcessor ruleProcessor;
+	private GameRuleEngine ruleEngine;
 	private boolean started = false;
 	
 	public long getId() {
@@ -112,8 +112,8 @@ public class GameInstance {
 		this.created = created;
 	}
 	
-	public GameRuleProcessor getRules() {
-		return ruleProcessor;
+	public GameRuleEngine getRuleEngine() {
+		return ruleEngine;
 	}
 	
 	public void setCards(Collection<Card> cards) {
@@ -207,13 +207,13 @@ public class GameInstance {
 	}
 	
 	public void start() {
-		ruleProcessor = new GameRuleProcessor(this);
+		ruleEngine = new GameRuleEngine(this);
 		
 		Timer taskTimer = new Timer();
 		updateTask = new GameUpdateTask(this);
 		taskTimer.schedule(updateTask, 0, 1000);
 		
-		ruleProcessor.startup();
+		ruleEngine.startup();
 		
 		startTurn();
 		processEvents();
@@ -239,7 +239,7 @@ public class GameInstance {
 	}
 	
 	public void validatePlay(PlayCardCommand command) {
-		ruleProcessor.validatePlay(command);	
+		ruleEngine.validatePlay(command);	
 	}
 	
 	/**
@@ -302,7 +302,7 @@ public class GameInstance {
 			for(GameEntity entity : entityList) {
 				if(entity.isInPlay()) {
 					for(EntityRule rule : entity.getRules()) {
-						ruleProcessor.processRule(event, rule, entity);
+						ruleEngine.processRule(event, rule, entity);
 					}
 				}
 			}
