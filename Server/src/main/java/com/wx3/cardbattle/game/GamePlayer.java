@@ -53,6 +53,9 @@ public class GamePlayer {
 	@Transient
 	private GameInstance game;
 	
+	@Transient
+	private GameEntity playerEntity;
+	
 	/**
 	 * How events get back to the player
 	 */
@@ -99,6 +102,14 @@ public class GamePlayer {
 		this.game = game;
 	}
 	
+	void setEntity(GameEntity entity) {
+		this.playerEntity = entity;
+	}
+	
+	public GameEntity getEntity() {
+		return this.playerEntity;
+	}
+	
 	public void handleCommand(GameCommand command) {
 		command.setGameInstance(game);
 		command.setPlayer(this);
@@ -108,6 +119,7 @@ public class GamePlayer {
 			command.validate();
 			resp = game.handleCommand(command);
 		} catch (CommandException e) {
+			logger.warn("Command failed: " + e.getMessage());
 			resp = new CommandResponseMessage(command, false, e.getMessage());
 		}
 		messageHandler.handleMessage(resp);

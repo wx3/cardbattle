@@ -21,6 +21,7 @@ import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
+import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
  * Handles persistence for the game, both long term via hibernate and 
@@ -58,9 +59,33 @@ public class Datastore {
 	public Collection<Card> getCards() {
 		Session session = sessionFactory.getCurrentSession();
     	session.beginTransaction();
+    	@SuppressWarnings("unchecked")
     	List<Card> cardList = session.createCriteria(Card.class).list();
     	session.getTransaction().commit();
     	return cardList;
+	}
+	
+	public void createValidator(PlayValidator pv) {
+		Session session = sessionFactory.getCurrentSession();
+    	session.beginTransaction();
+    	session.save(pv);
+    	session.getTransaction().commit();
+	}
+	
+	public void createRule(EntityRule rule) {
+		Session session = sessionFactory.getCurrentSession();
+    	session.beginTransaction();
+    	session.save(rule);
+    	session.getTransaction().commit();
+	}
+	
+	public Collection<EntityRule> getRules() {
+		Session session = sessionFactory.getCurrentSession();
+    	session.beginTransaction();
+    	@SuppressWarnings("unchecked")
+		List<EntityRule> ruleList = session.createCriteria(EntityRule.class).list();
+    	session.getTransaction().commit();
+    	return ruleList;
 	}
 	
 	/**
@@ -71,6 +96,7 @@ public class Datastore {
 	 */
 	public GameInstance createGame(List<User> users) {
 		GameInstance game = new GameInstance();
+		game.setRules(getRules());
 		game.setCards(getCards());
 		Session session = sessionFactory.getCurrentSession();
 		SecureRandom random = new SecureRandom();
@@ -101,13 +127,6 @@ public class Datastore {
 	
 	public GameInstance getGame(long id) {
 		return gameInstances.get(id);
-	}
-	
-	public void createRule(EntityRule rule) {
-		Session session = sessionFactory.getCurrentSession();
-    	session.beginTransaction();
-    	session.save(rule);
-    	session.getTransaction().commit();
 	}
 	
 	public void createCard(Card card) {

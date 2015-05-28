@@ -19,13 +19,16 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cascade;
 
 import com.wx3.cardbattle.game.rules.EntityRule;
+import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
  * A Card represents a game card in a deck. Once a card is drawn into a player's
@@ -61,6 +64,10 @@ public class Card {
 		inverseJoinColumns = @JoinColumn(name="ruleId"))
 	@OrderColumn(name="ruleOrder")
 	private List<EntityRule> rules = new ArrayList<EntityRule>();
+	
+	@ManyToOne
+	@JoinColumn(name = "validator")
+	private PlayValidator validator;
 	
 	public Card() {}
 	
@@ -109,13 +116,20 @@ public class Card {
 		this.stats = stats;
 	}
 	
-	
 	public List<EntityRule> getRules() {
 		return rules;
 	}
 	
 	public void setRules(List<EntityRule> rules) {
 		this.rules = rules;
+	}
+	
+	public PlayValidator getValidator() {
+		return validator;
+	}
+	
+	public void setValidator(PlayValidator validator) {
+		this.validator = validator;
 	}
 	
 }

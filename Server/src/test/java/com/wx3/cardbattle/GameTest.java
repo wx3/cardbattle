@@ -13,6 +13,7 @@ import com.wx3.cardbattle.game.commands.EndTurnCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
+import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameMessage;
@@ -101,8 +102,8 @@ public class GameTest extends TestCase {
 	 * Test that we can get a card by name from the game
 	 */
 	public void testGetCard() {
-		Card c1 = game.getCard("Aggro Card");
-		assertTrue(c1.getRules().size() > 0);
+		Card c1 = game.getCard("Weak Minion");
+		assertNotNull(c1);
 		assertTrue(c1.getTags().contains(Tag.MINION));
 		assertTrue(c1.getStats().containsKey(EntityStats.MAX_HEALTH));
 	}
@@ -111,33 +112,68 @@ public class GameTest extends TestCase {
 	 * Test card playing
 	 */
 	public void testPlayCard() {
-		GameEntity e1 = rules.drawCard(p1);
-		assertTrue(p1.getPlayerDeck().size() > 0);
+		Card c1 = game.getCard("Weak Minion");
+		GameEntity e1 = putCardInHand(c1, p1);
 		PlayCardCommand command = new PlayCardCommand(e1.getId(),0);
 		p1.handleCommand(command);
+		CommandResponseMessage resp = (CommandResponseMessage) p1handler.getLastMessage();
+		assertTrue(resp.isSuccess());
 		// We should be able to get the entity by id and it should be in play: 
 		assertTrue(game.getEntity(e1.getId()).hasTag(Tag.IN_PLAY));
 	}
 	
 	/**
-	 * If an aggro card is played after an aggro card, the second aggro card 
-	 * should take damage and die.
+	 * Test that validation prevents us from playing a minion targeted spell
+	 * on a player entity
+	 */
+	public void testValidation() {
+		Card c1 = game.getCard("Weak Minion");
+		Card c2 = game.getCard("Weak Sauce");
+		GameEntity e1 = putCardInHand(c1, p1);
+		GameEntity e2 = putCardInHand(c2, p1);
+		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
+		p1.handleCommand(com1);
+		assertTrue(e1.isInPlay());
+		
+		PlayCardCommand com2 = new PlayCardCommand(e2.getId(), p2.getEntity().getId());
+		p1.handleCommand(com2);
+		CommandResponseMessage resp = (CommandResponseMessage) p1handler.getLastMessage();
+		assertFalse(resp.isSuccess());
+	}
+	
+	/**
+	 * Test that disenchanting an entity removes its rules
+	 */
+	public void testDisenchant() {
+		Card c1 = game.getCard("Damage Draw");
+		GameEntity e1 = putCardInHand(c1, p1);
+		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
+		p1.handleCommand(com1);
+		assertTrue(e1.getRules().size() > 0);
+		rules.disenchantEntity(e1);
+		assertTrue(e1.getRules().size() == 0);
+	}
+	
+	/**
+	 * Test that we can damage and kill a minion by playing an 
+	 * attack spell on it.
 	 */
 	public void testDamage() {
-		Card c1 = game.getCard("Aggro Card");
+		Card c1 = game.getCard("Weak Minion");
+		Card c2 = game.getCard("Weak Sauce");
 		GameEntity e1 = putCardInHand(c1, p1);
-		GameEntity e2 = putCardInHand(c1, p1);
+		GameEntity e2 = putCardInHand(c2, p1);
 		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
 		p1.handleCommand(com1);
 		// Make sure we can find the first card we played:
 		assertNotNull(game.getEntity(e1.getId()));
 		assertTrue(e1.isInPlay());
-		PlayCardCommand com2 = new PlayCardCommand(e2.getId(),0);
+		PlayCardCommand com2 = new PlayCardCommand(e2.getId(),e1.getId());
 		p1.handleCommand(com2);
-		// The second entity should be dead now:
-		assertNull(game.getEntity(e2.getId()));
 		// There should be at least one damage event in the event history now:
 		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
+		// There should be at least one killed event in the history as well:
+		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == KilledEvent.class).findFirst().orElse(null));
 	}
 	
 }

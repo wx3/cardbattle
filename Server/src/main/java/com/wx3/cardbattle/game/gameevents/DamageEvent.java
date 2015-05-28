@@ -13,23 +13,15 @@ public class DamageEvent extends GameEvent {
 
 	@SuppressWarnings("unused")
 	private int entityId;
-	private int damage;
+	public int damage;
 	
 	@Transient
-	private GameEntity entity;
+	public GameEntity entity;
 	
 	public DamageEvent(GameEntity entity, int damage) {
 		this.entity = entity;
 		this.entityId = entity.getId();
 		this.damage = damage;
-	}
-	
-	public GameEntity getEntity() {
-		return entity;
-	}
-	
-	public int getDamage() {
-		return damage;
 	}
 	
 }

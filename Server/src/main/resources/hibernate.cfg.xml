@@ -68,6 +68,7 @@
         <mapping class="com.wx3.cardbattle.game.GamePlayer"/>
         <mapping class="com.wx3.cardbattle.game.Card"/>
         <mapping class="com.wx3.cardbattle.game.rules.EntityRule"/>
+        <mapping class="com.wx3.cardbattle.game.rules.PlayValidator"/>
         <mapping class="com.wx3.cardbattle.datastore.PlayerAuthtoken"/>
 
     </session-factory>

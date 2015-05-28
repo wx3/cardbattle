@@ -90,7 +90,7 @@ public class GameEntity {
 			stats.setBase(stat, cardStats.get(stat));
 		}
 		for(EntityRule rule : card.getRules()) {
-			rules.add(rule);
+			rules.add(new EntityRule(rule));
 		}
 		rules = new ArrayList<EntityRule>(card.getRules());
 	}
@@ -149,8 +149,8 @@ public class GameEntity {
 		this.rules.add(rule);
 	}
 
-	List<EntityRule> getRules() {
-		return rules;
+	public List<EntityRule> getRules() {
+		return new ArrayList<EntityRule>(rules);
 	}
 
 	void setRules(List<EntityRule> rules) {

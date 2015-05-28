@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.GameServer;
 import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
@@ -42,7 +43,7 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 public class GameInstance {
 	
 	@Transient
-	final Logger logger = LoggerFactory.getLogger(GameInstance.class);
+	final static Logger logger = LoggerFactory.getLogger(GameInstance.class);
 	
 	private static final int MAX_EVENTS = 1000;
 
@@ -69,6 +70,9 @@ public class GameInstance {
 	
 	@Transient
 	private Map<String, Card> cardsByName = new HashMap<String, Card>();
+	
+	@Transient
+	private Map<String, EntityRule> rulesById = new HashMap<String, EntityRule>();
 	
 	@Transient
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
@@ -127,6 +131,12 @@ public class GameInstance {
 		}
 	}
 	
+	public void setRules(Collection<EntityRule> rules) {
+		for(EntityRule rule : rules) {
+			rulesById.put(rule.getId(), rule);
+		}
+	}
+	
 	public void addPlayer(GamePlayer player) {
 		// The player's position is equal to the size of the player list
 		// prior to adding. E.g., the first player added is in position 0
@@ -141,8 +151,10 @@ public class GameInstance {
 		playerEntity.setTag(Tag.IN_PLAY);
 		playerEntity.setOwner(player);
 		String script = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {rules.drawCard(entity.getOwner())}";
-		EntityRule drawRule = new EntityRule(StartTurnEvent.class, script, "Player Draw");
+		EntityRule drawRule = new EntityRule(StartTurnEvent.class, script, "PLAYER_DRAW", "Player draws at start of turn.");
 		playerEntity.addRule(drawRule);
+		
+		player.setEntity(playerEntity);
 	}
 	
 	public GamePlayer getPlayerInPosition(int pos) {
@@ -171,6 +183,10 @@ public class GameInstance {
 	
 	public Card getCard(String cardName) {
 		return cardsByName.get(cardName);
+	}
+	
+	public EntityRule getRule(String ruleId) {
+		return rulesById.get(ruleId);
 	}
 	
 	public void addEvent(GameEvent event) {
@@ -222,18 +238,28 @@ public class GameInstance {
 		startTurn();
 	}
 	
+	public void validatePlay(PlayCardCommand command) {
+		ruleProcessor.validatePlay(command);	
+	}
+	
 	/**
 	 * Play a card onto the board with an optional targetEntity
 	 * 
 	 * @param cardEntity
 	 */
 	public void playCard(GameEntity cardEntity, GameEntity targetEntity) {
+		String msg = "Playing " + cardEntity;
+		if(targetEntity != null) msg += " on " + targetEntity;
+		logger.info(msg);
 		cardEntity.setTag(Tag.IN_PLAY);
 		cardEntity.clearTag(Tag.IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
 		addEvent(event);
 		if(cardEntity.hasTag(Tag.MINION)) {
 			addEvent(new SummonMinionEvent(cardEntity));
+		}
+		else {
+			removeEntity(cardEntity);
 		}
 	}
 	

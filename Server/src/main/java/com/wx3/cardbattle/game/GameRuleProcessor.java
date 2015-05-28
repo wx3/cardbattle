@@ -1,5 +1,8 @@
 package com.wx3.cardbattle.game;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Queue;
 
 import javax.script.ScriptEngine;
@@ -13,11 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
+import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
+import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
  * The GameRuleProcessor uses the Nashorn javascript engine to process
@@ -92,7 +98,28 @@ public class GameRuleProcessor {
 				engine.eval(rule.getScript());
 			}
 		} catch (final ScriptException se) {
-			logger.error("Exception processing rule: " + se.getMessage());
+			logger.error("ScriptException processing rule: " + se.getMessage());
+		} catch (Exception ex) {
+			logger.error("Exception processing rule: " + ex.getMessage());
+		}
+	}
+	
+	void validatePlay(PlayCardCommand command) {
+		// If the command's card has no validator, we don't need to do anything
+		if(command.getCard().getValidator() == null) return;
+		try {
+			engine.put("command", command);
+			engine.put("target", command.getTarget());
+			engine.put("rules", this);
+			PlayValidator validator = command.getCard().getValidator();
+			engine.eval(validator.getScript());
+			if(engine.get("error") != null) {
+				throw new RuntimeException("Validation exception: " + engine.get("error"));
+			}
+		} catch (final ScriptException se) {
+			throw new RuntimeException("ScriptException processing validator: " + se.getMessage());
+		} catch (Exception ex) {
+			throw new RuntimeException("Exception processing validator: " + ex.getMessage());
 		}
 	}
 	
@@ -120,6 +147,33 @@ public class GameRuleProcessor {
 		return drawCard(getCurrentPlayer());
 	}
 	
+	public void enchantEntity(GameEntity entity, String ruleId) {
+		if(entity == null) {
+			throw new RuntimeException("Entity is null");
+		}
+		EntityRule rule = game.getRule(ruleId);
+		entity.addRule(rule);
+	}
+	
+	/**
+	 * Remove all non-permanent rules from an entity
+	 * @param entity
+	 */
+	public void disenchantEntity(GameEntity entity) {
+		if(entity == null) {
+			throw new RuntimeException("Entity is null");
+		}
+		List<EntityRule> rules = entity.getRules();
+		Iterator<EntityRule> iter = rules.iterator();
+		while(iter.hasNext()) {
+			EntityRule rule = iter.next();
+			if(!rule.isPermanent()) {
+				iter.remove();
+			}
+		}
+		entity.setRules(rules);
+	}
+	
 	/**
 	 * Deliver damage to an entity, destroying it if total
 	 * damage exceeds its max health.
@@ -128,6 +182,9 @@ public class GameRuleProcessor {
 	 * @param damage
 	 */
 	public void damageEntity(GameEntity entity, int damage) {
+		if(entity == null) {
+			throw new RuntimeException("Entity is null");
+		}
 		// Cap damage at the entity's max health:
 		if(damage > entity.getMaxHealth()) {
 			damage = entity.getMaxHealth();

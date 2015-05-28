@@ -27,8 +27,7 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
 public class EntityRule {
 	
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	private int id;
+	private String id;
 	
 	private String description;
 	
@@ -42,14 +41,27 @@ public class EntityRule {
 	 */
 	private String triggeredScript;
 	
-	public EntityRule() {
-		
-	}
+	private boolean permanent;
 	
-	public EntityRule(Class<? extends GameEvent> trigger, String script, String description) {
-		this.description = description;
+	public EntityRule() {}
+	
+	public EntityRule(Class<? extends GameEvent> trigger, String script, String id, String description) {
 		this.eventTrigger = trigger.getSimpleName();
 		this.triggeredScript = script;
+		this.id = id;
+		this.description = description;
+	}
+	
+	public EntityRule(EntityRule rule) {
+		this.eventTrigger = rule.eventTrigger;
+		this.triggeredScript = rule.triggeredScript;
+		this.id = rule.id;
+		this.description = rule.description;
+		this.permanent = rule.permanent;
+	}
+	
+	public String getId() {
+		return id;
 	}
 	
 	public String getEventTrigger() {
@@ -73,6 +85,10 @@ public class EntityRule {
 		// Otherwise we fire if the event class's simple name matches our trigger string: 
 		String className = event.getClass().getSimpleName();
 		return isTriggered(className);
+	}
+	
+	public boolean isPermanent() {
+		return permanent;
 	}
 
 	public String getScript() {

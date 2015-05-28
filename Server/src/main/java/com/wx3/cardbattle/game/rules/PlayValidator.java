@@ -16,10 +16,28 @@ import javax.persistence.Id;
 public class PlayValidator {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	private int id;
-	private String name;
+	private String id;
 	private String description;
 	private String script;
+	
+	public static PlayValidator createValidator(String id, String script, String description) {
+		PlayValidator validator = new PlayValidator();
+		validator.id = id;
+		validator.script = script;
+		validator.description = description;
+		return validator;
+	}
+	
+	public String getId() {
+		return id;
+	}
+	
+	public String getScript() {
+		return script;
+	}
+	
+	public String getDescription() {
+		return description;
+	}
 	
 }
