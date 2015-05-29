@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
+import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
@@ -104,6 +105,43 @@ public class GameRuleEngine {
 		}
 	}
 	
+	/**
+	 * Resets all entities' stats to their base values, then evaluates
+	 * all buff rules to update them.
+	 */
+	void recalculateStats() {
+		List<GameEntity> gameEntities = game.getEntities();
+		// First, reset all stats. This sets each stat to the base value:
+		for(GameEntity entity : gameEntities) {
+			entity.resetStats();
+		}
+		// Then iterate over all entities and trigger any buff rules. These rules
+		// may modify one or more entity's stats:
+		for(GameEntity entity : gameEntities) {
+			if(entity.isInPlay()) {
+				for(EntityRule rule : entity.getRules()) {
+					if(rule.getEventTrigger().equals(BuffRecalc.class.getSimpleName())) {
+						scriptEngine.put("rules", this);
+						scriptEngine.put("entity", entity);
+						logger.info("Recalculating buff " + rule + " on " + entity);
+						try {
+							scriptEngine.eval(rule.getScript());	
+						} catch (Exception ex) {
+							throw new RuleException("Exception processing buff " + rule + ":" + ex.getMessage());
+						}
+					}
+				}
+			}
+		}
+		// Finally, make sure no entity has a health greater than its max health
+		// (this could happen as a result of losing a buff for example):
+		for(GameEntity entity : gameEntities) {
+			if(entity.getCurrentHealth() > entity.getMaxHealth()) {
+				entity.setCurrentHealth(entity.getMaxHealth());
+			}
+		}
+	}
+	
 	void validatePlay(PlayCardCommand command) {
 		// If the command's card has no validator, we don't need to do anything
 		if(command.getCard().getValidator() == null) return;
@@ -155,6 +193,13 @@ public class GameRuleEngine {
 		entity.addRule(rule);
 	}
 	
+	public void buffEntity(GameEntity entity, String stat, int amount) {
+		entity.stats.buff(stat, amount);
+		if(stat.equals(EntityStats.MAX_HEALTH)) {
+			entity.setCurrentHealth(entity.getCurrentHealth() + amount);
+		}
+	}
+	
 	/**
 	 * Remove all non-permanent rules from an entity
 	 * @param entity
@@ -203,7 +248,7 @@ public class GameRuleEngine {
 		damageEntity(target, attackerAttack);
 		damageEntity(attacker, targetAttack);
 	}
-	
+
 	/**
 	 * Deliver damage to an entity, destroying it if total
 	 * damage exceeds its max health.
@@ -223,11 +268,11 @@ public class GameRuleEngine {
 			damage = entity.getCurrentHealth();
 		}
 		if(damage <= 0) return;
-		int currentDam = entity.getVar(GameEntity.DAMAGE_TAKEN);
-		currentDam += damage;
-		entity.setVar(GameEntity.DAMAGE_TAKEN, currentDam);
+		int currentHealth = entity.getCurrentHealth();
+		currentHealth -= damage;
+		entity.setCurrentHealth(currentHealth);
 		game.addEvent(new DamageEvent(entity, damage));
-		if(currentDam >= entity.getMaxHealth()) {
+		if(currentHealth <= 0) {
 			killEntity(entity);
 		}
 	}

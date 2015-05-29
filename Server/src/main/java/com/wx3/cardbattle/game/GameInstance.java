@@ -317,6 +317,7 @@ public class GameInstance {
 				}
 				markedForRemoval.clear();
 			}
+			ruleEngine.recalculateStats();
 			broadcastEvent(event);
 			++i;
 			if(i > MAX_EVENTS) {

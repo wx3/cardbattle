@@ -29,6 +29,7 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 public class GameEntity {
 	
 	public static final String DAMAGE_TAKEN = "DAMAGE_TAKEN";
+	public static final String CURRENT_HEALTH = "CURRENT_HEALTH";
 	
 	public String name;
 
@@ -39,7 +40,7 @@ public class GameEntity {
 	private GamePlayer owner;
 	
 	private Set<String> tags = new HashSet<String>();
-	private EntityStats stats = new EntityStats();
+	EntityStats stats = new EntityStats();
 	private Map<String, Integer> vars = new HashMap<String,Integer>();
 	private List<EntityRule> rules = new ArrayList<EntityRule>();
 	
@@ -52,11 +53,11 @@ public class GameEntity {
 		this.id = id;
 	}
 	
-	public GameInstance getGame() {
+	GameInstance getGame() {
 		return game;
 	}
 
-	public void setGame(GameInstance game) {
+	void setGame(GameInstance game) {
 		this.game = game;
 	}
 
@@ -94,6 +95,8 @@ public class GameEntity {
 		}
 		rules = new ArrayList<EntityRule>(card.getRules());
 		stats.reset();
+		// Do this last so max health is equal to base:
+		setCurrentHealth(getMaxHealth());
 	}
 	
 	/**
@@ -135,10 +138,6 @@ public class GameEntity {
 		return stats.getBaseValue(stat);
 	}
 	
-	public void buffStat(String stat, int amount) {
-		stats.buff(stat, amount);
-	}
-	
 	public int getVar(String var) {
 		if(vars.containsKey(var)) {
 			return vars.get(var);
@@ -175,7 +174,11 @@ public class GameEntity {
 	}
 	
 	public int getCurrentHealth() {
-		return getMaxHealth() - getVar(DAMAGE_TAKEN);
+		return getVar(CURRENT_HEALTH);
+	}
+	
+	public void setCurrentHealth(int health) {
+		setVar(CURRENT_HEALTH, health);
 	}
 	
 	public int getMaxHealth() {

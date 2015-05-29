@@ -125,7 +125,7 @@ public class GamePlayer {
 		messageHandler.handleMessage(resp);
 	}
 
-	public void handleEvent(GameEvent event) {
+	void handleEvent(GameEvent event) {
 		if(this.messageHandler != null) {
 			this.messageHandler.handleMessage(new EventMessage(event, this));
 		} else {
@@ -173,6 +173,13 @@ public class GamePlayer {
 		return hand;
 	}
 	
+	/**
+	 * Can the player see the details of this entity (i.e., is the entity in the
+	 * other player's hand)?
+	 * 
+	 * @param entity
+	 * @return
+	 */
 	public boolean canSee(GameEntity entity) {
 		if(entity.hasTag(Tag.IN_HAND) && entity.getOwner() != this) return false;
 		return true;

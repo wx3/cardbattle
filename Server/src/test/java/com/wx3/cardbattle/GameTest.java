@@ -140,6 +140,9 @@ public class GameTest extends TestCase {
 		assertTrue(game.getEntity(e1.getId()).hasTag(Tag.IN_PLAY));
 	}
 	
+	/**
+	 * Test entity on entity attacking
+	 */
 	public void testAttack() {
 		GameEntity e1 = playCard("Weak Minion", p1, 0);
 		p1.handleCommand(new EndTurnCommand());
@@ -184,12 +187,9 @@ public class GameTest extends TestCase {
 	 * Test that disenchanting an entity removes its rules
 	 */
 	public void testDisenchant() {
-		Card c1 = game.getCard("Damage Draw");
-		GameEntity e1 = putCardInHand(c1, p1);
-		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
-		p1.handleCommand(com1);
+		GameEntity e1 = playCard("Damage Draw", p1, 0);
 		assertTrue(e1.getRules().size() > 0);
-		rules.disenchantEntity(e1);
+		playCard("Disenchant", p1, e1.getId());
 		assertTrue(e1.getRules().size() == 0);
 	}
 	
@@ -213,6 +213,31 @@ public class GameTest extends TestCase {
 		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
 		// There should be at least one killed event in the history as well:
 		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == KilledEvent.class).findFirst().orElse(null));
+	}
+	
+	/**
+	 * Test that a minion can be enchanted with a health buff
+	 */
+	public void testEnchantBuff() {
+		// First get minion out there:
+		GameEntity e1 = playCard("Strong Minion", p1, 0);
+		// Then damage it:
+		playCard("Deal 2 Minion", p1, e1.getId());
+		int startCurrent = e1.getCurrentHealth();
+		int startMax = e1.getMaxHealth();
+		assertTrue(startMax > startCurrent);
+		// Now buff it:
+		playCard("+3 Health", p1, e1.getId());
+		assertTrue(e1.getRules().size() > 0);
+		int endCurrent = e1.getCurrentHealth();
+		int endMax = e1.getMaxHealth();
+		// Both start and max should be 3 higher
+		assertTrue(endCurrent - startCurrent == 3);
+		assertTrue(endMax - startMax == 3);
+		// Now disenchant it:
+		playCard("Disenchant", p1, e1.getId());
+		assertTrue(e1.getMaxHealth() == startMax);
+		assertTrue(e1.getCurrentHealth() > startCurrent);
 	}
 	
 }
