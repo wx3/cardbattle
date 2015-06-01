@@ -7,3 +7,6 @@
 #Maven
 Server/log/
 Server/target/
+
+#General
+Test/

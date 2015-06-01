@@ -1,5 +1,7 @@
 package com.wx3.cardbattle.game.commands;
 
+import javax.persistence.Transient;
+
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
@@ -12,10 +14,12 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
  */
 public abstract class GameCommand {
 	
+	@Transient
 	protected GameInstance game;
+	@Transient
+	protected GamePlayer player;
 	
 	protected int id;
-	protected GamePlayer player;
 	
 	/**
 	 * Parsing the command resolves id references. Eg., if the command refers

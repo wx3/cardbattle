@@ -126,7 +126,7 @@ public class GameEntity {
 		return tags.contains(tag);
 	}
 	
-	public void resetStats() {
+	void resetStats() {
 		stats.reset();
 	}
 	
@@ -177,7 +177,7 @@ public class GameEntity {
 		return getVar(CURRENT_HEALTH);
 	}
 	
-	public void setCurrentHealth(int health) {
+	void setCurrentHealth(int health) {
 		setVar(CURRENT_HEALTH, health);
 	}
 	

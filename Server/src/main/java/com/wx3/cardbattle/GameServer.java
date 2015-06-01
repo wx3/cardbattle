@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.Datastore;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
@@ -44,7 +45,7 @@ public class GameServer {
 		return game;
 	}
 	
-	public GamePlayer authenticate(String token) {
+	public GamePlayer authenticate(String token) throws AuthenticationException {
 		return datastore.authenticate(token);
 	}
 	

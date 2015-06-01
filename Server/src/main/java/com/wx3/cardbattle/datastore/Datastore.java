@@ -140,8 +140,12 @@ public class Datastore {
 	 * Find the GamePlayer with the corresponding authentication token
 	 * @param token
 	 * @return
+	 * @throws AuthenticationException 
 	 */
-	public GamePlayer authenticate(String token) {
+	public GamePlayer authenticate(String token) throws AuthenticationException {
+		if(token.isEmpty() || token == null) {
+			throw new AuthenticationException(AuthenticationException.NO_TOKEN);
+		}
 		Session session = sessionFactory.getCurrentSession();
     	session.beginTransaction();
     	Criteria criteria = session.createCriteria(PlayerAuthtoken.class);
@@ -150,18 +154,18 @@ public class Datastore {
 
     	session.getTransaction().commit();
     	if(authtoken == null) {
-    		throw new RuntimeException("Unable to authenticate player with token");
+    		throw new AuthenticationException(AuthenticationException.BAD_TOKEN);
     	}
     	// Note that the GamePlayer we retrieve from the DB is not the one attached to the
     	// game, but has the same data, so we use its values to get the game id and player id
     	GamePlayer player = authtoken.getPlayer();
     	GameInstance game = getGame(player.getGameId());
     	if(game == null) {
-    		throw new RuntimeException("Player authenticated, but game instance '" + player.getGameId() + "' not found on this server");
+    		throw new AuthenticationException(AuthenticationException.MISSING_GAME);
     	}
     	GamePlayer gamePlayer = game.getPlayer(player.getId());
     	if(gamePlayer == null) {
-    		throw new RuntimeException("Player somehow not found in appropriate game instance.");
+    		throw new AuthenticationException(AuthenticationException.UNKNOWN);
     	}
     	return gamePlayer;
 	}

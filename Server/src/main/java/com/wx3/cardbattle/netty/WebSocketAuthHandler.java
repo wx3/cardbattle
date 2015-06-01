@@ -47,8 +47,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import com.wx3.cardbattle.GameServer;
+import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
@@ -56,6 +61,8 @@ import com.wx3.cardbattle.game.GamePlayer;
  * Handles the initial handshake 
  */
 public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
+	
+	final Logger logger = LoggerFactory.getLogger(WebSocketAuthHandler.class);
 	
 	// Figure out where this belongs:
 	public static final boolean SSL = false;
@@ -66,6 +73,32 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
     private String webpage;
     private NettyWebSocketServer server;
     private WebSocketServerHandshaker handshaker;
+    
+    private static void sendHttpResponse(
+        ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
+        // Generate an error page if response getStatus code is not OK (200).
+        if (res.getStatus().code() != 200) {
+            ByteBuf buf = Unpooled.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8);
+            res.content().writeBytes(buf);
+            buf.release();
+            HttpHeaders.setContentLength(res, res.content().readableBytes());
+        }
+
+        // Send the response and close the connection if necessary.
+        ChannelFuture f = ctx.channel().writeAndFlush(res);
+        if (!HttpHeaders.isKeepAlive(req) || res.getStatus().code() != 200) {
+            f.addListener(ChannelFutureListener.CLOSE);
+        }
+    }
+
+    private static String getWebSocketLocation(FullHttpRequest req) {
+        String location =  req.headers().get(HOST) + WEBSOCKET_PATH;
+        if (SSL) {
+            return "wss://" + location;
+        } else {
+            return "ws://" + location;
+        }
+    }
     
     public WebSocketAuthHandler(NettyWebSocketServer server) {
     	this.server =server;
@@ -144,10 +177,6 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
         sendHttpResponse(ctx, req, res);
     }
     
-    private String createTestGame() {
-    	return "";
-    }
-
     private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
 
         // Check for closing frame
@@ -166,49 +195,25 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
 
         // The first string sent in a web socket frame is expected to be an authtoken:
         String token = ((TextWebSocketFrame) frame).text();
-        //try {
+        try {
         	GamePlayer player = server.getGameServer().authenticate(token);
         	WebsocketMessageHandler messageHandler = new WebsocketMessageHandler(ctx.channel(), player);
         	player.connect(messageHandler);
         	ctx.channel().pipeline().replace(WebSocketAuthHandler.class, "MessageHandler", new WebsocketCommandHandler(server.getGameServer(), player));
-       // } catch (Exception e) {
-       // 	ctx.close();
-       // 	throw new RuntimeException(e);
-        	//System.err.printf("Error: " + e.getMessage(), ctx.channel(), token);
-        	
-        //}
-        
-    }
-
-    private static void sendHttpResponse(
-            ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
-        // Generate an error page if response getStatus code is not OK (200).
-        if (res.getStatus().code() != 200) {
-            ByteBuf buf = Unpooled.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8);
-            res.content().writeBytes(buf);
-            buf.release();
-            HttpHeaders.setContentLength(res, res.content().readableBytes());
-        }
-
-        // Send the response and close the connection if necessary.
-        ChannelFuture f = ctx.channel().writeAndFlush(res);
-        if (!HttpHeaders.isKeepAlive(req) || res.getStatus().code() != 200) {
-            f.addListener(ChannelFutureListener.CLOSE);
+        } catch (AuthenticationException authex) {
+        	logger.info("Authentication exception, closing");
+        	ctx.channel().writeAndFlush(new TextWebSocketFrame("Authentication Error: " + authex.getCode()));
+        	ctx.channel().close();
+        } catch (Exception ex) {
+        	logger.warn("Unexpected exception in auth" + ex.getMessage());
+        	ctx.channel().close();
         }
     }
-
+    
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }
 
-    private static String getWebSocketLocation(FullHttpRequest req) {
-        String location =  req.headers().get(HOST) + WEBSOCKET_PATH;
-        if (SSL) {
-            return "wss://" + location;
-        } else {
-            return "ws://" + location;
-        }
-    }
 }

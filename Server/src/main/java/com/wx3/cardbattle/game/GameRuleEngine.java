@@ -202,6 +202,7 @@ public class GameRuleEngine {
 	
 	/**
 	 * Remove all non-permanent rules from an entity
+	 * 
 	 * @param entity
 	 * @throws RuleException 
 	 */

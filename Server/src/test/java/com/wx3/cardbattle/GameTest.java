@@ -78,6 +78,16 @@ public class GameTest extends TestCase {
 	}
 	
 	/**
+	 * End the current player's turn.
+	 * 
+	 * @param player
+	 */
+	private void endTurn(GamePlayer player) {
+		EndTurnCommand end1 = new EndTurnCommand();
+		player.handleCommand(end1);
+	}
+	
+	/**
 	 * Test game conditions at start
 	 */
 	public void testGameStart() {
@@ -145,9 +155,9 @@ public class GameTest extends TestCase {
 	 */
 	public void testAttack() {
 		GameEntity e1 = playCard("Weak Minion", p1, 0);
-		p1.handleCommand(new EndTurnCommand());
+		endTurn(p1);
 		GameEntity e2 = playCard("Weak Minion", p2, 0);
-		p2.handleCommand(new EndTurnCommand());
+		endTurn(p2);
 		AttackCommand com1 = new AttackCommand(e1.getId(),e2.getId());
 		p1.handleCommand(com1);
 		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
@@ -216,7 +226,8 @@ public class GameTest extends TestCase {
 	}
 	
 	/**
-	 * Test that a minion can be enchanted with a health buff
+	 * Test that a minion can be enchanted with a health buff 
+	 * and that subsequent disenchant behaves correctly
 	 */
 	public void testEnchantBuff() {
 		// First get minion out there:
@@ -234,7 +245,9 @@ public class GameTest extends TestCase {
 		// Both start and max should be 3 higher
 		assertTrue(endCurrent - startCurrent == 3);
 		assertTrue(endMax - startMax == 3);
-		// Now disenchant it:
+		// Now disenchant it and the max should be back to
+		// start, but current is higher because the buff effectively
+		// healed us:
 		playCard("Disenchant", p1, e1.getId());
 		assertTrue(e1.getMaxHealth() == startMax);
 		assertTrue(e1.getCurrentHealth() > startCurrent);
