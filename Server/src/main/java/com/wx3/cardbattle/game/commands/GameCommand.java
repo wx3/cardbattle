@@ -29,19 +29,21 @@ public abstract class GameCommand {
 		
 	}
 	
-	public void validate() throws CommandException {
+	public ValidationResult validate()  {
+		ValidationResult result = new ValidationResult();
 		if(player == null) {
-			throw new CommandException(this, "Player is null");
+			result.addError("Player is null");
 		}
 		if(game == null) {
-			throw new CommandException(this, "Game is null");
+			result.addError("Game is null");
 		}
 		if(game.getRuleEngine().getCurrentPlayer() != player) {
-			throw new CommandException(this, "Not your turn");
+			result.addError("Not your turn");
 		}
+		return result;
 	}
 	
-	public abstract CommandResponseMessage execute();
+	public abstract void execute(); 
 	
 	public void setGameInstance(GameInstance game) {
 		this.game = game;

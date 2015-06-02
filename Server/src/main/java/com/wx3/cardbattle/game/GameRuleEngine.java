@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
@@ -142,7 +143,7 @@ public class GameRuleEngine {
 		}
 	}
 	
-	void validatePlay(PlayCardCommand command) {
+	void validatePlay(ValidationResult result, PlayCardCommand command) {
 		// If the command's card has no validator, we don't need to do anything
 		if(command.getCard().getValidator() == null) return;
 		try {
@@ -152,13 +153,11 @@ public class GameRuleEngine {
 			PlayValidator validator = command.getCard().getValidator();
 			scriptEngine.eval(validator.getScript());
 			if(scriptEngine.get("error") != null) {
-				throw new RuleException("Validation exception: " + scriptEngine.get("error"));
+				result.addError(scriptEngine.get("error").toString());
 			}
 		} catch (final ScriptException se) {
-			throw new RuleException("ScriptException processing validator: " + se.getMessage());
-		} catch (Exception ex) {
-			throw new RuleException("Exception processing validator: " + ex.getMessage());
-		}
+			result.addError("Scripting exception: " + se.getMessage());
+		} 
 	}
 	
 	/**

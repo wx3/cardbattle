@@ -94,12 +94,17 @@ public class Bootstrap {
     	deck1.add(card2);
     	deck1.add(card3);
     	deck1.add(card1);
+    	deck1.add(card2);
+    	deck1.add(card3);
+    
     	
     	List<Card> deck2 = new ArrayList<Card>();
     	deck2.add(card1);
+    	deck2.add(card2);
+    	deck2.add(card3);
     	deck2.add(card1);
-    	deck2.add(card1);
-    	deck2.add(card1);
+    	deck2.add(card2);
+    	deck2.add(card3);
     	
     	User user1 = datastore.getUser("user1");
     	if(user1 == null) {

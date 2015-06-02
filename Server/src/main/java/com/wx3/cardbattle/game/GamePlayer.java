@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.commands.CommandException;
 import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
@@ -111,18 +112,21 @@ public class GamePlayer {
 	}
 	
 	public void handleCommand(GameCommand command) {
-		command.setGameInstance(game);
-		command.setPlayer(this);
-		CommandResponseMessage resp;
 		try {
+			command.setGameInstance(game);
+			command.setPlayer(this);
+			CommandResponseMessage resp;
+			ValidationResult result;
 			command.parse();
-			command.validate();
-			resp = game.handleCommand(command);
-		} catch (CommandException e) {
-			logger.warn("Command failed: " + e.getMessage());
-			resp = new CommandResponseMessage(command, false, e.getMessage());
+			result = command.validate();
+			if(result.isValid()) {
+				game.handleCommand(command);
+			}
+			CommandResponseMessage message = new CommandResponseMessage(command, result);
+			messageHandler.handleMessage(message);
+		} catch(Exception ex) {
+			CommandResponseMessage message = new CommandResponseMessage(command, false, "There was an error processing the command: " + ex.getMessage());
 		}
-		messageHandler.handleMessage(resp);
 	}
 
 	void handleEvent(GameEvent event) {

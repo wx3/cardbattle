@@ -1,8 +1,10 @@
 package com.wx3.cardbattle.game.messages;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.wx3.cardbattle.game.GameEntity;
@@ -20,14 +22,19 @@ import com.wx3.cardbattle.game.GamePlayer;
 public class GameView {
 	
 	public int turn;
-	public List<GamePlayerView> players = new ArrayList<GamePlayerView>();
+	/**
+	 * Which player is this the view for?
+	 */
+	public String playerName;
+	public Map<String, GamePlayerView> players = new HashMap<String, GamePlayerView>();
 	
 	public static GameView createViewForPlayer(GameInstance game, GamePlayer player) {
 		GameView view = new GameView();
 		view.turn = game.getTurn();
+		view.playerName = player.getUsername();
 		for(GamePlayer p : game.getPlayers()) {
 			GamePlayerView pv = GamePlayerView.createViewForPlayer(p, player);
-			view.players.add(pv);
+			view.players.put(p.getUsername(), pv);
 		}
 		return view;
 	}

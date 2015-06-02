@@ -41,22 +41,14 @@ public class AttackCommand extends GameCommand {
 	}
 	
 	@Override
-	public void validate() throws CommandException {
-		super.validate();
+	public ValidationResult validate() {
+		ValidationResult result = super.validate();
+		return result;
 	}
 
 	@Override
-	public CommandResponseMessage execute() {
-		CommandResponseMessage response;
-		try {
-			game.getRuleEngine().attack(attacker, target);
-			response = new CommandResponseMessage(this, true);
-		}
-		catch (Exception ex) {
-			logger.warn("Failed to process command: " + ex.getMessage());
-			return new CommandResponseMessage(this, false, "Failed to process command: " + ex.getMessage());
-		}
-		return response;
+	public void execute() {
+		game.getRuleEngine().attack(attacker, target);
 	}
 
 }

@@ -16,6 +16,7 @@ import com.wx3.cardbattle.game.GamePlayer;
 public class GamePlayerView {
 
 	public String username;
+	public int position;
 	
 	public int deckSize;
 	public List<GameEntityView> inHand = new ArrayList<GameEntityView>();
@@ -24,6 +25,7 @@ public class GamePlayerView {
 	public static GamePlayerView createViewForPlayer(GamePlayer viewed, GamePlayer viewer) {
 		GamePlayerView view = new GamePlayerView();
 		view.username = viewed.getUsername();
+		view.position = viewed.getPosition();
 		view.deckSize = viewed.getPlayerDeck().size();
 		List<GameEntity> inhand = viewed.getPlayerHand();
 		for(GameEntity e : inhand) {

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.wx3.cardbattle.GameServer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
@@ -150,7 +151,11 @@ public class GameInstance {
 		playerEntity.setTag(Tag.PLAYER);
 		playerEntity.setTag(Tag.IN_PLAY);
 		playerEntity.setOwner(player);
-		String script = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {rules.drawCard(entity.getOwner())}";
+		String script = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "}";
 		EntityRule drawRule = new EntityRule(StartTurnEvent.class, script, "PLAYER_DRAW", "Player draws at start of turn.");
 		playerEntity.addRule(drawRule);
 		
@@ -238,8 +243,8 @@ public class GameInstance {
 		startTurn();
 	}
 	
-	public void validatePlay(PlayCardCommand command) {
-		ruleEngine.validatePlay(command);	
+	public void validatePlay(ValidationResult result, PlayCardCommand command) {
+		ruleEngine.validatePlay(result, command);	
 	}
 	
 	/**
@@ -282,13 +287,12 @@ public class GameInstance {
 		markedForRemoval.add(entity);
 	}
 	
-	synchronized CommandResponseMessage handleCommand(GameCommand command) {
+	synchronized void handleCommand(GameCommand command) {
 		if(!this.started) {
 			throw new RuntimeException("Cannot handle command before game is started.");
 		}
-		CommandResponseMessage resp = command.execute();
+		command.execute();
 		processEvents();
-		return resp;
 	}
 	
 	private void processEvents() {
