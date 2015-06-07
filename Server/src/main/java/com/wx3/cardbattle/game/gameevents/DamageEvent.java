@@ -18,10 +18,14 @@ public class DamageEvent extends GameEvent {
 	@Transient
 	public GameEntity entity;
 	
-	public DamageEvent(GameEntity entity, int damage) {
+	public DamageEvent(GameEntity entity, int damage, GameEntity cause) {
 		this.entity = entity;
 		this.entityId = entity.getId();
 		this.damage = damage;
+		if(cause != null) {
+			this.cause = cause;
+			this.causeId = cause.getId();
+		}
 	}
 	
 }

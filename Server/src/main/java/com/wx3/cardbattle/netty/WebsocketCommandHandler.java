@@ -68,6 +68,11 @@ public class WebsocketCommandHandler extends
 		}
 	}
 	
+	private void close(ChannelHandlerContext ctx) {
+		ctx.close();
+		
+	}
+	
 	private void sendResponse(ChannelHandlerContext ctx, CommandResponseMessage response) {
 		Gson gson = new Gson();
 		String encoded = gson.toJson(response);

@@ -21,6 +21,7 @@ import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
+import com.wx3.cardbattle.game.gameevents.EnchantEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
@@ -180,22 +181,33 @@ public class GameRuleEngine {
 		return getCurrentPlayer(game.getTurn());
 	}
 	
-	public GameEntity drawCard() {
-		return drawCard(getCurrentPlayer());
-	}
-	
-	public void enchantEntity(GameEntity entity, String ruleId) {
+	public void enchantEntity(GameEntity entity, String ruleId, GameEntity cause) {
 		if(entity == null) {
 			throw new RuleException("Entity is null");
 		}
 		EntityRule rule = game.getRule(ruleId);
 		entity.addRule(rule);
+		// An enchantment requires that we recalculate stats now, so that any additional 
+		// actions by the same rule has the correct values. For example, a health buff
+		// combined with a heal:
+		recalculateStats();
+		game.addEvent(new EnchantEvent(entity, rule, cause));
 	}
 	
 	public void buffEntity(GameEntity entity, String stat, int amount) {
 		entity.stats.buff(stat, amount);
-		if(stat.equals(EntityStats.MAX_HEALTH)) {
-			entity.setCurrentHealth(entity.getCurrentHealth() + amount);
+	}
+	
+	/**
+	 * Heal the entity by amount up to the entity's max health.
+	 * 
+	 * @param entity
+	 * @param amount
+	 */
+	public void healEntity(GameEntity entity, int amount) {
+		entity.setCurrentHealth(entity.getCurrentHealth() + amount);
+		if(entity.getCurrentHealth() > entity.getMaxHealth()) {
+			entity.setCurrentHealth(entity.getMaxHealth());
 		}
 	}
 	
@@ -245,8 +257,8 @@ public class GameRuleEngine {
 		if(attackerAttack <= 0) {
 			throw new RuleException("Attacker has no attack value");
 		}
-		damageEntity(target, attackerAttack);
-		damageEntity(attacker, targetAttack);
+		damageEntity(target, attackerAttack, attacker);
+		damageEntity(attacker, targetAttack, target);
 	}
 
 	/**
@@ -256,7 +268,7 @@ public class GameRuleEngine {
 	 * @param entity
 	 * @param damage
 	 */
-	public void damageEntity(GameEntity entity, int damage) {
+	public void damageEntity(GameEntity entity, int damage, GameEntity cause) {
 		if(entity == null) {
 			throw new RuntimeException("Entity is null");
 		}
@@ -271,7 +283,7 @@ public class GameRuleEngine {
 		int currentHealth = entity.getCurrentHealth();
 		currentHealth -= damage;
 		entity.setCurrentHealth(currentHealth);
-		game.addEvent(new DamageEvent(entity, damage));
+		game.addEvent(new DamageEvent(entity, damage, cause));
 		if(currentHealth <= 0) {
 			killEntity(entity);
 		}
@@ -291,10 +303,14 @@ public class GameRuleEngine {
 	 * Mark an entity for removal and fire a {@link KilledEvent}
 	 * @param entity
 	 */
-	public void killEntity(GameEntity entity) {
+	void killEntity(GameEntity entity) {
 		KilledEvent event = new KilledEvent(entity);
 		game.addEvent(event);
 		game.removeEntity(entity);
+	}
+	
+	public GameEntity drawCard(GamePlayer player) {
+		return drawCard(player, null);
 	}
 	
 	/**
@@ -302,15 +318,16 @@ public class GameRuleEngine {
 	 * card entity.
 	 * 
 	 * @param player
+	 * @param cause 	The GameEntity that triggered the draw
 	 * @return The entity created by the draw
 	 */
-	public GameEntity drawCard(GamePlayer player) {
+	public GameEntity drawCard(GamePlayer player, GameEntity cause) {
 		Card card = player.drawCard();
 		if(card != null) {
 			GameEntity entity = instantiateCard(card);
 			entity.setTag(Tag.IN_HAND);
 			entity.setOwner(player);
-			game.addEvent(new DrawCardEvent(player, entity));
+			game.addEvent(new DrawCardEvent(player, entity, cause));
 			return entity;
 		}
 		else {

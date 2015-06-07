@@ -40,13 +40,14 @@ public class GameTest extends TestCase {
 		Datastore datastore = new Datastore();
 		Bootstrap testSetup = new Bootstrap(datastore);
 		game = testSetup.setup();
+		game.start();
 		p1 = game.getPlayerInPosition(0);
 		p1handler = new TestMessageHandler();
 		p1.connect(p1handler);
 		p2 = game.getPlayerInPosition(1);
 		p2handler = new TestMessageHandler();
 		p2.connect(p2handler);
-		game.start();
+		
 		rules = game.getRuleEngine();
 	}
 	

@@ -20,12 +20,12 @@ import javax.persistence.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wx3.cardbattle.game.commands.CommandException;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
+import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
 
@@ -122,19 +122,25 @@ public class GamePlayer {
 			if(result.isValid()) {
 				game.handleCommand(command);
 			}
+			logger.debug("Sending command response");
 			CommandResponseMessage message = new CommandResponseMessage(command, result);
 			messageHandler.handleMessage(message);
 		} catch(Exception ex) {
 			CommandResponseMessage message = new CommandResponseMessage(command, false, "There was an error processing the command: " + ex.getMessage());
+			messageHandler.handleMessage(message);
+		}
+	}
+	
+	void sendMessage(GameMessage message) {
+		if(messageHandler != null) {
+			messageHandler.handleMessage(message);	
+		} else {
+			logger.warn("Cannot send message, no handler.");
 		}
 	}
 
 	void handleEvent(GameEvent event) {
-		if(this.messageHandler != null) {
-			this.messageHandler.handleMessage(new EventMessage(event, this));
-		} else {
-			logger.warn("Can't handle event, no handler");
-		}
+		sendMessage(new EventMessage(event, this));
 	}
 
 	public void connect(IMessageHandler messageHandler) {
@@ -146,8 +152,7 @@ public class GamePlayer {
 			this.messageHandler.disconnect();
 		}
 		this.messageHandler = messageHandler;
-		// Send the player the current state of the game:
-		messageHandler.handleMessage(new GameViewMessage(this.game, this));
+		game.playerConnected(this);
 	}
 	
 	public Card drawCard() {
@@ -175,6 +180,17 @@ public class GamePlayer {
 				e -> e.getOwner() == this && e.hasTag(Tag.IN_HAND)
 				).collect(Collectors.toList());
 		return hand;
+	}
+	
+	/**
+	 * Returns a list of entities that a player has in play.
+	 * @return
+	 */
+	public List<GameEntity> getPlayerInPlay() {
+		List<GameEntity> inPlay = game.getEntities().stream().filter(
+				e -> e.getOwner() == this && e.hasTag(Tag.IN_PLAY)
+				).collect(Collectors.toList());
+		return inPlay;
 	}
 	
 	/**

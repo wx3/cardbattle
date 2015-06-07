@@ -27,28 +27,29 @@ public class Bootstrap {
 	
 	public GameInstance setup() {
 		
-		String s1 = "if(event.minion !== entity) {rules.damageEntity(event.minion,2)}";
+		String s1 = "if(event.minion !== entity) {rules.damageEntity(event.minion, 2, entity)}";
 		EntityRule rule1 = new EntityRule(SummonMinionEvent.class, s1, "DMG_2_SUMMONED", "Deal 2 to Summoned");
 		datastore.createRule(rule1);
 		
-		String s2 = "if(event.entity == entity) {rules.drawCard(entity.getOwner());}";
+		String s2 = "if(event.entity == entity) {rules.drawCard(entity.getOwner(), entity);}";
 		EntityRule rule2 = new EntityRule(DamageEvent.class, s2, "DRAW_ON_DAMAGE", "Draw on damage to this entity.");
 		datastore.createRule(rule2);
 		
-		String s4 = "rules.damageEntity(event.getTarget(),2)";
+		String s4 = "rules.damageEntity(event.getTarget(), 2, entity)";
 		EntityRule rule4 = new EntityRule(PlayCardEvent.class, s4, "DMG_2_TARGET", "Deal 2 Damage to a Minion");
 		datastore.createRule(rule4);
 		
-		EntityRule ruleBuffHealth = new EntityRule(BuffRecalc.class, "rules.buffEntity(entity, 'MAX_HEALTH', 3)", "BUFF_HEALTH_2", "+3 Health");
+		EntityRule ruleBuffHealth = new EntityRule(BuffRecalc.class, "rules.buffEntity(entity, 'MAX_HEALTH', 3);", "BUFF_HEALTH_2", "+3 Health");
 		datastore.createRule(ruleBuffHealth);
 		
-		EntityRule ruleEnchantBuff = new EntityRule(PlayCardEvent.class, "rules.enchantEntity(target, 'BUFF_HEALTH_2')", "ENCHANT_3_HEALTH" ,"Enchant an entity with +3 health");
+		EntityRule ruleEnchantBuff = new EntityRule(PlayCardEvent.class, "rules.enchantEntity(target, 'BUFF_HEALTH_2', entity);"
+				+ "rules.healEntity(target, 3)", "ENCHANT_3_HEALTH" ,"Enchant an entity with +3 health");
 		datastore.createRule(ruleEnchantBuff);
 		
 		EntityRule ruleDisenchant = new EntityRule(PlayCardEvent.class, "rules.disenchantEntity(target)", "DISENCHANT", "Disenchant an entity");
 		datastore.createRule(ruleDisenchant);
 		
-		String v1 = "if(!target.hasTag('MINION')) error = 'Target must be minion'";
+		String v1 = "if(!target || !target.hasTag('MINION')) error = 'Target must be minion'";
 		PlayValidator minionValidator = PlayValidator.createValidator("TARGET_MINION", v1, "Validate target is minion");
 		datastore.createValidator(minionValidator);
 

@@ -22,24 +22,28 @@ import com.wx3.cardbattle.game.GamePlayer;
 public class GameView {
 	
 	public int turn;
+	public String currentPlayer;
 	/**
 	 * Which player is this the view for?
 	 */
 	public String playerName;
 	public Map<String, GamePlayerView> players = new HashMap<String, GamePlayerView>();
 	
+	public List<GameEntityView> entities = new ArrayList<GameEntityView>();
+	
 	public static GameView createViewForPlayer(GameInstance game, GamePlayer player) {
 		GameView view = new GameView();
-		view.turn = game.getTurn();
+		view.currentPlayer = game.getRuleEngine().getCurrentPlayer().getUsername();
 		view.playerName = player.getUsername();
 		for(GamePlayer p : game.getPlayers()) {
 			GamePlayerView pv = GamePlayerView.createViewForPlayer(p, player);
 			view.players.put(p.getUsername(), pv);
 		}
+		for(GameEntity entity : game.getEntities()) {
+			view.entities.add(GameEntityView.createViewForPlayer(entity, player));
+		}
 		return view;
 	}
-
-	public GameView() {}
 	
 	
 }

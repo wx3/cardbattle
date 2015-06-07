@@ -37,6 +37,8 @@ import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
+import com.wx3.cardbattle.game.messages.GameViewMessage;
+import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
 
 @Entity
@@ -151,15 +153,26 @@ public class GameInstance {
 		playerEntity.setTag(Tag.PLAYER);
 		playerEntity.setTag(Tag.IN_PLAY);
 		playerEntity.setOwner(player);
-		String script = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
+		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
+				+ "if(event.getTurn() < 2){"
 				+ "rules.drawCard(entity.getOwner());"
 				+ "rules.drawCard(entity.getOwner());"
 				+ "rules.drawCard(entity.getOwner());"
+				+ "} else {"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "}"
 				+ "}";
-		EntityRule drawRule = new EntityRule(StartTurnEvent.class, script, "PLAYER_DRAW", "Player draws at start of turn.");
+		EntityRule drawRule = new EntityRule(StartTurnEvent.class, s2, "PLAYER_DRAW", "Player draws at start of turn.");
 		playerEntity.addRule(drawRule);
 		
 		player.setEntity(playerEntity);
+	}
+	
+	void playerConnected(GamePlayer player) {
+		JoinMessage joinMessage = JoinMessage.createMessage(cardsById);
+		player.sendMessage(joinMessage);
+		GameViewMessage viewMessage = GameViewMessage.createMessage(this, player);
+		player.sendMessage(viewMessage);
 	}
 	
 	public GamePlayer getPlayerInPosition(int pos) {
@@ -293,6 +306,9 @@ public class GameInstance {
 		}
 		command.execute();
 		processEvents();
+		for(GamePlayer player : getPlayers()) {
+			player.sendMessage(GameViewMessage.createMessage(this, player));
+		}
 	}
 	
 	private void processEvents() {

@@ -21,6 +21,7 @@ public class CommandResponseMessage extends GameMessage {
 	private ValidationResult result;
 	
 	public CommandResponseMessage(GameCommand command, ValidationResult result) {
+		this.messageClass = this.getClass().getSimpleName();
 		this.commandId = command.getId();
 		this.isSuccess = result.isValid();
 		if(!isSuccess) {

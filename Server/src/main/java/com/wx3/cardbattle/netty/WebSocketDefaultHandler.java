@@ -52,17 +52,26 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.wx3.cardbattle.GameServer;
 import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**
- * Handles the initial handshake 
+ * The default handler currently does a bit too much:
+ * 
+ *  Parses requests, if it's an Http request sees if it's for the websocket, if
+ *  not, it sends the default webpage.
+ *  
+ *  If it is a websocket request, tries to upgrade, then parses any web socket
+ *  text frames as json and looks for a command to execute.
  */
-public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
+public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object> {
 	
-	final Logger logger = LoggerFactory.getLogger(WebSocketAuthHandler.class);
+	final Logger logger = LoggerFactory.getLogger(WebSocketDefaultHandler.class);
 	
 	// Figure out where this belongs:
 	public static final boolean SSL = false;
@@ -100,7 +109,7 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
         }
     }
     
-    public WebSocketAuthHandler(NettyWebSocketServer server) {
+    public WebSocketDefaultHandler(NettyWebSocketServer server) {
     	this.server =server;
     	
     	URL url = Resources.getResource("index.html");
@@ -118,6 +127,9 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
             handleHttpRequest(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
             handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+        } else {
+        	logger.warn("Message was neither HttpRequest nor WebSocketFrame.");
+        	ctx.close();
         }
     }
 
@@ -141,11 +153,9 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
         
         String uri = req.getUri();
         
-        if(uri.equals("/")) {
-        	sendHttpResponse(ctx, req, webpage);
-        	return;
-        }
-        else if(uri.equals("/websocket")) {
+        // If the request is for the /websocket path, expect an Upgrade header and attempt
+        // the websocket handshake:
+        if(uri.equals("/websocket")) {
         	String upgrade = req.headers().get(UPGRADE);
             if(upgrade == null) {
             	sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
@@ -161,9 +171,8 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
                 handshaker.handshake(ctx.channel(), req);
             }
         } else {
-        	FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND);
-            sendHttpResponse(ctx, req, res);
-            return;
+        	sendHttpResponse(ctx, req, webpage);
+        	return;
         }
     }
     
@@ -193,19 +202,31 @@ public class WebSocketAuthHandler extends SimpleChannelInboundHandler<Object> {
                     .getName()));
         }
 
-        // The first string sent in a web socket frame is expected to be an authtoken:
-        String token = ((TextWebSocketFrame) frame).text();
-        try {
+        String text = ((TextWebSocketFrame) frame).text();
+        JsonParser parser = new JsonParser();
+		JsonElement root = parser.parse(text);
+		JsonObject obj = root.getAsJsonObject();
+		String commandName = obj.get("command").getAsString();
+        
+		if(commandName.equals("join")) {
+			handleJoinGame(ctx, obj);
+		}
+        
+    }
+    
+    private void handleJoinGame(ChannelHandlerContext ctx, JsonObject obj) {
+    	try {
+    		String token = obj.get("authtoken").getAsString();
         	GamePlayer player = server.getGameServer().authenticate(token);
         	WebsocketMessageHandler messageHandler = new WebsocketMessageHandler(ctx.channel(), player);
         	player.connect(messageHandler);
-        	ctx.channel().pipeline().replace(WebSocketAuthHandler.class, "MessageHandler", new WebsocketCommandHandler(server.getGameServer(), player));
+        	ctx.channel().pipeline().replace(WebSocketDefaultHandler.class, "MessageHandler", new WebsocketCommandHandler(server.getGameServer(), player));
         } catch (AuthenticationException authex) {
         	logger.info("Authentication exception, closing");
         	ctx.channel().writeAndFlush(new TextWebSocketFrame("Authentication Error: " + authex.getCode()));
         	ctx.channel().close();
         } catch (Exception ex) {
-        	logger.warn("Unexpected exception in auth" + ex.getMessage());
+        	logger.warn("Unexpected exception in auth: " + ex.getMessage());
         	ctx.channel().close();
         }
     }
