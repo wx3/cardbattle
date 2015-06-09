@@ -25,16 +25,16 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
  * @author Kevin
  *
  */
-public class WebsocketCommandHandler extends
+public class WebsocketGameHandler extends
 		SimpleChannelInboundHandler<Object>  {
 	
-	final Logger logger = LoggerFactory.getLogger(WebsocketCommandHandler.class);
+	final Logger logger = LoggerFactory.getLogger(WebsocketGameHandler.class);
 	
 	private GamePlayer player;
 	private GameServer gameServer;
 	private JsonCommandFactory commandFactory;
 	
-	public WebsocketCommandHandler(GameServer gameServer, GamePlayer player) {
+	public WebsocketGameHandler(GameServer gameServer, GamePlayer player) {
 		this.gameServer = gameServer;
 		this.player = player;
 		this.commandFactory = new JsonCommandFactory();
@@ -67,29 +67,11 @@ public class WebsocketCommandHandler extends
 			logger.error("Invalid websocket frame");
 		}
 	}
-	
-	private void close(ChannelHandlerContext ctx) {
-		ctx.close();
-		
-	}
-	
-	private void sendResponse(ChannelHandlerContext ctx, CommandResponseMessage response) {
-		Gson gson = new Gson();
-		String encoded = gson.toJson(response);
-		ctx.writeAndFlush(new TextWebSocketFrame(encoded));
-	}
-	
+
 	@Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }
-	
-	private JsonElement serializeGame(GameInstance game, GamePlayer player) {
-		JsonElement json = new JsonObject();
-		if(game == null || player == null) return json;
-		
-		return json;
-	}
 
 }

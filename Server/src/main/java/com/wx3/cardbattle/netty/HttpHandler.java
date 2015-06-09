@@ -1,18 +1,3 @@
-/*
- * Copyright 2012 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
 package com.wx3.cardbattle.netty;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
@@ -45,33 +30,32 @@ import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wx3.cardbattle.GameServer;
 import com.wx3.cardbattle.datastore.AuthenticationException;
+import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**
- * The default handler currently does a bit too much:
- * 
- *  Parses requests, if it's an Http request sees if it's for the websocket, if
- *  not, it sends the default webpage.
- *  
- *  If it is a websocket request, tries to upgrade, then parses any web socket
- *  text frames as json and looks for a command to execute.
+ * A simple webserver that listens for websocket upgrade requests, sending
+ * a static default page to all other requests. 
  */
-public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object> {
+public class HttpHandler extends SimpleChannelInboundHandler<Object> {
 	
-	final Logger logger = LoggerFactory.getLogger(WebSocketDefaultHandler.class);
+	final Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 	
 	// Figure out where this belongs:
 	public static final boolean SSL = false;
@@ -109,7 +93,7 @@ public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object>
         }
     }
     
-    public WebSocketDefaultHandler(NettyWebSocketServer server) {
+    public HttpHandler(NettyWebSocketServer server) {
     	this.server =server;
     	
     	URL url = Resources.getResource("index.html");
@@ -125,10 +109,8 @@ public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object>
     public void channelRead0(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof FullHttpRequest) {
             handleHttpRequest(ctx, (FullHttpRequest) msg);
-        } else if (msg instanceof WebSocketFrame) {
-            handleWebSocketFrame(ctx, (WebSocketFrame) msg);
         } else {
-        	logger.warn("Message was neither HttpRequest nor WebSocketFrame.");
+        	logger.warn("Message was not HttpRequest.");
         	ctx.close();
         }
     }
@@ -155,7 +137,7 @@ public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object>
         
         // If the request is for the /websocket path, expect an Upgrade header and attempt
         // the websocket handshake:
-        if(uri.equals("/websocket")) {
+        if(uri.equals(WEBSOCKET_PATH)) {
         	String upgrade = req.headers().get(UPGRADE);
             if(upgrade == null) {
             	sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
@@ -169,6 +151,7 @@ public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object>
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
             } else {
                 handshaker.handshake(ctx.channel(), req);
+                ctx.channel().pipeline().replace(HttpHandler.class, "MessageHandler", new WebsocketInitialHandler(server, handshaker));
             }
         } else {
         	sendHttpResponse(ctx, req, webpage);
@@ -186,55 +169,12 @@ public class WebSocketDefaultHandler extends SimpleChannelInboundHandler<Object>
         sendHttpResponse(ctx, req, res);
     }
     
-    private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
-
-        // Check for closing frame
-        if (frame instanceof CloseWebSocketFrame) {
-            handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
-            return;
-        }
-        if (frame instanceof PingWebSocketFrame) {
-            ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
-            return;
-        }
-        if (!(frame instanceof TextWebSocketFrame)) {
-            throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass()
-                    .getName()));
-        }
-
-        String text = ((TextWebSocketFrame) frame).text();
-        JsonParser parser = new JsonParser();
-		JsonElement root = parser.parse(text);
-		JsonObject obj = root.getAsJsonObject();
-		String commandName = obj.get("command").getAsString();
-        
-		if(commandName.equals("join")) {
-			handleJoinGame(ctx, obj);
-		}
-        
-    }
-    
-    private void handleJoinGame(ChannelHandlerContext ctx, JsonObject obj) {
-    	try {
-    		String token = obj.get("authtoken").getAsString();
-        	GamePlayer player = server.getGameServer().authenticate(token);
-        	WebsocketMessageHandler messageHandler = new WebsocketMessageHandler(ctx.channel(), player);
-        	player.connect(messageHandler);
-        	ctx.channel().pipeline().replace(WebSocketDefaultHandler.class, "MessageHandler", new WebsocketCommandHandler(server.getGameServer(), player));
-        } catch (AuthenticationException authex) {
-        	logger.info("Authentication exception, closing");
-        	ctx.channel().writeAndFlush(new TextWebSocketFrame("Authentication Error: " + authex.getCode()));
-        	ctx.channel().close();
-        } catch (Exception ex) {
-        	logger.warn("Unexpected exception in auth: " + ex.getMessage());
-        	ctx.channel().close();
-        }
-    }
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }
+    
 
 }

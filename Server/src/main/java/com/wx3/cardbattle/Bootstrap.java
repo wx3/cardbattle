@@ -2,6 +2,7 @@ package com.wx3.cardbattle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import com.wx3.cardbattle.datastore.Datastore;
@@ -53,30 +54,30 @@ public class Bootstrap {
 		PlayValidator minionValidator = PlayValidator.createValidator("TARGET_MINION", v1, "Validate target is minion");
 		datastore.createValidator(minionValidator);
 
-    	Card card1 = new Card("Weak Minion", "A measly little minion");
-    	card1.setTag(Tag.MINION);
-    	card1.getStats().put(EntityStats.ATTACK, 2);
-    	card1.getStats().put(EntityStats.MAX_HEALTH, 2);
-    	datastore.createCard(card1);
-    	
+    	Card cardWeakMinion = new Card("Weak Minion", "A measly little minion");
+    	cardWeakMinion.setTag(Tag.MINION);
+    	cardWeakMinion.getStats().put(EntityStats.ATTACK, 2);
+    	cardWeakMinion.getStats().put(EntityStats.MAX_HEALTH, 2);
+    	datastore.createCard(cardWeakMinion);
+		    	
     	Card strongMinion = new Card("Strong Minion", "A very tough minion");
     	strongMinion.setTag(Tag.MINION);
     	strongMinion.getStats().put(EntityStats.ATTACK, 3);
     	strongMinion.getStats().put(EntityStats.MAX_HEALTH, 8);
     	datastore.createCard(strongMinion);
     	
-    	Card card2 = new Card("Deal 2 Minion", "Deals 2 damage to a minion");
-    	card2.setTag(Tag.SPELL);
-    	card2.getRules().add(rule4);
-    	card2.setValidator(minionValidator);
-    	datastore.createCard(card2);
+    	Card cardZap = new Card("Deal 2 Minion", "Deals 2 damage to a minion");
+    	cardZap.setTag(Tag.SPELL);
+    	cardZap.getRules().add(rule4);
+    	cardZap.setValidator(minionValidator);
+    	datastore.createCard(cardZap);
     	
-    	Card card3 = new Card("Damage Draw", "Draw a card whenever this minion takes damage");
-    	card3.setTag(Tag.MINION);
-    	card3.getStats().put(EntityStats.ATTACK, 1);
-    	card3.getStats().put(EntityStats.MAX_HEALTH, 4);
-    	card3.getRules().add(rule2);
-    	datastore.createCard(card3);
+    	Card cardDamDraw = new Card("Damage Draw", "Draw a card whenever this minion takes damage");
+    	cardDamDraw.setTag(Tag.MINION);
+    	cardDamDraw.getStats().put(EntityStats.ATTACK, 1);
+    	cardDamDraw.getStats().put(EntityStats.MAX_HEALTH, 4);
+    	cardDamDraw.getRules().add(rule2);
+    	datastore.createCard(cardDamDraw);
     	
     	Card cardEnchantHealth = new Card("+3 Health", "Give a minion +3 Health");
     	cardEnchantHealth.setTag(Tag.SPELL);
@@ -91,22 +92,22 @@ public class Bootstrap {
     	datastore.createCard(disenchant);
     	
     	List<Card> deck1 = new ArrayList<Card>();
-    	deck1.add(card1);
-    	deck1.add(card2);
-    	deck1.add(card3);
-    	deck1.add(card1);
-    	deck1.add(card2);
-    	deck1.add(card3);
+    	deck1.add(cardWeakMinion);
+    	deck1.add(cardZap);
+    	deck1.add(cardDamDraw);
+    	deck1.add(cardWeakMinion);
+    	deck1.add(cardZap);
+    	deck1.add(cardDamDraw);
     
     	
     	List<Card> deck2 = new ArrayList<Card>();
-    	deck2.add(card1);
-    	deck2.add(card2);
-    	deck2.add(card3);
-    	deck2.add(card1);
-    	deck2.add(card2);
-    	deck2.add(card3);
-    	
+    	deck2.add(cardWeakMinion);
+    	deck2.add(cardZap);
+    	deck2.add(cardDamDraw);
+    	deck2.add(cardWeakMinion);
+    	deck2.add(cardZap);
+    	deck2.add(cardDamDraw);
+		
     	User user1 = datastore.getUser("user1");
     	if(user1 == null) {
     		user1 = new User("goodguy");
@@ -121,8 +122,10 @@ public class Bootstrap {
     	
     	user1.setCurrentDeck(deck1);
     	user2.setCurrentDeck(deck2);
+    	
 
     	GameInstance game = datastore.createGame(Arrays.asList(user1,user2));
+
     	return game;
 	}
 	

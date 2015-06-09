@@ -41,14 +41,14 @@ public class Datastore {
 	}
 	
 	public void saveUser(User user) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	session.save(user);
     	session.getTransaction().commit();
 	}
 	
 	public User getUser(String username) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	Criteria criteria = session.createCriteria(User.class);
     	User user = (User) criteria.add(Restrictions.eq("username",username)).uniqueResult();
@@ -57,33 +57,39 @@ public class Datastore {
 	}
 	
 	public Collection<Card> getCards() {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
+    	// If we're using some kind of SQL database, there may be a behind-the-scenes
+    	// join creating multiple results, so we need the DISTINCT_ROOT_ENTITY transformer:
     	@SuppressWarnings("unchecked")
-    	List<Card> cardList = session.createCriteria(Card.class).list();
+    	List<Card> cardList = session.createCriteria(Card.class)
+			.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
+    		.list();
     	session.getTransaction().commit();
     	return cardList;
 	}
 	
 	public void createValidator(PlayValidator pv) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	session.save(pv);
     	session.getTransaction().commit();
 	}
 	
 	public void createRule(EntityRule rule) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	session.save(rule);
     	session.getTransaction().commit();
 	}
 	
 	public Collection<EntityRule> getRules() {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	@SuppressWarnings("unchecked")
-		List<EntityRule> ruleList = session.createCriteria(EntityRule.class).list();
+		List<EntityRule> ruleList = session.createCriteria(EntityRule.class)
+				.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
+				.list();
     	session.getTransaction().commit();
     	return ruleList;
 	}
@@ -98,19 +104,16 @@ public class Datastore {
 		GameInstance game = new GameInstance();
 		game.setRules(getRules());
 		game.setCards(getCards());
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
 		SecureRandom random = new SecureRandom();
     	session.beginTransaction();
     	session.save(game);
     	session.getTransaction().commit();
-    	session = sessionFactory.getCurrentSession();
+    	session = sessionFactory.openSession();
     	session.beginTransaction();
     	int i = 0;
     	for(User user : users) {
         	String token =  new BigInteger(130, random).toString(32);
-        	
-        	// For testing, the token is the username:
-        	token = user.getUsername();
         	GamePlayer player = new GamePlayer(user, game.getId(), i);
         	PlayerAuthtoken auth = new PlayerAuthtoken(player, token);
         	session.save(auth);
@@ -125,12 +128,22 @@ public class Datastore {
 		return game;
 	}
 	
+	public List<PlayerAuthtoken> getAuthtokens(long gameId) {
+		Session session = sessionFactory.openSession();
+    	session.beginTransaction();
+    	Criteria cr = session.createCriteria(PlayerAuthtoken.class);
+    	cr.add(Restrictions.eq("gameId", gameId));
+    	@SuppressWarnings("unchecked")
+    	List<PlayerAuthtoken> tokens = cr.list();
+    	return tokens;
+	}
+	
 	public GameInstance getGame(long id) {
 		return gameInstances.get(id);
 	}
 	
 	public void createCard(Card card) {
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	session.save(card);
     	session.getTransaction().commit();
@@ -146,7 +159,7 @@ public class Datastore {
 		if(token.isEmpty() || token == null) {
 			throw new AuthenticationException(AuthenticationException.NO_TOKEN);
 		}
-		Session session = sessionFactory.getCurrentSession();
+		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	Criteria criteria = session.createCriteria(PlayerAuthtoken.class);
 

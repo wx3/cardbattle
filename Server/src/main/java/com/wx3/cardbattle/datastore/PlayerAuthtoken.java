@@ -27,6 +27,8 @@ public class PlayerAuthtoken {
 	@OneToOne
 	private GamePlayer player;
 	
+	private long gameId;
+	
 	public static String generateToken() {
 		SecureRandom random = new SecureRandom();
 		return  new BigInteger(130, random).toString(32);
@@ -38,11 +40,13 @@ public class PlayerAuthtoken {
 	
 	public PlayerAuthtoken(GamePlayer player) {
 		this.player = player;
+		this.gameId = player.getGameId();
 		this.authtoken = generateToken();
 	}
 	
 	public PlayerAuthtoken(GamePlayer player, String token) {
 		this.player = player;
+		this.gameId = player.getGameId();
 		this.authtoken = token;
 	}
 	
@@ -60,6 +64,10 @@ public class PlayerAuthtoken {
 	
 	public void setPlayer(GamePlayer player) {
 		this.player = player;
+	}
+	
+	public long getGameId() {
+		return gameId;
 	}
 	
 }
