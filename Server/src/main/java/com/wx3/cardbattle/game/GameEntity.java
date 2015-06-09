@@ -2,6 +2,7 @@ package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -136,6 +137,14 @@ public class GameEntity {
 	
 	public int getBaseStat(String stat) {
 		return stats.getBaseValue(stat);
+	}
+	
+	public Map<String, Integer> getCurrentStats() {
+		return stats.getCurrentValues();
+	}
+	
+	public Map<String, Integer> getCurrentVars() {
+		return Collections.unmodifiableMap(vars);
 	}
 	
 	public int getVar(String var) {

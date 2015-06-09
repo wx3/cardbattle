@@ -143,7 +143,7 @@ public class GamePlayer {
 		sendMessage(new EventMessage(event, this));
 	}
 
-	public void connect(IMessageHandler messageHandler) {
+	public synchronized void connect(IMessageHandler messageHandler) {
 		if(this.game == null) {
 			throw new RuntimeException("Player has no game.");
 		}

@@ -207,7 +207,7 @@ public class GameInstance {
 		return rulesById.get(ruleId);
 	}
 	
-	public void addEvent(GameEvent event) {
+	synchronized public void addEvent(GameEvent event) {
 		logger.info("Adding event " + event);
 		eventQueue.add(event);
 	}

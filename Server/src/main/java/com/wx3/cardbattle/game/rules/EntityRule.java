@@ -16,8 +16,7 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
  * GameEvent. The eventTrigger is the (simple) name of the GameEvent
  * class this rule can respond to. E.g., DrawCardEvent.
  * 
- * Rules should not be modifiable during play, because an entity's rules
- * may be references to the underlying card. 
+ * Rule scripts should not be modified during the course of play.
  * 
  * @author Kevin
  *

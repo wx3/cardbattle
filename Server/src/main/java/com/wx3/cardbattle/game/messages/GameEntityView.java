@@ -1,6 +1,7 @@
 package com.wx3.cardbattle.game.messages;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.wx3.cardbattle.game.GameEntity;
@@ -26,6 +27,8 @@ public class GameEntityView {
 	public boolean visible;
 	public int cardId;
 	public Set<String> tags;
+	public Map<String, Integer> stats;
+	public Map<String, Integer> vars;
 	
 	public static GameEntityView createViewForPlayer(GameEntity entity, GamePlayer player) {
 		GameEntityView view = new GameEntityView();
@@ -38,6 +41,8 @@ public class GameEntityView {
 				view.cardId = entity.getCreatingCard().getId();
 			}
 			view.tags = new HashSet<String>(entity.getTags());
+			view.stats = entity.getCurrentStats();
+			view.vars = entity.getCurrentVars();
 		} else {
 			view.visible = false;
 			// If an entity is in hand, that tag is visible:

@@ -23,12 +23,18 @@
     width: 100%;
     overflow: hidden;
 }
+.board {
+    background-color: #ffdca9;
+    width: 100%;
+    overflow: hidden;
+}
 .card {
+    font-size: small;
     float:left;
     margin: 10px;
     background-color: #c0d0ff;
-    width: 150px;
-    height: 200px;
+    width: 130px;
+    height: 150px;
 }
 .clear {
     clear: both;

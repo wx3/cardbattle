@@ -151,6 +151,7 @@ public class GameRuleEngine {
 			scriptEngine.put("command", command);
 			scriptEngine.put("target", command.getTarget());
 			scriptEngine.put("rules", this);
+			scriptEngine.put("error", null);
 			PlayValidator validator = command.getCard().getValidator();
 			scriptEngine.eval(validator.getScript());
 			if(scriptEngine.get("error") != null) {

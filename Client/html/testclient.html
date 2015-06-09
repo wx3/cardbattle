@@ -53,23 +53,27 @@ $(document).ready(function(){
         self.consoleText = ko.observable("");
 
         self.connected = ko.observable(false);
+        self.playerName = ko.observable("");
         self.currentPlayer = ko.observable("");
         self.myHand = ko.observableArray();
         self.opponentHandSize = ko.observable(0);
 
         self.myBoard = ko.observableArray();
+        self.opponentBoard = ko.observableArray();
 
         self.authenticate = function (token) {
             console.log("connecting with token " + token);
             consoleMessage("Connecting...");
             self.authtoken(token);
             this.connect(url);
+            return false;
         }
 
         self.handleCommand = function (d, e) {
             if (e.keyCode === 13) {
                 self.parseCommand(self.commandInput());
                 self.commandInput("");
+                return false;
             }
             return true;
         }
@@ -124,6 +128,10 @@ $(document).ready(function(){
                     break;
                 case 'play' :
                     play(elements[1], elements[2]);
+                    break;
+                case 'say' :
+                    elements.shift();
+                    chat(elements.join(' '));
                     break;
                 default:
                     consoleMessage("I don't know what you're trying to do.");
@@ -182,6 +190,9 @@ $(document).ready(function(){
 
         var onEvent = function (eventClass, event) {
             switch (eventClass) {
+                case 'ChatEvent':
+                    consoleMessage(event.username + " says: " + event.message);
+                    break;
                 case 'StartTurnEvent' :
                     consoleMessage("Start of turn #" + event.turn);
                     break;
@@ -202,6 +213,12 @@ $(document).ready(function(){
                 case 'SummonMinionEvent':
                     consoleMessage("Player " + currentGameState.currentPlayer + " summoned a minion");
                     break;
+                case 'DamageEvent':
+                    consoleMessage("Entity #" + event.entityId + " took " + event.damage + " damage");
+                    break;
+                case 'KilledEvent':
+                    consoleMessage("Entity #" + entity.entityId + " died");
+                    break;
                 default:
                     consoleMessage("Unknown event class: " + eventClass);
             }
@@ -221,10 +238,12 @@ $(document).ready(function(){
 
             self.currentPlayer(currentGameState.currentPlayer);
             var me = currentGameState.playerName;
+            self.playerName(me);
             var players = currentGameState.players;
             consoleMessage("There are " + currentGameState.entities.length + " entities in the game");
             self.myHand.removeAll();
             self.myBoard.removeAll();
+            self.opponentBoard.removeAll();
             for(var i = 0; i < currentGameState.entities.length; i++) {
                 var e = currentGameState.entities[i];
                 var entity = new Entity(e);
@@ -243,33 +262,13 @@ $(document).ready(function(){
                     } else {
                         self.myBoard.push(entity);
                     }
-                }
-            }
-            consoleMessage("You have " + self.myHand().length + " cards");
-            /*
-            var myHand = players[me].inHand;
-            var myBoard = players[me].inPlay;
-            for (var i = 0; i < myHand.length; i++) {
-                var c = myHand[i];
-                var card = getCardById(c.cardId);
-                var cardEntity = new CardEntity(card, c.id);
-                self.myHand.push(cardEntity);
-            }
-            self.myBoard.removeAll();
-            for (i = 0; i < myBoard.length; i++) {
-                var e = myBoard[i];
-                self.myBoard.push(new Card(e.id, e.name));
-            }
-
-
-            for (var key in players) {
-                if (players.hasOwnProperty(key)) {
-                    if (key != me) {
-                        self.opponentHandSize(players[key].inHand.length);
+                } else {
+                    if(entity.hasTag("IN_PLAY")) {
+                        self.opponentBoard.push(entity);
                     }
                 }
             }
-            */
+            consoleMessage("You have " + self.myHand().length + " cards");
         }
 
 
@@ -287,6 +286,16 @@ $(document).ready(function(){
                 object: {
                     entityId: cardId,
                     targetId: targetId
+                }
+            }
+            sendCommand(json);
+        }
+
+        var chat = function(msg) {
+            var json = {
+                command: 'Chat',
+                object: {
+                    message: msg
                 }
             }
             sendCommand(json);
@@ -332,13 +341,6 @@ $(document).ready(function(){
         this.longname = name + " (" + id + ")";
     }
 
-	$('#p1_command').keypress(function(e) {
-		if(event.which == 13) {
-            cmd = $('#p1_command').val();
-            client1.command(cmd);
-		}
-	});
-
     var client1 = new TestClient();
     ko.applyBindings(client1, $('#client_1')[0]);
 
@@ -365,22 +367,20 @@ $(document).ready(function(){
 <body>
 <div id="client_1" class="clientArea">
     <form>
-        <div>
-            Auth Token: <input type="text" data-bind="textInput: authtoken" readonly>
-        </div>
-        <div>
-            Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-        </div>
         <div data-bind="if: connected" class="connected">You are CONNECTED</div>
         <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
         <div data-bind="if: connected">
+            <div>
+                You are: <strong data-bind="text: playerName"></strong>
+            </div>
+
             Current player: <strong data-bind="text: currentPlayer"></strong>
             <p>Your Hand:</p>
             <div class="hand">
 
                 <div data-bind="foreach: myHand">
                     <div class="card">
-                        <div data-bind="attr{id : Id}"><strong data-bind="text: name"></strong> <strong data-bind="text: entityId"></strong></div>
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
                             <li data-bind="text: $data"></li>
@@ -391,10 +391,35 @@ $(document).ready(function(){
             </div>
 
             <p>Your Entities:</p>
-            <div data-bind="foreach: myBoard">
-                <div data-bind="attr{id : Id}"><strong data-bind="text: name"></strong></div>
+            <div class="board">
+                <div data-bind="foreach: myBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
+
+            <p>Opponent Entities:</p>
+            <div class="board">
+                <div data-bind="foreach: opponentBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
+            <div>
+                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
+            </div>
             <div>
                 <p>Console:</p>
                 <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
@@ -407,22 +432,20 @@ $(document).ready(function(){
 
 <div id="client_2" class="clientArea">
     <form>
-        <div>
-            Auth Token: <input type="text" data-bind="textInput: authtoken" readonly>
-        </div>
-        <div>
-            Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-        </div>
         <div data-bind="if: connected" class="connected">You are CONNECTED</div>
         <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
         <div data-bind="if: connected">
+            <div>
+                You are: <strong data-bind="text: playerName"></strong>
+            </div>
+
             Current player: <strong data-bind="text: currentPlayer"></strong>
             <p>Your Hand:</p>
             <div class="hand">
 
                 <div data-bind="foreach: myHand">
                     <div class="card">
-                        <div data-bind="attr{id : Id}"><strong data-bind="text: name"></strong> <strong data-bind="text: entityId"></strong></div>
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
                             <li data-bind="text: $data"></li>
@@ -433,10 +456,35 @@ $(document).ready(function(){
             </div>
 
             <p>Your Entities:</p>
-            <div data-bind="foreach: myBoard">
-                <div data-bind="attr{id : Id}"><strong data-bind="text: name"></strong></div>
+            <div class="board">
+                <div data-bind="foreach: myBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
+
+            <p>Opponent Entities:</p>
+            <div class="board">
+                <div data-bind="foreach: opponentBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
+            <div>
+                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
+            </div>
             <div>
                 <p>Console:</p>
                 <textarea class="serverResponse" data-bind="value: consoleText"></textarea>

@@ -2,11 +2,14 @@ package com.wx3.cardbattle.game;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 import javax.persistence.Transient;
 
 /**
- * A collection of named, positive integer values, such as "MAX_HEALTH"
+ * A collection of named, positive integer values, such as "MAX_HEALTH."
+ * Stats have a base value and a current value, which is recalculated after
+ * every event and may be modified by "Buff" rules.  
  * 
  * @author Kevin
  *
@@ -52,6 +55,10 @@ public class EntityStats {
 	
 	public void reset() {
 		currentValues = new HashMap<String,Integer>(baseValues);
+	}
+	
+	public Map<String, Integer> getCurrentValues() {
+		return Collections.unmodifiableMap(currentValues);
 	}
 	
 }
