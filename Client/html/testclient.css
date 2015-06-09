@@ -1,0 +1,35 @@
+.serverResponse {
+    width: 500px;
+    height: 300px;
+}
+.connected {
+    color: #009900;
+    font-weight: bold;
+}
+.disconnected {
+    color: #cc0000;
+    font-weight: bold;
+}
+.clientArea {
+    background-color: #c0c0c0;
+    width: 40%;
+    height: 100%;
+    float: left;
+    border: solid;
+    padding: 10px;
+}
+.hand {
+    background-color: #ffffff;
+    width: 100%;
+    overflow: hidden;
+}
+.card {
+    float:left;
+    margin: 10px;
+    background-color: #c0d0ff;
+    width: 150px;
+    height: 200px;
+}
+.clear {
+    clear: both;
+}

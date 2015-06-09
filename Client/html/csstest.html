@@ -1,0 +1,70 @@
+<!doctype html>
+<meta charset="UTF-8">
+<head>
+
+    <link rel="stylesheet" type="text/css" href="testclient.css">
+</head>
+<body>
+<div id="client_1" class="clientArea">
+    <form>
+        <div>
+            Auth Token: <input type="text" data-bind="textInput: authtoken, event: {keypress: authenticate}">
+        </div>
+
+        <div>
+            Current player: <strong data-bind="text: currentPlayer"></strong>
+            <p>Your Hand:</p>
+            <div class="hand">
+
+                <div id="c1" class="card">
+                    <div class="cardContent">
+                        <div data-bind="attr{id : Id}"><strong data-bind="text: name">Weakling</strong></div>
+                        <em data-bind="text: description">A measly little minion.</em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data">Tag 1</li>
+                            <li data-bind="text: $data">Tag 2</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="c2" class="card">
+                    <div class="cardContent">
+                        <div data-bind="attr{id : Id}"><strong data-bind="text: name">Zap</strong></div>
+                        <em data-bind="text: description">A spell that does some damage.</em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data">Tag 1</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="c3" class="card">
+                    <div class="cardContent">
+                        <div data-bind="attr{id : Id}"><strong data-bind="text: name">Overlord</strong></div>
+                        <em data-bind="text: description">A very powerful minion that does all sorts of amazing things all of the time and then some.</em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data">Minion</li>
+                            <li data-bind="text: $data">Overlord</li>
+                            <li data-bind="text: $data">OP</li>
+                            <li data-bind="text: $data">Titan</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+
+            <p>Your Entities:</p>
+            <div data-bind="foreach: myBoard">
+                <div data-bind="attr{id : Id}"><strong data-bind="text: name"></strong></div>
+            </div>
+            <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
+            <div>
+                <p>Console:</p>
+                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+
+</body>
+</html>
