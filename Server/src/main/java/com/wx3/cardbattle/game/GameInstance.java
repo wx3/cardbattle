@@ -47,8 +47,6 @@ public class GameInstance {
 	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(GameInstance.class);
-	
-	private static final int MAX_EVENTS = 1000;
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
@@ -58,7 +56,7 @@ public class GameInstance {
 	@Column(name="created", insertable=false, updatable=false, columnDefinition="timestamp default current_timestamp")
 	private java.util.Date created;	
 	
-	private int turn;
+	int turn;
 	
 	/**
 	 * String containing the script to run at game start
@@ -84,13 +82,7 @@ public class GameInstance {
 	private List<GameEntity> entities = new ArrayList<GameEntity>();
 	
 	@Transient
-	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
-	
-	@Transient
-	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
-	
-	@Transient
-	private List<GameEvent> eventHistory = new ArrayList<GameEvent>();
+	List<GameEvent> eventHistory = new ArrayList<GameEvent>();
 	
 	@Transient
 	private GameUpdateTask updateTask;
@@ -207,11 +199,6 @@ public class GameInstance {
 		return rulesById.get(ruleId);
 	}
 	
-	synchronized public void addEvent(GameEvent event) {
-		logger.info("Adding event " + event);
-		eventQueue.add(event);
-	}
-	
 	public void broadcastEvent(GameEvent event) {
 		for(GamePlayer player : players) {
 			if(player != null) {
@@ -233,8 +220,6 @@ public class GameInstance {
 		
 		ruleEngine.startup();
 		
-		startTurn();
-		processEvents();
 		started = true;
 	}
 	
@@ -250,44 +235,18 @@ public class GameInstance {
 		return turn;
 	}
 	
-	public void endTurn() {
-		addEvent(new EndTurnEvent(turn, entities.size()));
-		++turn;
-		startTurn();
-	}
+
 	
 	public void validatePlay(ValidationResult result, PlayCardCommand command) {
 		ruleEngine.validatePlay(result, command);	
 	}
 	
-	/**
-	 * Play a card onto the board with an optional targetEntity
-	 * 
-	 * @param cardEntity
-	 */
-	public void playCard(GameEntity cardEntity, GameEntity targetEntity) {
-		String msg = "Playing " + cardEntity;
-		if(targetEntity != null) msg += " on " + targetEntity;
-		logger.info(msg);
-		cardEntity.setTag(Tag.IN_PLAY);
-		cardEntity.clearTag(Tag.IN_HAND);
-		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
-		addEvent(event);
-		if(cardEntity.hasTag(Tag.MINION)) {
-			addEvent(new SummonMinionEvent(cardEntity));
-		}
-		else {
-			removeEntity(cardEntity);
-		}
-	}
-	
+
  	synchronized void update() {
 		
 	}
 	
-	void startTurn() {
-		addEvent(new StartTurnEvent(turn));
-	}
+
 	
 	GameEntity spawnEntity() {
 		GameEntity entity = new GameEntity(this, entityIdCounter);
@@ -296,8 +255,8 @@ public class GameInstance {
 		return entity;
 	}	
 	
-	void removeEntity(GameEntity entity) {
-		markedForRemoval.add(entity);
+	boolean removeEntity(GameEntity entity) {
+		return entities.remove(entity);
 	}
 	
 	synchronized void handleCommand(GameCommand command) {
@@ -305,44 +264,10 @@ public class GameInstance {
 			throw new RuntimeException("Cannot handle command before game is started.");
 		}
 		command.execute();
-		processEvents();
+		ruleEngine.processEvents();
 		for(GamePlayer player : getPlayers()) {
 			player.sendMessage(GameViewMessage.createMessage(this, player));
 		}
 	}
 	
-	private void processEvents() {
-		int i = 0;
-		while(!eventQueue.isEmpty()) {
-			GameEvent event = eventQueue.poll();
-			eventHistory.add(event);
-			// Iterate over a copy of entities to avoid ConcurrentModification exceptions
-			// if a rule spawns an entity:
-			List<GameEntity> entityList = new ArrayList<GameEntity>(entities);
-			for(GameEntity entity : entityList) {
-				if(entity.isInPlay()) {
-					for(EntityRule rule : entity.getRules()) {
-						ruleEngine.processRule(event, rule, entity);
-					}
-				}
-			}
-			// Try to remove any entities marked for removal after 
-			// each event is processed:
-			if(!markedForRemoval.isEmpty()) {
-				for(GameEntity entity : markedForRemoval) {
-					logger.info("Removing " + entity);
-					if(!entities.remove(entity)) {
-						logger.warn("Failed to find " + entity + " for removal");
-					}
-				}
-				markedForRemoval.clear();
-			}
-			ruleEngine.recalculateStats();
-			broadcastEvent(event);
-			++i;
-			if(i > MAX_EVENTS) {
-				throw new RuntimeException("Exceeded max events: " + MAX_EVENTS);
-			}
-		}
-	}
 }

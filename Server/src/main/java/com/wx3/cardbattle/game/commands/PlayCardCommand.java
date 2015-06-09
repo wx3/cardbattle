@@ -76,7 +76,7 @@ public class PlayCardCommand extends GameCommand {
 
 	@Override
 	public void execute() {
-		game.playCard(cardEntity, targetEntity);
+		game.getRuleEngine().playCard(cardEntity, targetEntity);
 	}
 
 }

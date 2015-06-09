@@ -1,9 +1,5 @@
 package com.wx3.cardbattle.game.commands;
 
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.gameevents.ChatEvent;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
-
 public class ChatCommand extends GameCommand {
 	
 	private String message;
@@ -21,8 +17,7 @@ public class ChatCommand extends GameCommand {
 	
 	@Override
 	public void execute() {
-		ChatEvent event = new ChatEvent(player.getUsername(), message);
-		game.addEvent(event);
+		game.getRuleEngine().chat(player, message);
 	}
 
 	public String getMessage() {

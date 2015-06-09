@@ -1,10 +1,15 @@
 package com.wx3.cardbattle.game;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.persistence.Transient;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -19,12 +24,16 @@ import com.google.common.base.Strings;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
+import com.wx3.cardbattle.game.gameevents.ChatEvent;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EnchantEvent;
+import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
+import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
+import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
@@ -42,10 +51,15 @@ import com.wx3.cardbattle.game.rules.PlayValidator;
  */
 public class GameRuleEngine {
 	
+	private static final int MAX_EVENTS = 1000;
+	
 	final Logger logger = LoggerFactory.getLogger(GameRuleEngine.class);
 
 	private GameInstance game;
 	private ScriptEngine scriptEngine;
+	
+	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
+	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
 	
 	class RestrictiveFilter implements ClassFilter {
 
@@ -80,6 +94,8 @@ public class GameRuleEngine {
 			logger.error("Exception processing startup script: " + se.getMessage());
 			throw(new RuntimeException(se));
 		}
+		startTurn();
+		processEvents();
 	}
 	
 	/**
@@ -162,6 +178,25 @@ public class GameRuleEngine {
 		} 
 	}
 	
+	void addEvent(GameEvent event) {
+		logger.info("Adding event " + event);
+		eventQueue.add(event);
+	}
+	
+	void startTurn() {
+		addEvent(new StartTurnEvent(game.turn));
+	}
+	
+	public void endTurn() {
+		addEvent(new EndTurnEvent(game.turn, game.getEntities().size()));
+		++game.turn;
+		startTurn();
+	}
+	
+	public void chat(GamePlayer player, String message) {
+		addEvent(new ChatEvent(player.getUsername(), message));
+	}
+	
 	/**
 	 * Returns the player for a particular turn number.  
 	 * 
@@ -182,6 +217,7 @@ public class GameRuleEngine {
 		return getCurrentPlayer(game.getTurn());
 	}
 	
+	
 	public void enchantEntity(GameEntity entity, String ruleId, GameEntity cause) {
 		if(entity == null) {
 			throw new RuleException("Entity is null");
@@ -192,7 +228,7 @@ public class GameRuleEngine {
 		// actions by the same rule has the correct values. For example, a health buff
 		// combined with a heal:
 		recalculateStats();
-		game.addEvent(new EnchantEvent(entity, rule, cause));
+		addEvent(new EnchantEvent(entity, rule, cause));
 	}
 	
 	public void buffEntity(GameEntity entity, String stat, int amount) {
@@ -284,20 +320,10 @@ public class GameRuleEngine {
 		int currentHealth = entity.getCurrentHealth();
 		currentHealth -= damage;
 		entity.setCurrentHealth(currentHealth);
-		game.addEvent(new DamageEvent(entity, damage, cause));
+		addEvent(new DamageEvent(entity, damage, cause));
 		if(currentHealth <= 0) {
 			killEntity(entity);
 		}
-	}
-	
-	/**
-	 * Mark an entity for removal without firing a {@link KilledEvent}
-	 * 
-	 * @param entity
-	 */
-	public void removeEntity(GameEntity entity) {
-		entity.clearTag(Tag.IN_PLAY);
-		game.removeEntity(entity);
 	}
 	
 	/**
@@ -306,7 +332,7 @@ public class GameRuleEngine {
 	 */
 	void killEntity(GameEntity entity) {
 		KilledEvent event = new KilledEvent(entity);
-		game.addEvent(event);
+		addEvent(event);
 		game.removeEntity(entity);
 	}
 	
@@ -328,13 +354,35 @@ public class GameRuleEngine {
 			GameEntity entity = instantiateCard(card);
 			entity.setTag(Tag.IN_HAND);
 			entity.setOwner(player);
-			game.addEvent(new DrawCardEvent(player, entity, cause));
+			addEvent(new DrawCardEvent(player, entity, cause));
 			return entity;
 		}
 		else {
 			return null;
 		}
 	}
+	
+	/**
+	 * Play a card onto the board with an optional targetEntity
+	 * 
+	 * @param cardEntity
+	 */
+	public void playCard(GameEntity cardEntity, GameEntity targetEntity) {
+		String msg = "Playing " + cardEntity;
+		if(targetEntity != null) msg += " on " + targetEntity;
+		logger.info(msg);
+		cardEntity.setTag(Tag.IN_PLAY);
+		cardEntity.clearTag(Tag.IN_HAND);
+		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
+		addEvent(event);
+		if(cardEntity.hasTag(Tag.MINION)) {
+			addEvent(new SummonMinionEvent(cardEntity));
+		}
+		else {
+			removeEntity(cardEntity);
+		}
+	}
+	
 	
 	/**
 	 * Create a {@link GameEntity} from a {@link Card}, acquiring the card's
@@ -347,6 +395,52 @@ public class GameRuleEngine {
 		GameEntity entity = game.spawnEntity();
 		entity.copyFromCard(card);
 		return entity;
+	}
+	
+	/**
+	 * Mark an entity for removal without firing a {@link KilledEvent}
+	 * 
+	 * @param entity
+	 */
+
+	public void removeEntity(GameEntity entity) {
+		markedForRemoval.add(entity);
+	}
+	
+	void processEvents() {
+		int i = 0;
+		while(!eventQueue.isEmpty()) {
+			GameEvent event = eventQueue.poll();
+			game.eventHistory.add(event);
+			// Iterate over a copy of entities to avoid ConcurrentModification exceptions
+			// if a rule spawns an entity:
+			List<GameEntity> entityList = new ArrayList<GameEntity>(game.getEntities());
+			for(GameEntity entity : entityList) {
+				if(entity.isInPlay()) {
+					for(EntityRule rule : entity.getRules()) {
+						processRule(event, rule, entity);
+					}
+				}
+			}
+			// Try to remove any entities marked for removal after 
+			// each event is processed:
+			if(!markedForRemoval.isEmpty()) {
+				for(GameEntity entity : markedForRemoval) {
+					logger.info("Removing " + entity);
+					entity.clearTag(Tag.IN_PLAY);
+					if(!game.removeEntity(entity)) {
+						logger.warn("Failed to find " + entity + " for removal");
+					}
+				}
+				markedForRemoval.clear();
+			}
+			recalculateStats();
+			game.broadcastEvent(event);
+			++i;
+			if(i > MAX_EVENTS) {
+				throw new RuntimeException("Exceeded max events: " + MAX_EVENTS);
+			}
+		}
 	}
 
 }
