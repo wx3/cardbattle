@@ -57,7 +57,9 @@ public final class GameEntityView {
 	public static GameEntityView createViewForPlayer(GameEntity entity, GamePlayer player) {
 		GameEntityView view = new GameEntityView();
 		view.id = entity.getId();
-		view.ownerName = entity.getOwner().getUsername();
+		if(entity.getOwner() != null) {
+			view.ownerName = entity.getOwner().getUsername();
+		}
 		if(player.canSee(entity)) {
 			view.visible = true;
 			view.name = entity.name;

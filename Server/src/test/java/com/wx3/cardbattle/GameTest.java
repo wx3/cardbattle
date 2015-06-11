@@ -14,6 +14,8 @@ import com.wx3.cardbattle.game.commands.EndTurnCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
+import com.wx3.cardbattle.game.gameevents.GameOverEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
@@ -93,6 +95,16 @@ public class GameTest extends TestCase {
 	}
 	
 	/**
+	 * Find the first instance of a class in the event history
+	 * 
+	 * @param clazz
+	 * @return
+	 */
+	GameEvent findFirst(Class<? extends GameEvent> clazz) {
+		return game.getEventHistory().stream().filter(e -> e.getClass() == clazz).findFirst().orElse(null);
+	}
+	
+	/**
 	 * Test game conditions at start
 	 */
 	public void testGameStart() {
@@ -165,7 +177,7 @@ public class GameTest extends TestCase {
 		endTurn(p2);
 		AttackCommand com1 = new AttackCommand(e1.getId(),e2.getId());
 		p1.handleCommand(com1);
-		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
+		assertNotNull(findFirst(DamageEvent.class));
 	}
 	
 	/**
@@ -225,9 +237,9 @@ public class GameTest extends TestCase {
 		PlayCardCommand com2 = new PlayCardCommand(e2.getId(),e1.getId());
 		p1.handleCommand(com2);
 		// There should be at least one damage event in the event history now:
-		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == DamageEvent.class).findFirst().orElse(null));
+		assertNotNull(findFirst(DamageEvent.class));
 		// There should be at least one killed event in the history as well:
-		assertNotNull(game.getEventHistory().stream().filter(e -> e.getClass() == KilledEvent.class).findFirst().orElse(null));
+		assertNotNull(findFirst(KilledEvent.class));
 	}
 	
 	/**
@@ -256,6 +268,15 @@ public class GameTest extends TestCase {
 		playCard("Disenchant", p1, e1.getId());
 		assertTrue(e1.getMaxHealth() == startMax);
 		assertTrue(e1.getCurrentHealth() > startCurrent);
+	}
+	
+	/**
+	 * Test that killing a player ends the game.
+	 */
+	public void testEndGame() {
+		GameEntity e1 = playCard("Death Ray", p1, p2.getEntity().getId());
+		assertTrue(p2.getEntity().getCurrentHealth() <= 0);
+		assertNotNull(findFirst(GameOverEvent.class));
 	}
 	
 }

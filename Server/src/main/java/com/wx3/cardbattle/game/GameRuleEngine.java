@@ -54,6 +54,7 @@ import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EnchantEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
+import com.wx3.cardbattle.game.gameevents.GameOverEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
@@ -388,6 +389,17 @@ public class GameRuleEngine {
 
 	public void removeEntity(GameEntity entity) {
 		markedForRemoval.add(entity);
+	}
+	
+	public void gameOver() {
+		logger.info("Game over, man");
+		GamePlayer winner = null;
+		for(GamePlayer player : game.getPlayers()) {
+			if(player.getEntity().getCurrentHealth() > 0) {
+				winner = player;
+			}
+		}
+		addEvent(new GameOverEvent(winner));
 	}
 	
 	void processEvents() {

@@ -167,6 +167,7 @@ public class GameInstance {
 			throw new RuntimeException("Rule entity already created.");
 		}
 		ruleEntity = spawnEntity();
+		ruleEntity.name = "Rule Entity";
 		ruleEntity.setTag(Tag.RULES);
 		ruleEntity.setTag(Tag.IN_PLAY);
 		ruleEntity.setRules(rules);

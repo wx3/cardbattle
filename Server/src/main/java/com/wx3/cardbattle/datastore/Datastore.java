@@ -43,6 +43,8 @@ import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
+import com.wx3.cardbattle.game.gameevents.GameStartEvent;
+import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
@@ -127,6 +129,7 @@ public class Datastore {
 		GameInstance game = new GameInstance();
 		game.setRules(getRules());
 		game.setCards(getCards());
+		game.setGameRules(getGameRules());
 		Session session = sessionFactory.openSession();
 		SecureRandom random = new SecureRandom();
     	session.beginTransaction();
@@ -204,6 +207,13 @@ public class Datastore {
     		throw new AuthenticationException(AuthenticationException.UNKNOWN);
     	}
     	return gamePlayer;
+	}
+	
+	private List<EntityRule> getGameRules() {
+		List<EntityRule> rules = new ArrayList<EntityRule>();
+		EntityRule gameOverRule = EntityRule.createRule(KilledEvent.class, "if(event.getEntity().hasTag('PLAYER')){rules.gameOver()}", "GAME_OVER", "Detects end of game on player death.");
+		rules.add(gameOverRule);
+		return rules;
 	}
 	
 	private SessionFactory createSessionFactory() {

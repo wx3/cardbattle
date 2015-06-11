@@ -5,3 +5,4 @@ Health Buff +3,Give a minion +3 health.,,Y,,,TARGET_MINION,ENCHANT_BUFF_3_HEALTH
 Strong Minion,A really tough minion.,Y,,8,3,,
 Sympathy Collector,Owner draws whenever this minion takes damage.,Y,,4,1,,DRAW_ON_DAMAGE
 Disenchant,Disenchant a minion.,,Y,,,TARGET_MINION,DISENCHANT
+Death Ray,Deal 100 damage to an entity,,Y,,,TARGET_HEALTH,DMG_100_TARGET
