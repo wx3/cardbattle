@@ -39,6 +39,7 @@ public class GameTest extends TestCase {
 	protected void setUp() {
 		Datastore datastore = new Datastore();
 		Bootstrap testSetup = new Bootstrap(datastore);
+		testSetup.importData("csv");
 		game = testSetup.setup();
 		game.start();
 		p1 = game.getPlayerInPosition(0);
@@ -72,6 +73,9 @@ public class GameTest extends TestCase {
 	 */
 	private GameEntity playCard(String cardname, GamePlayer player, int target) {
 		Card c1 = game.getCard(cardname);
+		if(c1 == null) {
+			throw new RuntimeException("No such card'" + cardname + "'");
+		}
 		GameEntity e1 = putCardInHand(c1, player);
 		PlayCardCommand command = new PlayCardCommand(e1.getId(),target);
 		player.handleCommand(command);
@@ -134,7 +138,7 @@ public class GameTest extends TestCase {
 	 * Test that we can get a card by name from the game
 	 */
 	public void testGetCard() {
-		Card c1 = game.getCard("Weak Minion");
+		Card c1 = game.getCard("Measley Minion");
 		assertNotNull(c1);
 		assertTrue(c1.getTags().contains(Tag.MINION));
 		assertTrue(c1.getStats().containsKey(EntityStats.MAX_HEALTH));
@@ -144,7 +148,7 @@ public class GameTest extends TestCase {
 	 * Test card playing
 	 */
 	public void testPlayCard() {
-		GameEntity e1 = playCard("Weak Minion", p1, 0);
+		GameEntity e1 = playCard("Measley Minion", p1, 0);
 		CommandResponseMessage resp = (CommandResponseMessage) p1handler.getLastMessage();
 		assertTrue(resp.isSuccess());
 		// We should be able to get the entity by id and it should be in play: 
@@ -155,9 +159,9 @@ public class GameTest extends TestCase {
 	 * Test entity on entity attacking
 	 */
 	public void testAttack() {
-		GameEntity e1 = playCard("Weak Minion", p1, 0);
+		GameEntity e1 = playCard("Measley Minion", p1, 0);
 		endTurn(p1);
-		GameEntity e2 = playCard("Weak Minion", p2, 0);
+		GameEntity e2 = playCard("Measley Minion", p2, 0);
 		endTurn(p2);
 		AttackCommand com1 = new AttackCommand(e1.getId(),e2.getId());
 		p1.handleCommand(com1);
@@ -169,8 +173,8 @@ public class GameTest extends TestCase {
 	 * on a player entity
 	 */
 	public void testValidation() {
-		Card c1 = game.getCard("Weak Minion");
-		Card c2 = game.getCard("Deal 2 Minion");
+		Card c1 = game.getCard("Measley Minion");
+		Card c2 = game.getCard("Zaptastic");
 		GameEntity e1 = putCardInHand(c1, p1);
 		GameEntity e2 = putCardInHand(c2, p1);
 		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
@@ -187,9 +191,9 @@ public class GameTest extends TestCase {
 	 * Test that our "Damage Draw" minion draws us a card when it takes damage
 	 */
 	public void testDrawCardEnchantment() {
-		GameEntity e1 = playCard("Damage Draw", p1, 0);
+		GameEntity e1 = playCard("Sympathy Collector", p1, 0);
 		int oldHandSize = p1.getPlayerHand().size();
-		GameEntity e2 = playCard("Deal 2 Minion", p1, e1.getId());
+		GameEntity e2 = playCard("Zaptastic", p1, e1.getId());
 		int newSize = p1.getPlayerHand().size();
 		assertTrue(newSize > oldHandSize);
 	}
@@ -198,7 +202,7 @@ public class GameTest extends TestCase {
 	 * Test that disenchanting an entity removes its rules
 	 */
 	public void testDisenchant() {
-		GameEntity e1 = playCard("Damage Draw", p1, 0);
+		GameEntity e1 = playCard("Sympathy Collector", p1, 0);
 		assertTrue(e1.getRules().size() > 0);
 		playCard("Disenchant", p1, e1.getId());
 		assertTrue(e1.getRules().size() == 0);
@@ -209,8 +213,8 @@ public class GameTest extends TestCase {
 	 * attack spell on it.
 	 */
 	public void testDamage() {
-		Card c1 = game.getCard("Weak Minion");
-		Card c2 = game.getCard("Deal 2 Minion");
+		Card c1 = game.getCard("Measley Minion");
+		Card c2 = game.getCard("Zaptastic");
 		GameEntity e1 = putCardInHand(c1, p1);
 		GameEntity e2 = putCardInHand(c2, p1);
 		PlayCardCommand com1 = new PlayCardCommand(e1.getId(),0);
@@ -234,12 +238,12 @@ public class GameTest extends TestCase {
 		// First get minion out there:
 		GameEntity e1 = playCard("Strong Minion", p1, 0);
 		// Then damage it:
-		playCard("Deal 2 Minion", p1, e1.getId());
+		playCard("Zaptastic", p1, e1.getId());
 		int startCurrent = e1.getCurrentHealth();
 		int startMax = e1.getMaxHealth();
 		assertTrue(startMax > startCurrent);
 		// Now buff it:
-		playCard("+3 Health", p1, e1.getId());
+		playCard("Health Buff +3", p1, e1.getId());
 		assertTrue(e1.getRules().size() > 0);
 		int endCurrent = e1.getCurrentHealth();
 		int endMax = e1.getMaxHealth();

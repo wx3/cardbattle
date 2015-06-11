@@ -1,0 +1,2 @@
+id,description,script
+TARGET_MINION,Target must be a minion,if(!target || !target.hasTag('MINION')) {error = 'Target must be minion'}

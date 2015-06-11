@@ -37,12 +37,12 @@
 		<property name="dialect">org.hibernate.dialect.HSQLDialect</property>
 		<property name="hibernate.connection.password"/>
 		
-		<!--  MySQL settings>
+		<!--  MySQL settings >
 		<property name="connection.driver_class">com.mysql.jdbc.Driver</property>
         <property name="connection.url">jdbc:mysql://localhost:3306/openccg</property>
         <property name="connection.username">root</property>
         <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
-        <property name="connection.password"></property-->
+        <property name="connection.password"></property -->
 		
 		
 		

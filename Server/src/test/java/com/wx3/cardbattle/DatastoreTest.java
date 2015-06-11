@@ -9,6 +9,7 @@ import com.wx3.cardbattle.datastore.Datastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.rules.EntityRule;
 
 public class DatastoreTest extends TestCase {
 	
@@ -19,6 +20,7 @@ public class DatastoreTest extends TestCase {
 	protected void setUp() {
 		datastore = new Datastore();
 		Bootstrap testSetup = new Bootstrap(datastore);
+		testSetup.importData("csv");
 		game = testSetup.setup();
 	}
 	
@@ -29,6 +31,12 @@ public class DatastoreTest extends TestCase {
 	public void testGetCards() {
 		Collection<Card> cards = datastore.getCards();
 		assertTrue(cards.size() > 0);
+	}
+	
+	public void testGetRules() {
+		Collection<EntityRule> rules = datastore.getRules();
+		assertTrue(rules.size() > 0);
+		
 	}
 	
 	/**

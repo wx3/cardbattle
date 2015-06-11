@@ -4,13 +4,13 @@
     <script src="jquery-1.11.3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>
 <script>
-$(document).ready(function(){
+$(document).ready(function() {
 
     var url = "ws://localhost:8080/websocket";
 
-	if (!window.WebSocket) {
-	  window.WebSocket = window.MozWebSocket;
-	}
+    if (!window.WebSocket) {
+        window.WebSocket = window.MozWebSocket;
+    }
     if (!window.WebSocket) {
         Alert('Websockets not supported in this browser');
     }
@@ -20,13 +20,13 @@ $(document).ready(function(){
         self.websocket = null;
         self.url = url;
 
-        self.create = function(onMessage) {
+        self.create = function (onMessage) {
             self.websocket = new WebSocket(url);
             self.websocket.onopen = onConnected;
             self.websocket.onmessage = onMessage;
         }
 
-        var onConnected = function() {
+        var onConnected = function () {
             var json = {
                 command: "testgame"
             }
@@ -250,26 +250,26 @@ $(document).ready(function(){
             self.myHand.removeAll();
             self.myBoard.removeAll();
             self.opponentBoard.removeAll();
-            for(var i = 0; i < currentGameState.entities.length; i++) {
+            for (var i = 0; i < currentGameState.entities.length; i++) {
                 var e = currentGameState.entities[i];
                 var entity = new Entity(e);
-                if(e.cardId > 0) {
+                if (e.cardId > 0) {
                     card = self.getCardById(e.cardId);
-                    if(!card) {
+                    if (!card) {
                         console.log("No card with id " + e.cardId);
                         console.log(self.cardLookup[e.cardId]);
                     } else {
                         entity.setCard(self.getCardById(e.cardId));
                     }
                 }
-                if(entity.ownerName == me) {
-                    if(entity.hasTag("IN_HAND")) {
+                if (entity.ownerName == me) {
+                    if (entity.hasTag("IN_HAND")) {
                         self.myHand.push(entity);
                     } else {
                         self.myBoard.push(entity);
                     }
                 } else {
-                    if(entity.hasTag("IN_PLAY")) {
+                    if (entity.hasTag("IN_PLAY")) {
                         self.opponentBoard.push(entity);
                     }
                 }
@@ -307,7 +307,7 @@ $(document).ready(function(){
             sendCommand(json);
         }
 
-        var chat = function(msg) {
+        var chat = function (msg) {
             var json = {
                 command: 'Chat',
                 object: {
@@ -340,18 +340,18 @@ $(document).ready(function(){
         self.currentHealth = ko.observable(0);
         self.attack = ko.observable(0);
 
-        if(obj.hasOwnProperty('stats')) {
+        if (obj.hasOwnProperty('stats')) {
             self.maxHealth(obj.stats['MAX_HEALTH']);
             self.currentHealth(obj.vars['CURRENT_HEALTH']);
             self.attack(obj.stats['ATTACK']);
         }
 
-        self.hasTag = function(tag) {
-            if(self.tags.indexOf(tag) > -1) return true;
+        self.hasTag = function (tag) {
+            if (self.tags.indexOf(tag) > -1) return true;
             return false;
         }
 
-        self.setCard = function(card) {
+        self.setCard = function (card) {
             self.name(card.name);
             self.description(card.description);
         }
@@ -367,169 +367,66 @@ $(document).ready(function(){
         this.longname = name + " (" + id + ")";
     }
 
-    var client1 = new TestClient();
-    ko.applyBindings(client1, $('#client_1')[0]);
+    var games = [];
 
-    var client2 = new TestClient();
-    ko.applyBindings(client2, $('#client_2')[0]);
-
-    var handleTestGame = function(msg) {
+    var handleTestGame = function (msg) {
+        var client = new TestClient();
         console.log("Test game created, authenticating...");
         var json = JSON.parse(msg.data)
         var goodguytoken = json.goodguy;
-        var badguytoken = json.badguy;
-        client1.authenticate(goodguytoken);
-        client2.authenticate(badguytoken);
+        client.authenticate(goodguytoken);
+        games.push(client);
     }
-    var creator = new TestGameCreate(url);
-    creator.create(handleTestGame);
 
+
+    function viewModel() {
+
+        var self = this;
+        self.running = ko.observable();
+        self.count = ko.observable(0);
+        self.buttonLabel = ko.observable("Paused");
+
+        self.start = function(delay) {
+            setInterval(self.tick, delay);
+        }
+
+        self.toggleRunning = function toggleRunning() {
+            self.running(!self.running());
+            if (self.running()) {
+                buttonLabel("Running...");
+            } else {
+                buttonLabel("Paused");
+            }
+        }
+
+        self.tick = function() {
+            console.log("Tick...");
+            if (!self.running()) return;
+            var creator = new TestGameCreate(url);
+            creator.create(handleTestGame);
+            console.log("There are " + games.length + " games.");
+            for (var i = 0; i < games.length; i++) {
+                var game = games[i];
+                game.parseCommand('say hello');
+            }
+            self.count(games.length);
+        }
+    }
+
+    var model = new viewModel();
+    ko.applyBindings(model);
+    model.start(500);
 
 });
+
+
 
 </script>
 
     <link rel="stylesheet" type="text/css" href="testclient.css">
 </head>
 <body>
-<div id="client_1" class="clientArea">
-    <form>
-        <div data-bind="if: connected" class="connected">You are CONNECTED</div>
-        <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
-        <div data-bind="if: connected">
-            <div>
-                You are: <strong data-bind="text: playerName"></strong>
-            </div>
-
-            Current player: <strong data-bind="text: currentPlayer"></strong>
-            <p>Your Hand:</p>
-            <div class="hand">
-
-                <div data-bind="foreach: myHand">
-                    <div class="card">
-                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
-                        <em data-bind="text: description"></em>
-                        <ul data-bind="foreach: tags">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-
-                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
-                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
-                    </div>
-                </div>
-                <div class="clear"></div>
-            </div>
-
-            <p>Your Entities:</p>
-            <div class="board">
-                <div data-bind="foreach: myBoard">
-                    <div class="card">
-                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
-                        <em data-bind="text: description"></em>
-                        <ul data-bind="foreach: tags">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-
-                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
-                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
-                    </div>
-                </div>
-            </div>
-
-            <p>Opponent Entities:</p>
-            <div class="board">
-                <div data-bind="foreach: opponentBoard">
-                    <div class="card">
-                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
-                        <em data-bind="text: description"></em>
-                        <ul data-bind="foreach: tags">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-
-                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
-                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
-                    </div>
-                </div>
-            </div>
-
-            <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
-            <div>
-                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-            </div>
-            <div>
-                <p>Console:</p>
-                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
-            </div>
-
-        </div>
-
-    </form>
-</div>
-
-<div id="client_2" class="clientArea">
-    <form>
-        <div data-bind="if: connected" class="connected">You are CONNECTED</div>
-        <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
-        <div data-bind="if: connected">
-            <div>
-                You are: <strong data-bind="text: playerName"></strong>
-            </div>
-
-            Current player: <strong data-bind="text: currentPlayer"></strong>
-            <p>Your Hand:</p>
-            <div class="hand">
-
-                <div data-bind="foreach: myHand">
-                    <div class="card">
-                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
-                        <em data-bind="text: description"></em>
-                        <ul data-bind="foreach: tags">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="clear"></div>
-            </div>
-
-            <p>Your Entities:</p>
-            <div class="board">
-                <div data-bind="foreach: myBoard">
-                    <div class="card">
-                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
-                        <em data-bind="text: description"></em>
-                        <ul data-bind="foreach: tags">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <p>Opponent Entities:</p>
-            <div class="board">
-                <div data-bind="foreach: opponentBoard">
-                    <div class="card">
-                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
-                        <em data-bind="text: description"></em>
-                        <ul data-bind="foreach: tags">
-                            <li data-bind="text: $data"></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
-            <div>
-                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-            </div>
-            <div>
-                <p>Console:</p>
-                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
-            </div>
-
-        </div>
-
-    </form>
-</div>
-
+    <button data-bind="click: toggleRunning, text: buttonLabel"></button>
+    <strong data-bind="text: count"></strong> game instances
 </body>
 </html>

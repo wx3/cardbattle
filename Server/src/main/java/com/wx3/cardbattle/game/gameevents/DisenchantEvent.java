@@ -23,15 +23,16 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.gameevents;
 
-import com.wx3.cardbattle.game.EntityStats;
+import com.wx3.cardbattle.game.GameEntity;
 
-/**
- * A Buff Recalculation is the phase where entities have their
- * {@link EntityStats} recalculated to reflect any buffs. It 
- * should not be instanced-- it exists so Buff rules can use its
- * class as a trigger.
- * 
- * @author Kevin
- *
- */
-public final class BuffRecalc extends GameEvent {}
+public final class DisenchantEvent extends GameEvent {
+
+	public int targetId;
+	
+	public DisenchantEvent(GameEntity target, GameEntity cause) {
+		this.targetId = target.getId();
+		if(cause != null) {
+			this.causeId = cause.getId();
+		}
+	}
+}

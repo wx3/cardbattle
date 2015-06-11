@@ -1,3 +1,26 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 Kevin Lin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *******************************************************************************/
 package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
@@ -26,6 +49,7 @@ import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.ChatEvent;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
+import com.wx3.cardbattle.game.gameevents.DisenchantEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EnchantEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
@@ -96,68 +120,6 @@ public class GameRuleEngine {
 		}
 		startTurn();
 		processEvents();
-	}
-	
-	/**
-	 * Evaluate the {@link EntityRule} in the context of a particular event for the entity that
-	 * this rule is attached to.
-	 * 
-	 * @param event
-	 * @param rule
-	 * @param entity
-	 */
-	void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
-		try {
-			if(rule.isTriggered(event)) {
-				// Let the rule access the event, game and entity objects
-				scriptEngine.put("event", event);
-				scriptEngine.put("rules", this);
-				scriptEngine.put("entity", entity);
-				logger.info("Executing " + rule + " for " + event + " on " + entity);
-				scriptEngine.eval(rule.getScript());
-			}
-		} catch (final ScriptException se) {
-			logger.error("ScriptException processing rule: " + se.getMessage());
-		} catch (Exception ex) {
-			logger.error("Exception processing rule: " + ex.getMessage());
-		}
-	}
-	
-	/**
-	 * Resets all entities' stats to their base values, then evaluates
-	 * all buff rules to update them.
-	 */
-	void recalculateStats() {
-		List<GameEntity> gameEntities = game.getEntities();
-		// First, reset all stats. This sets each stat to the base value:
-		for(GameEntity entity : gameEntities) {
-			entity.resetStats();
-		}
-		// Then iterate over all entities and trigger any buff rules. These rules
-		// may modify one or more entity's stats:
-		for(GameEntity entity : gameEntities) {
-			if(entity.isInPlay()) {
-				for(EntityRule rule : entity.getRules()) {
-					if(rule.getEventTrigger().equals(BuffRecalc.class.getSimpleName())) {
-						scriptEngine.put("rules", this);
-						scriptEngine.put("entity", entity);
-						logger.info("Recalculating buff " + rule + " on " + entity);
-						try {
-							scriptEngine.eval(rule.getScript());	
-						} catch (Exception ex) {
-							throw new RuleException("Exception processing buff " + rule + ":" + ex.getMessage());
-						}
-					}
-				}
-			}
-		}
-		// Finally, make sure no entity has a health greater than its max health
-		// (this could happen as a result of losing a buff for example):
-		for(GameEntity entity : gameEntities) {
-			if(entity.getCurrentHealth() > entity.getMaxHealth()) {
-				entity.setCurrentHealth(entity.getMaxHealth());
-			}
-		}
 	}
 	
 	void validatePlay(ValidationResult result, PlayCardCommand command) {
@@ -231,23 +193,6 @@ public class GameRuleEngine {
 		addEvent(new EnchantEvent(entity, rule, cause));
 	}
 	
-	public void buffEntity(GameEntity entity, String stat, int amount) {
-		entity.stats.buff(stat, amount);
-	}
-	
-	/**
-	 * Heal the entity by amount up to the entity's max health.
-	 * 
-	 * @param entity
-	 * @param amount
-	 */
-	public void healEntity(GameEntity entity, int amount) {
-		entity.setCurrentHealth(entity.getCurrentHealth() + amount);
-		if(entity.getCurrentHealth() > entity.getMaxHealth()) {
-			entity.setCurrentHealth(entity.getMaxHealth());
-		}
-	}
-	
 	/**
 	 * Remove all non-permanent rules from an entity
 	 * 
@@ -267,6 +212,44 @@ public class GameRuleEngine {
 			}
 		}
 		entity.setRules(rules);
+		// Like enchantment, disenchanting also requires a stat recalculation:
+		recalculateStats();
+		addEvent(new DisenchantEvent(entity, null));
+	}
+	
+	/**
+	 * Modify an entity's stat by a particular amount. Note that buffing should only 
+	 * happen in response to a BuffRecalculation, which occurs after an event is 
+	 * processed.
+	 * 
+	 * @param entity
+	 * @param stat
+	 * @param amount
+	 */
+	public void buffEntity(GameEntity entity, String stat, int amount) {
+		entity.stats.buff(stat, amount);
+	}
+	
+	/**
+	 * Heal the entity by amount up to the entity's max health.
+	 * 
+	 * @param entity
+	 * @param amount
+	 */
+	public void healEntity(GameEntity entity, int amount) {
+		entity.setCurrentHealth(entity.getCurrentHealth() + amount);
+		if(entity.getCurrentHealth() > entity.getMaxHealth()) {
+			entity.setCurrentHealth(entity.getMaxHealth());
+		}
+	}
+	
+	/**
+	 * Heal the entity by however much damage it's taken.
+	 * @param entity
+	 */
+	public void healEntity(GameEntity entity) {
+		int damage = entity.getMaxHealth() - entity.getCurrentHealth();
+		healEntity(entity, damage);
 	}
 	
 	/**
@@ -439,6 +422,68 @@ public class GameRuleEngine {
 			++i;
 			if(i > MAX_EVENTS) {
 				throw new RuntimeException("Exceeded max events: " + MAX_EVENTS);
+			}
+		}
+	}
+	
+	/**
+	 * Evaluate the {@link EntityRule} in the context of a particular event for the entity that
+	 * this rule is attached to.
+	 * 
+	 * @param event
+	 * @param rule
+	 * @param entity
+	 */
+	void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
+		try {
+			if(rule.isTriggered(event)) {
+				// Let the rule access the event, game and entity objects
+				scriptEngine.put("event", event);
+				scriptEngine.put("rules", this);
+				scriptEngine.put("entity", entity);
+				logger.info("Executing " + rule + " for " + event + " on " + entity);
+				scriptEngine.eval(rule.getScript());
+			}
+		} catch (final ScriptException se) {
+			logger.error("ScriptException processing rule: " + se.getMessage());
+		} catch (Exception ex) {
+			logger.error("Exception processing rule: " + ex.getMessage());
+		}
+	}
+	
+	/**
+	 * Resets all entities' stats to their base values, then evaluates
+	 * all buff rules to update them.
+	 */
+	void recalculateStats() {
+		List<GameEntity> gameEntities = game.getEntities();
+		// First, reset all stats. This sets each stat to the base value:
+		for(GameEntity entity : gameEntities) {
+			entity.resetStats();
+		}
+		// Then iterate over all entities and trigger any buff rules. These rules
+		// may modify one or more entity's stats:
+		for(GameEntity entity : gameEntities) {
+			if(entity.isInPlay()) {
+				for(EntityRule rule : entity.getRules()) {
+					if(rule.getEventTrigger().equals(BuffRecalc.class.getSimpleName())) {
+						scriptEngine.put("rules", this);
+						scriptEngine.put("entity", entity);
+						logger.info("Recalculating buff " + rule + " on " + entity);
+						try {
+							scriptEngine.eval(rule.getScript());	
+						} catch (Exception ex) {
+							throw new RuleException("Exception processing buff " + rule + ":" + ex.getMessage());
+						}
+					}
+				}
+			}
+		}
+		// Finally, make sure no entity has a health greater than its max health
+		// (this could happen as a result of losing a buff for example):
+		for(GameEntity entity : gameEntities) {
+			if(entity.getCurrentHealth() > entity.getMaxHealth()) {
+				entity.setCurrentHealth(entity.getMaxHealth());
 			}
 		}
 	}

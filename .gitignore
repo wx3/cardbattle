@@ -11,5 +11,8 @@ Server/target/
 #General
 Test/
 
+#Office temporary files
+~$*
+
 #Webstorm
 .idea

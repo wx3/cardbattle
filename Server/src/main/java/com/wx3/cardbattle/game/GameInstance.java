@@ -1,3 +1,26 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 Kevin Lin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *******************************************************************************/
 package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
@@ -91,6 +114,13 @@ public class GameInstance {
 	private GameRuleEngine ruleEngine;
 	private boolean started = false;
 	
+	/**
+	 * General game rules, such as detecting game ending conditions are applied 
+	 * to the rule entity.
+	 */
+	@Transient
+	private GameEntity ruleEntity;
+	
 	public long getId() {
 		return id;
 	}
@@ -132,6 +162,16 @@ public class GameInstance {
 		}
 	}
 	
+	public void setGameRules(List<EntityRule> rules) {
+		if(ruleEntity != null) {
+			throw new RuntimeException("Rule entity already created.");
+		}
+		ruleEntity = spawnEntity();
+		ruleEntity.setTag(Tag.RULES);
+		ruleEntity.setTag(Tag.IN_PLAY);
+		ruleEntity.setRules(rules);
+	}
+	
 	public void addPlayer(GamePlayer player) {
 		// The player's position is equal to the size of the player list
 		// prior to adding. E.g., the first player added is in position 0
@@ -141,9 +181,11 @@ public class GameInstance {
 		
 		// Create an entity for the player. 
 		GameEntity playerEntity = spawnEntity();
-		playerEntity.name = player.getUsername() + "_" + playerEntity.getId();
+		playerEntity.name = player.getUsername();
 		playerEntity.setTag(Tag.PLAYER);
 		playerEntity.setTag(Tag.IN_PLAY);
+		playerEntity.stats.setBase(EntityStats.MAX_HEALTH, 100);
+		playerEntity.setCurrentHealth(playerEntity.getMaxHealth());
 		playerEntity.setOwner(player);
 		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
 				+ "if(event.getTurn() < 2){"
@@ -154,7 +196,7 @@ public class GameInstance {
 				+ "rules.drawCard(entity.getOwner());"
 				+ "}"
 				+ "}";
-		EntityRule drawRule = new EntityRule(StartTurnEvent.class, s2, "PLAYER_DRAW", "Player draws at start of turn.");
+		EntityRule drawRule = EntityRule.createRule(StartTurnEvent.class, s2, "PLAYER_DRAW", "Player draws at start of turn.");
 		playerEntity.addRule(drawRule);
 		
 		player.setEntity(playerEntity);
@@ -235,18 +277,13 @@ public class GameInstance {
 		return turn;
 	}
 	
-
-	
 	public void validatePlay(ValidationResult result, PlayCardCommand command) {
 		ruleEngine.validatePlay(result, command);	
 	}
 	
-
  	synchronized void update() {
 		
 	}
-	
-
 	
 	GameEntity spawnEntity() {
 		GameEntity entity = new GameEntity(this, entityIdCounter);
