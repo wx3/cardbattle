@@ -64,22 +64,27 @@ public class GameServer {
 		return game;
 	}
 	
+	public GameInstance getGame(long id) {
+		return datastore.getGame(id);
+	}
+	
 	public List<PlayerAuthtoken> createTestGame() {
 		User user1 = datastore.getUser("goodguy");
 		User user2 = datastore.getUser("badguy");
 		
-		Collection<Card> cards = datastore.getCards();
-		logger.info("There are " + cards.size() + " cards in the game.");
-		List<Card> deck1 = cards.stream()
-				.sorted((e1,e2) -> Integer.compare(e1.getId(), e2.getId()))
-				.collect(Collectors.toList());
-		user1.setCurrentDeck(deck1);
-		List<Card> deck2 = new ArrayList<Card>(deck1);
-		user2.setCurrentDeck(deck2);
-		
 		if(user1 == null || user2 == null) {
 			throw new RuntimeException("The test users 'goodguy' and 'badguy' don't exist");
 		}
+		
+		List<Card> deck = new ArrayList<Card>();
+		String cardNames[] = new String[]{"Measley Minion","Death Ray","Zaptastic","Health Buff +3","Sympathy Collector","Strong Minion","Disenchant"};
+		for(String cardName : cardNames) {
+			Card card = datastore.getCard(cardName);
+			deck.add(card);
+		}
+		user1.setCurrentDeck(deck);
+		user2.setCurrentDeck(new ArrayList<Card>(deck));
+		
 		GameInstance  game = datastore.createGame(Arrays.asList(user1,user2));	
 		game.start();
 		return datastore.getAuthtokens(game.getId());

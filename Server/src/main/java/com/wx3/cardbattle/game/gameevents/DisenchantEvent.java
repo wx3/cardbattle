@@ -27,7 +27,10 @@ import com.wx3.cardbattle.game.GameEntity;
 
 public final class DisenchantEvent extends GameEvent {
 
-	public int targetId;
+	@SuppressWarnings("unused")
+	private transient int targetId;
+	
+	public transient GameEntity target;
 	
 	public DisenchantEvent(GameEntity target, GameEntity cause) {
 		this.targetId = target.getId();

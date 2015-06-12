@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.GameServer;
+import com.wx3.cardbattle.datastore.Datastore;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
@@ -81,22 +82,8 @@ public class GameInstance {
 	
 	int turn;
 	
-	/**
-	 * String containing the script to run at game start
-	 */
-	private String startupScript;
-	
 	@Transient
-	private int entityIdCounter = 1;
-	
-	@Transient
-	private Map<Integer, Card> cardsById = new HashMap<Integer, Card>();
-	
-	@Transient
-	private Map<String, Card> cardsByName = new HashMap<String, Card>();
-	
-	@Transient
-	private Map<String, EntityRule> rulesById = new HashMap<String, EntityRule>();
+	private int entityIdCounter = 1;	
 	
 	@Transient
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
@@ -112,6 +99,10 @@ public class GameInstance {
 	
 	@Transient
 	private GameRuleEngine ruleEngine;
+	
+	@Transient
+	private Datastore datastore;
+	
 	private boolean started = false;
 	
 	/**
@@ -121,16 +112,18 @@ public class GameInstance {
 	@Transient
 	private GameEntity ruleEntity;
 	
+	public static GameInstance createGame(Datastore datastore) {
+		GameInstance game = new GameInstance();
+		game.datastore = datastore;
+		return game;
+	}
+	
 	public long getId() {
 		return id;
 	}
 	
 	public Date getCreated() {
 		return created;
-	}
-	
-	public String getStartupScript() {
-		return startupScript;
 	}
 
 	public void setCreated(Date created) {
@@ -139,27 +132,6 @@ public class GameInstance {
 	
 	public GameRuleEngine getRuleEngine() {
 		return ruleEngine;
-	}
-	
-	public void setCards(Collection<Card> cards) {
-		this.cardsById = new HashMap<Integer, Card>();
-		this.cardsByName = new HashMap<String, Card>();
-		for(Card card : cards) {
-			if(cardsById.containsKey(card.getId())) {
-				logger.warn("Duplicate card id: " + card.getId());
-			}
-			cardsById.put(card.getId(), card);
-			if(cardsByName.containsKey(card.getName())) {
-				logger.warn("Duplicate card name: " + card.getName());
-			}
-			cardsByName.put(card.getName(), card);
-		}
-	}
-	
-	public void setRules(Collection<EntityRule> rules) {
-		for(EntityRule rule : rules) {
-			rulesById.put(rule.getId(), rule);
-		}
 	}
 	
 	public void setGameRules(List<EntityRule> rules) {
@@ -188,6 +160,7 @@ public class GameInstance {
 		playerEntity.stats.setBase(EntityStats.MAX_HEALTH, 100);
 		playerEntity.setCurrentHealth(playerEntity.getMaxHealth());
 		playerEntity.setOwner(player);
+		// Eventually player rules should move out of here into the database/bootstrap:
 		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
 				+ "if(event.getTurn() < 2){"
 				+ "rules.drawCard(entity.getOwner());"
@@ -204,7 +177,7 @@ public class GameInstance {
 	}
 	
 	void playerConnected(GamePlayer player) {
-		JoinMessage joinMessage = JoinMessage.createMessage(cardsById);
+		JoinMessage joinMessage = JoinMessage.createMessage(datastore.getCards());
 		player.sendMessage(joinMessage);
 		GameViewMessage viewMessage = GameViewMessage.createMessage(this, player);
 		player.sendMessage(viewMessage);
@@ -231,15 +204,15 @@ public class GameInstance {
 	}
 	
 	public Card getCard(int cardId) {
-		return cardsById.get(cardId);
+		return datastore.getCard(cardId);
 	}
 	
 	public Card getCard(String cardName) {
-		return cardsByName.get(cardName);
+		return datastore.getCard(cardName);
 	}
 	
 	public EntityRule getRule(String ruleId) {
-		return rulesById.get(ruleId);
+		return datastore.getRule(ruleId);
 	}
 	
 	public void broadcastEvent(GameEvent event) {

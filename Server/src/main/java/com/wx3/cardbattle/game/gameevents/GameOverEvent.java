@@ -27,6 +27,8 @@
  */
 package com.wx3.cardbattle.game.gameevents;
 
+import javax.persistence.Transient;
+
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**
@@ -39,7 +41,7 @@ public class GameOverEvent extends GameEvent {
 
 	public String winnerName;
 	
-	private GamePlayer winner;
+	public transient GamePlayer winner;
 	
 	public GameOverEvent(GamePlayer winner) {
 		this.winner = winner;
@@ -47,4 +49,5 @@ public class GameOverEvent extends GameEvent {
 			this.winnerName = winner.getUsername();
 		}
 	}
+	
 }

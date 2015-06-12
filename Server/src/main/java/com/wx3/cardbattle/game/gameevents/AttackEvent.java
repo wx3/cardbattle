@@ -40,10 +40,8 @@ public final class AttackEvent extends GameEvent {
 	@SuppressWarnings("unused")
 	private int targetId;
 	
-	@Transient
-	public GameEntity attacker;
-	@Transient
-	public GameEntity target;
+	public transient GameEntity attacker;
+	public transient GameEntity target;
 	
 	public AttackEvent(GameEntity attacker, GameEntity target) {
 		this.attacker = attacker;

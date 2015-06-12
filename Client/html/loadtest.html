@@ -226,7 +226,8 @@ $(document).ready(function() {
                     consoleMessage("Entity #" + event.targetId + " enchanted with rule " + event.ruleId);
                     break;
                 case 'GameOverEvent':
-                    alert('Game over!');
+                    consoleMessage("Game over");
+                    self.websocket.close();
                     break;
                 default:
                     consoleMessage("Unknown event class: " + eventClass);

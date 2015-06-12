@@ -121,6 +121,10 @@ public class GamePlayer {
 	void setPosition(int position) {
 		this.position = position;
 	}
+	
+	public GameInstance getGame() {
+		return game;
+	}
 
 	void setGame(GameInstance game) {
 		this.game = game;

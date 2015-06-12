@@ -46,8 +46,8 @@ public class App
     	
     	Bootstrap test = new Bootstrap(datastore);
     	test.importData("csv");
-    	GameInstance game = test.setup();
-    	game.start();
+    	
+    	datastore.loadCache();
     	
     	NettyWebSocketServer nettyServer = new NettyWebSocketServer(gameserver, PORT);
     	nettyServer.start();

@@ -56,6 +56,9 @@ import com.wx3.cardbattle.game.rules.PlayValidator;
  * hand, it is represented by a {@link GameEntity}, although the GameEntity will
  * maintain a reference to creating card.
  * 
+ * Cards should be immutable since different references to the same card may be 
+ * backed by the same underlying object.
+ * 
  * @author Kevin
  *
  */
@@ -117,28 +120,12 @@ public class Card {
 		return id;
 	}
 	
-	public void setId(int id) {
-		this.id = id;
-	}
-	
 	public String getName() {
 		return name;
 	}
 	
-	public void setName(String name) {
-		this.name = name;
-	}
-	
 	public String getDescription() {
 		return description;
-	}
-	
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
-	public void setTag(String tag) {
-		tags.add(tag);
 	}
 	
 	public Set<String> getTags() {
@@ -148,25 +135,13 @@ public class Card {
 	public Map<String,Integer> getStats() {
 		return stats;
 	}
-
-	public void setStats(Map<String,Integer> stats) {
-		this.stats = stats;
-	}
 	
 	public List<EntityRule> getRules() {
 		return rules;
 	}
 	
-	public void setRules(List<EntityRule> rules) {
-		this.rules = rules;
-	}
-	
 	public PlayValidator getValidator() {
 		return validator;
-	}
-	
-	public void setValidator(PlayValidator validator) {
-		this.validator = validator;
 	}
 	
 }

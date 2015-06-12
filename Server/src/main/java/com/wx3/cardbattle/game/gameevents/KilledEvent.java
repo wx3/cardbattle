@@ -32,8 +32,7 @@ public class KilledEvent extends GameEvent {
 	
 	private int entityId;
 	
-	@Transient
-	private GameEntity entity;
+	public transient GameEntity entity;
 	
 	public KilledEvent(GameEntity entity) {
 		this.entityId = entity.getId();

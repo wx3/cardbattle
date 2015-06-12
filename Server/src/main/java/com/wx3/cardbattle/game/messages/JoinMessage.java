@@ -23,6 +23,8 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.messages;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.wx3.cardbattle.game.Card;
@@ -38,9 +40,12 @@ public final class JoinMessage extends GameMessage {
 
 	private Map<Integer, Card> cards;
 	
-	public static JoinMessage createMessage(Map<Integer, Card> cards) {
+	public static JoinMessage createMessage(Collection<Card> cardList) {
 		JoinMessage message = new JoinMessage();
-		message.cards = cards;
+		message.cards = new HashMap<Integer, Card>();
+		for(Card card : cardList) {
+			message.cards.put(card.getId(), card);
+		}
 		message.messageClass = JoinMessage.class.getSimpleName();
 		return message;
 	}

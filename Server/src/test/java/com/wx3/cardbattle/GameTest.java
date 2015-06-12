@@ -1,6 +1,10 @@
 package com.wx3.cardbattle;
 
+import java.util.List;
+
+import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
@@ -38,16 +42,40 @@ public class GameTest extends TestCase {
 	protected GamePlayer p2;
 	protected TestMessageHandler p2handler;
 	
+	protected GameServer gameServer;
+	
 	protected void setUp() {
 		Datastore datastore = new Datastore();
+		gameServer = new GameServer(datastore);
 		Bootstrap testSetup = new Bootstrap(datastore);
 		testSetup.importData("csv");
-		game = testSetup.setup();
-		game.start();
-		p1 = game.getPlayerInPosition(0);
+		List<PlayerAuthtoken> authtokens = gameServer.createTestGame();
+		if(authtokens.size() != 2) {
+			throw new RuntimeException("Creating test game expected to return 2 autotokens, returned " + authtokens.size());
+		}
+		
+		try {
+			for(PlayerAuthtoken token : authtokens) {
+				if(token.getPlayer().getUsername().equals("goodguy")) {
+					p1 = gameServer.authenticate(token.getAuthtoken());
+				}
+				else if(token.getPlayer().getUsername().equals("badguy")) {
+					p2 = gameServer.authenticate(token.getAuthtoken());
+				} 
+				else {
+					throw new RuntimeException("Unexpected user " + token.getPlayer().getUsername());
+				}
+			}
+		} catch (AuthenticationException e) {
+			throw new RuntimeException("Authentication error: " + e.getMessage());
+		}
+		if(p1.getGame() != p2.getGame()) {
+			throw new RuntimeException("Players are not in the same game!");
+		}
+		game = p1.getGame();
+		
 		p1handler = new TestMessageHandler();
 		p1.connect(p1handler);
-		p2 = game.getPlayerInPosition(1);
 		p2handler = new TestMessageHandler();
 		p2.connect(p2handler);
 		

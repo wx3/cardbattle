@@ -43,14 +43,13 @@ import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
-import com.wx3.cardbattle.game.gameevents.GameStartEvent;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
  * Handles persistence for the game, both long term via hibernate and 
- * through local memory.
+ * through local caching.
  * 
  * @author Kevin
  *
@@ -61,8 +60,26 @@ public class Datastore {
 	
 	private Map<Long, GameInstance> gameInstances = new HashMap<Long, GameInstance>();
 	
+	// Cards & rules are only expected to change during game updates, so we should 
+	// only need to load them once:
+	private Map<Integer, Card> cardsById = new HashMap<Integer, Card>();
+	private Map<String, Card> cardsByName = new HashMap<String, Card>();
+	private Map<String, EntityRule> rulesById = new HashMap<String, EntityRule>();
+	
 	public Datastore() {
 		sessionFactory = createSessionFactory();
+	}
+	
+	public void loadCache() {
+		Collection<Card> cards = loadCards();
+		for(Card card : cards) {
+			cardsById.put(card.getId(), card);
+			cardsByName.put(card.getName(), card);
+		}
+		Collection<EntityRule> rules = loadRules();
+		for(EntityRule rule : rules) {
+			rulesById.put(rule.getId(), rule);
+		}
 	}
 	
 	public void saveUser(User user) {
@@ -82,16 +99,32 @@ public class Datastore {
 	}
 	
 	public Collection<Card> getCards() {
-		Session session = sessionFactory.openSession();
-    	session.beginTransaction();
-    	// If we're using some kind of SQL database, there may be a behind-the-scenes
-    	// join creating multiple results, so we need the DISTINCT_ROOT_ENTITY transformer:
-    	@SuppressWarnings("unchecked")
-    	List<Card> cardList = session.createCriteria(Card.class)
-			.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
-    		.list();
-    	session.getTransaction().commit();
-    	return cardList;
+		return cardsById.values();
+	}
+	
+	public Card getCard(String name) {
+		if(!cardsByName.containsKey(name)) {
+			throw new RuntimeException("Could not find card named '" + name + "' in datastore cache.");
+		}
+		return cardsByName.get(name);
+	}
+	
+	public Card getCard(int id) {
+		if(!cardsById.containsKey(id)) {
+			throw new RuntimeException("Could not find card with id '" + id + "' in datastore cache");
+		}
+		return cardsById.get(id);
+	}
+	
+	public Collection<EntityRule> getRules() {
+		return rulesById.values();
+	}
+	
+	public EntityRule getRule(String id) {
+		if(!rulesById.containsKey(id)) {
+			throw new RuntimeException("Could not find rule with id '" + id + "' in datastore cache");
+		}
+		return rulesById.get(id);
 	}
 	
 	public void createValidator(PlayValidator pv) {
@@ -108,16 +141,7 @@ public class Datastore {
     	session.getTransaction().commit();
 	}
 	
-	public Collection<EntityRule> getRules() {
-		Session session = sessionFactory.openSession();
-    	session.beginTransaction();
-    	@SuppressWarnings("unchecked")
-		List<EntityRule> ruleList = session.createCriteria(EntityRule.class)
-				.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
-				.list();
-    	session.getTransaction().commit();
-    	return ruleList;
-	}
+	
 	
 	/**
 	 * Create a new game instance and the corresponding game players, persisting them
@@ -126,9 +150,7 @@ public class Datastore {
 	 * @param users
 	 */
 	public GameInstance createGame(List<User> users) {
-		GameInstance game = new GameInstance();
-		game.setRules(getRules());
-		game.setCards(getCards());
+		GameInstance game = GameInstance.createGame(this);
 		game.setGameRules(getGameRules());
 		Session session = sessionFactory.openSession();
 		SecureRandom random = new SecureRandom();
@@ -209,6 +231,31 @@ public class Datastore {
     	return gamePlayer;
 	}
 	
+	private Collection<Card> loadCards() {
+		Session session = sessionFactory.openSession();
+    	session.beginTransaction();
+    	// If we're using some kind of SQL database, there may be a behind-the-scenes
+    	// join creating multiple results, so we need the DISTINCT_ROOT_ENTITY transformer:
+    	@SuppressWarnings("unchecked")
+    	List<Card> cardList = session.createCriteria(Card.class)
+			.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
+    		.list();
+    	session.getTransaction().commit();
+    	return cardList;
+	}
+	
+	private Collection<EntityRule> loadRules() {
+		Session session = sessionFactory.openSession();
+    	session.beginTransaction();
+    	@SuppressWarnings("unchecked")
+		List<EntityRule> ruleList = session.createCriteria(EntityRule.class)
+				.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
+				.list();
+    	session.getTransaction().commit();
+    	return ruleList;
+	}
+	
+	// This should be somewhere else:
 	private List<EntityRule> getGameRules() {
 		List<EntityRule> rules = new ArrayList<EntityRule>();
 		EntityRule gameOverRule = EntityRule.createRule(KilledEvent.class, "if(event.getEntity().hasTag('PLAYER')){rules.gameOver()}", "GAME_OVER", "Detects end of game on player death.");

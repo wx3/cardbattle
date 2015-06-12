@@ -44,8 +44,7 @@ public abstract class GameEvent {
 	 * If a GameEvent was caused by another entity (such as a rule
 	 * firing), the cause will reference that entity.
 	 */
-	@Transient
-	protected GameEntity cause;
+	protected transient GameEntity cause;
 	protected int causeId;
 	
 }

@@ -31,10 +31,9 @@ import com.wx3.cardbattle.game.messages.GameEntityView;
 
 public final class PlayCardEvent extends GameEvent {
 
-	@Transient
-	private GameEntity entity;
-	@Transient
-	private GameEntity target;
+	private transient GameEntity entity;
+	
+	private transient GameEntity target;
 	
 	public int entityId;
 	public int targetId;

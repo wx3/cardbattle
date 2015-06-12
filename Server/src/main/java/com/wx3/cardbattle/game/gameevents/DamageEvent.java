@@ -23,8 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.gameevents;
 
-import javax.persistence.Transient;
-
 import com.wx3.cardbattle.game.GameEntity;
 
 /**
@@ -36,10 +34,10 @@ public final class DamageEvent extends GameEvent {
 
 	@SuppressWarnings("unused")
 	private int entityId;
-	public int damage;
+	@SuppressWarnings("unused")
+	private int damage;
 	
-	@Transient
-	public GameEntity entity;
+	public transient GameEntity entity;
 	
 	public DamageEvent(GameEntity entity, int damage, GameEntity cause) {
 		this.entity = entity;

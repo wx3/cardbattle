@@ -109,16 +109,6 @@ public class GameRuleEngine {
 	 * Process any starting rules on the game
 	 */
 	void startup() {
-		try {
-			String script = game.getStartupScript();
-			if(!Strings.isNullOrEmpty(script)) {
-				scriptEngine.put("game", game);
-				scriptEngine.eval(game.getStartupScript());
-			}
-		} catch (final ScriptException se) {
-			logger.error("Exception processing startup script: " + se.getMessage());
-			throw(new RuntimeException(se));
-		}
 		startTurn();
 		processEvents();
 	}
