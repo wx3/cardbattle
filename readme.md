@@ -1,0 +1,1 @@
+CardBattle is an open-sourced multiplayer CCG-style (Collectible Card Game) game engine. It is licensed under the MIT license.
