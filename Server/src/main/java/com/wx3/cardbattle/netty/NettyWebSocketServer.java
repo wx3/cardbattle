@@ -34,6 +34,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+/**
+ * <p>Starts Netty listening on the provided port. The 
+ * {@link WebSocketServerInitializer} creates the channel pipeline
+ * that will process requests.</p>
+ * 
+ * @author Kevin
+ *
+ */
 public class NettyWebSocketServer {
 	
 	private GameServer gameserver;

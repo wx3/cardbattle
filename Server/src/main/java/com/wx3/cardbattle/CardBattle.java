@@ -33,7 +33,7 @@ import com.wx3.cardbattle.netty.NettyWebSocketServer;
  * GameServer and Netty server. 
  *
  */
-public class App 
+public class CardBattle 
 {
 	static final boolean SSL = System.getProperty("ssl") != null;
     static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));

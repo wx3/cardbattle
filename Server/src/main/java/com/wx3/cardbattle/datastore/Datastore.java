@@ -48,8 +48,16 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
- * Handles persistence for the game, both long term via hibernate and 
- * through local caching.
+ * The Datastore stores persistent data that needs to be available outside of 
+ * a game session, or across different game sessions. This includes "static"
+ * game data like cards, rules, and validators, as well as information 
+ * about game instances so a central gateway/load balancer can access it.
+ * <p>
+ * The current implementations handles long-term storage via Hibernate, so 
+ * it can use memory for local development/testing or a SQL database such as MySQL
+ * for staging/production.
+ * <p>
+ * See the hibernate.cfg.xml in resources for Hibernate configuration.
  * 
  * @author Kevin
  *
@@ -70,6 +78,9 @@ public class Datastore {
 		sessionFactory = createSessionFactory();
 	}
 	
+	/**
+	 * Refresh the datastores local cache of static game data (cards, rules, etc.)
+	 */
 	public void loadCache() {
 		Collection<Card> cards = loadCards();
 		for(Card card : cards) {
