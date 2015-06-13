@@ -275,7 +275,7 @@ public class Datastore {
 	}
 	
 	private SessionFactory createSessionFactory() {
-    	Configuration configuration = new Configuration().configure(); 
+    	Configuration configuration = new Configuration().configure("hibernate.cfg.xml"); 
     	StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();
         serviceRegistryBuilder.applySettings(configuration.getProperties());
         ServiceRegistry serviceRegistry = serviceRegistryBuilder.build();
