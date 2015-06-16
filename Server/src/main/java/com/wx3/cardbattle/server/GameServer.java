@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle;
+package com.wx3.cardbattle.server;
 
 import java.util.ArrayList;
 import java.util.Arrays;

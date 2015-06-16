@@ -49,7 +49,6 @@ import javax.persistence.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wx3.cardbattle.GameServer;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
@@ -64,6 +63,7 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
+import com.wx3.cardbattle.server.GameServer;
 
 @Entity
 @Table(name="game_instances")

@@ -50,6 +50,9 @@ $(document).ready(function(){
 
         var cmdCounter = 1;
 
+        var selected = null;
+
+        self.myTurn = ko.observable(false);
         self.cardLookup = {};
         self.entityLookup = {};
 
@@ -255,6 +258,11 @@ $(document).ready(function(){
             self.currentPlayer(currentGameState.currentPlayer);
             var me = currentGameState.playerName;
             self.playerName(me);
+            if(self.currentPlayer() == me) {
+                self.myTurn(true);
+            } else {
+                self.myTurn(false);
+            }
             var players = currentGameState.players;
             consoleMessage("There are " + currentGameState.entities.length + " entities in the game");
             self.myHand.removeAll();
@@ -287,7 +295,7 @@ $(document).ready(function(){
         }
 
 
-        var endTurn = function () {
+        self.endTurn = function () {
             var endTurnJson = {
                 command: "EndTurn",
                 object: {}
@@ -334,6 +342,22 @@ $(document).ready(function(){
             var encoded = JSON.stringify(command);
             console.log('Sending command:' + encoded);
             self.websocket.send(encoded);
+        }
+
+        self.startDrag = function(obj) {
+            selected = obj;
+            return true;
+        }
+
+        self.drop = function(target) {
+            if(selected != null) {
+                if(target == self) {
+                    console.log(selected);
+                    play(selected.entityId);
+                } else {
+                    play(selected.entityId, target.entityId)
+                }
+            }
         }
     }
 
@@ -394,7 +418,6 @@ $(document).ready(function(){
     var creator = new TestGameCreate(url);
     creator.create(handleTestGame);
 
-
 });
 
 </script>
@@ -402,7 +425,7 @@ $(document).ready(function(){
     <link rel="stylesheet" type="text/css" href="testclient.css">
 </head>
 <body>
-<div id="client_1" class="clientArea">
+<div id="client_1" class="clientArea" data-bind="style: { opacity: myTurn() ? 1 : 0.5}">
     <form>
         <div data-bind="if: connected" class="connected">You are CONNECTED</div>
         <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
@@ -412,11 +435,18 @@ $(document).ready(function(){
             </div>
 
             Current player: <strong data-bind="text: currentPlayer"></strong>
+            <div><button data-bind="click:endTurn">End Turn</button></div>
+            <div>
+                <p>Console:</p>
+                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
+            </div>
             <p>Your Hand:</p>
             <div class="hand">
 
                 <div data-bind="foreach: myHand">
-                    <div class="card">
+                    <div class="card" data-bind="event: {
+                        dragstart: $root.startDrag
+                    }" draggable="true">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
@@ -431,9 +461,15 @@ $(document).ready(function(){
             </div>
 
             <p>Your Entities:</p>
-            <div class="board">
+            <div class="board" data-bind="event: {
+                dragover: function(event) {return false},
+                drop: $root.drop
+            }">
                 <div data-bind="foreach: myBoard">
-                    <div class="card">
+                    <div class="card" data-bind="event: {
+                    dragover: function(event) {return false},
+                drop: $root.drop
+            }, dropBubble: false">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
@@ -449,7 +485,10 @@ $(document).ready(function(){
             <p>Opponent Entities:</p>
             <div class="board">
                 <div data-bind="foreach: opponentBoard">
-                    <div class="card">
+                    <div class="card" data-bind="event: {
+                    dragover: function(event) {return false},
+                drop: $root.drop
+            }, dropBubble: false">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
@@ -465,10 +504,6 @@ $(document).ready(function(){
             <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
             <div>
                 Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-            </div>
-            <div>
-                <p>Console:</p>
-                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
             </div>
 
         </div>
@@ -476,7 +511,7 @@ $(document).ready(function(){
     </form>
 </div>
 
-<div id="client_2" class="clientArea">
+<div id="client_2" class="clientArea" data-bind="style: { opacity: myTurn() ? 1 : 0.5}">
     <form>
         <div data-bind="if: connected" class="connected">You are CONNECTED</div>
         <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
@@ -486,30 +521,49 @@ $(document).ready(function(){
             </div>
 
             Current player: <strong data-bind="text: currentPlayer"></strong>
+            <div><button data-bind="click:endTurn">End Turn</button></div>
+            <div>
+                <p>Console:</p>
+                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
+            </div>
             <p>Your Hand:</p>
             <div class="hand">
 
                 <div data-bind="foreach: myHand">
-                    <div class="card">
+                    <div class="card" data-bind="event: {
+                        dragstart: $root.startDrag
+                    }" draggable="true">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
                             <li data-bind="text: $data"></li>
                         </ul>
+
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
                     </div>
                 </div>
                 <div class="clear"></div>
             </div>
 
             <p>Your Entities:</p>
-            <div class="board">
+            <div class="board" data-bind="event: {
+                dragover: function(event) {return false},
+                drop: $root.drop
+            }">
                 <div data-bind="foreach: myBoard">
-                    <div class="card">
+                    <div class="card" data-bind="event: {
+                    dragover: function(event) {return false},
+                drop: $root.drop
+            }, dropBubble: false">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
                             <li data-bind="text: $data"></li>
                         </ul>
+
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
                     </div>
                 </div>
             </div>
@@ -517,12 +571,18 @@ $(document).ready(function(){
             <p>Opponent Entities:</p>
             <div class="board">
                 <div data-bind="foreach: opponentBoard">
-                    <div class="card">
+                    <div class="card" data-bind="event: {
+                    dragover: function(event) {return false},
+                drop: $root.drop
+            }, dropBubble: false">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
                             <li data-bind="text: $data"></li>
                         </ul>
+
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
                     </div>
                 </div>
             </div>
@@ -530,10 +590,6 @@ $(document).ready(function(){
             <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
             <div>
                 Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-            </div>
-            <div>
-                <p>Console:</p>
-                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
             </div>
 
         </div>

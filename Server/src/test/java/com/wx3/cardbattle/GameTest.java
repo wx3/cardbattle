@@ -25,6 +25,7 @@ import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameMessage;
+import com.wx3.cardbattle.server.GameServer;
 
 import junit.framework.TestCase;
 

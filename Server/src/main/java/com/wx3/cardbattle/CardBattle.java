@@ -27,7 +27,8 @@ package com.wx3.cardbattle;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.netty.NettyWebSocketServer;
+import com.wx3.cardbattle.server.GameServer;
+import com.wx3.cardbattle.server.NettyWebSocketServer;
 
 /**
  * The main entry point for the game application, creates a Datastore,
@@ -42,17 +43,21 @@ public class CardBattle
     public static void main( String[] args )
     {
     	GameDatastore datastore = new HibernateDatastore();
+    	bootstrap(datastore);
     	
     	GameServer gameserver = new GameServer(datastore);
-    	
-    	Bootstrap test = new Bootstrap(datastore);
-    	test.importData("csv");
-    	
-    	datastore.loadCache();
-    	
     	NettyWebSocketServer nettyServer = new NettyWebSocketServer(gameserver, PORT);
     	nettyServer.start();
-    	
+    }
+    
+    /**
+     * Load initial game data into the datastore
+     * @param datastore
+     */
+    private static void bootstrap(GameDatastore datastore) {
+    	Bootstrap test = new Bootstrap(datastore);
+    	test.importData("csv");
+    	datastore.loadCache();
     }
     
 }

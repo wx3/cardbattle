@@ -21,9 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.netty;
+package com.wx3.cardbattle.server;
 
-import com.wx3.cardbattle.GameServer;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
 
 import io.netty.bootstrap.ServerBootstrap;
