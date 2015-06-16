@@ -6,7 +6,13 @@
 <script>
 $(document).ready(function(){
 
-    var url = "ws://localhost:8080/websocket";
+    // If we're served from somewhere, use that as the host, otherwise assume we
+    // were just loaded from the file system and use localhost:
+    var url = "ws://localhost:8080/websocket"
+    var host = window.location.hostname;
+    if(host) {
+        url = "ws://" + host + ":80/websocket";
+    }
 
 	if (!window.WebSocket) {
 	  window.WebSocket = window.MozWebSocket;

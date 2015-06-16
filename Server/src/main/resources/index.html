@@ -1,60 +1,545 @@
+<!doctype html>
+<meta charset="UTF-8">
+<head>
+    <script src="jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>
+<script>
+$(document).ready(function(){
 
-<html><head><title>Web Socket Server</title></head>
-<body onload="init();">
-<script type="text/javascript">
+    // If we're served from somewhere, use that as the host, otherwise assume we
+    // were just loaded from the file system and use localhost:
+    var url = "ws://localhost:8080/websocket"
+    var host = window.location.hostname;
+    if(host) {
+        url = "ws://" + host + ":8080/websocket";
+    }
 
-var socket;
-var commandArea;
-var cmdId = 0;
+	if (!window.WebSocket) {
+	  window.WebSocket = window.MozWebSocket;
+	}
+    if (!window.WebSocket) {
+        Alert('Websockets not supported in this browser');
+    }
 
-function init() {
-	commandArea = document.getElementById('command');
-}
+    function TestGameCreate(url) {
+        var self = this;
+        self.websocket = null;
+        self.url = url;
 
-if (!window.WebSocket) {
-  window.WebSocket = window.MozWebSocket;
-}
-if (window.WebSocket) {
-  socket = new WebSocket("ws://localhost:8080/websocket");
-  socket.onmessage = function(event) {
-    var ta = document.getElementById('responseText');
-    ta.value = ta.value + '\n' + event.data
-  };
-  socket.onopen = function(event) {
-    var ta = document.getElementById('responseText');
-    ta.value = "Web Socket opened!";
-    commandArea.disabled = false;
-  };
-  socket.onclose = function(event) {
-    var ta = document.getElementById('responseText');
-    ta.value = ta.value + "Web Socket closed";
-    commandArea.disabled = false;
-  };
-} else {
-  alert("Your browser does not support Web Socket.");
-}
+        self.create = function(onMessage) {
+            self.websocket = new WebSocket(url);
+            self.websocket.onopen = onConnected;
+            self.websocket.onmessage = onMessage;
+        }
 
-function send(message) {
-  if (!window.WebSocket) { return; }
-  if (socket.readyState == WebSocket.OPEN) {
-    socket.send(message);
-  } else {
-    alert("The socket is not open.");
-  }
-}
+        var onConnected = function() {
+            var json = {
+                command: "testgame"
+            }
+            var encoded = JSON.stringify(json);
+            self.websocket.send(encoded);
+        }
+
+    }
+
+    function TestClient() {
+        var self = this;
+
+        self.websocket = null;
+        var currentGameState = null;
+
+        var cmdCounter = 1;
+
+        self.cardLookup = {};
+        self.entityLookup = {};
+
+        self.authtoken = ko.observable();
+        self.commandInput = ko.observable();
+
+        self.consoleText = ko.observable("");
+
+        self.connected = ko.observable(false);
+        self.playerName = ko.observable("");
+        self.currentPlayer = ko.observable("");
+        self.myHand = ko.observableArray();
+        self.opponentHandSize = ko.observable(0);
+
+        self.myBoard = ko.observableArray();
+        self.opponentBoard = ko.observableArray();
+
+        self.authenticate = function (token) {
+            console.log("connecting with token " + token);
+            consoleMessage("Connecting...");
+            self.authtoken(token);
+            this.connect(url);
+            return false;
+        }
+
+        self.handleCommand = function (d, e) {
+            if (e.keyCode === 13) {
+                self.parseCommand(self.commandInput());
+                self.commandInput("");
+                return false;
+            }
+            return true;
+        }
+
+        self.connect = function (url) {
+            self.websocket = new WebSocket(url);
+            self.websocket.onopen = onConnected;
+            self.websocket.onclose = onClose;
+            self.websocket.onmessage = onMessage;
+            self.websocket.onerror = onSocketError;
+        }
+
+        var consoleMessage = function (msg) {
+            self.consoleText(self.consoleText() + "\n" + msg);
+        }
+
+        var onConnected = function (event) {
+            consoleMessage("Connected, sending token '" + self.authtoken() + "'");
+            self.connected(true);
+            var authJson = {
+                command: "join",
+                authtoken: self.authtoken()
+            }
+            var encoded = JSON.stringify(authJson);
+            self.websocket.send(encoded);
+        }
+
+        var onSocketError = function (event) {
+            alert('A socket error occurred');
+        }
+
+        var onClose = function (event) {
+            consoleMessage("Socket closed");
+            console.log("Server closed connection");
+            self.connected(false);
+        }
+
+        this.parseCommand = function (cmd) {
+            var elements;
+            var action;
+
+            if (!self.connected()) {
+                alert('Not connected');
+                return;
+            }
+            elements = cmd.split(/\s+/);
+            action = elements[0].toLowerCase();
+
+            switch (action) {
+                case 'endturn' :
+                    endTurn();
+                    break;
+                case 'play' :
+                    play(elements[1], elements[2]);
+                    break;
+                case 'attack' :
+                    attack(elements[1], elements[2]);
+                    break;
+                case 'say' :
+                    elements.shift();
+                    chat(elements.join(' '));
+                    break;
+                default:
+                    consoleMessage("I don't know what you're trying to do.");
+            }
+        }
+
+        var getPlayerById = function (id) {
+            var players = currentGameState.players;
+            for (var key in players) {
+                if (players.hasOwnProperty(key)) {
+                    var player = players[key];
+                    if (player.id == id) {
+                        return player;
+                    }
+                }
+            }
+            return null;
+        }
+
+        self.getCardById = function (id) {
+            if (self.cardLookup[id]) {
+                return self.cardLookup[id];
+            }
+            return null;
+        }
+
+        var onMessage = function (event) {
+            console.log("Received message: ");
+            console.log(event.data);
+            var msg = JSON.parse(event.data);
+            var pretty = JSON.stringify(msg, null, 4);
+            var msgClass = msg.messageClass;
+            switch (msgClass) {
+                case 'JoinMessage':
+                    onJoinMessage(msg);
+                    break;
+                case 'GameViewMessage':
+                    currentGameState = msg.game;
+                    updateView();
+                    break;
+                case 'CommandResponseMessage':
+                    onCommandResponse(msg);
+                    break;
+                case 'EventMessage':
+                    onEvent(msg.eventClass, msg.event);
+                    break;
+                default:
+                    console.log('Unknown message class: ' + msgClass);
+            }
+        }
+
+        var onJoinMessage = function (msg) {
+            consoleMessage("Server sent JoinMessage");
+            self.cardLookup = msg.cards;
+        }
+
+        var onEvent = function (eventClass, event) {
+            switch (eventClass) {
+                case 'ChatEvent':
+                    consoleMessage(event.username + " says: " + event.message);
+                    break;
+                case 'StartTurnEvent' :
+                    consoleMessage("Start of turn #" + event.turn);
+                    break;
+                case 'EndTurnEvent' :
+                    consoleMessage("End turn.");
+                    break;
+                case 'DrawCardEvent' :
+                    player = getPlayerById(event.playerId);
+                    consoleMessage("Player " + player.username + " drew a card.");
+                    break;
+                case 'PlayCardEvent' :
+                    if (event.targetId > 0) {
+                        consoleMessage("Player " + currentGameState.currentPlayer + " played card with id #" + event.entityId + " on " + event.targetId);
+                    } else {
+                        consoleMessage("Player " + currentGameState.currentPlayer + " played card with id #" + event.entityId);
+                    }
+                    break;
+                case 'SummonMinionEvent':
+                    consoleMessage("Player " + currentGameState.currentPlayer + " summoned a minion");
+                    break;
+                case 'DamageEvent':
+                    consoleMessage("Entity #" + event.entityId + " took " + event.damage + " damage");
+                    break;
+                case 'KilledEvent':
+                    consoleMessage("Entity #" + event.entityId + " died");
+                    break;
+                case 'EnchantEvent':
+                    consoleMessage("Entity #" + event.targetId + " enchanted with rule " + event.ruleId);
+                    break;
+                case 'GameOverEvent':
+                    alert("Game over, " + event.winnerName + " wins!");
+                    self.websocket.close();
+                    break;
+                default:
+                    consoleMessage("Unknown event class: " + eventClass);
+            }
+        }
+
+        var onCommandResponse = function (msg) {
+            if (msg.isSuccess === true) {
+                console.log("Command accepter");
+            } else {
+                consoleMessage("Command denied: " + msg.result.errors[0]);
+            }
+        }
+
+
+        var updateView = function () {
+            console.log("Updating view...");
+
+            self.currentPlayer(currentGameState.currentPlayer);
+            var me = currentGameState.playerName;
+            self.playerName(me);
+            var players = currentGameState.players;
+            consoleMessage("There are " + currentGameState.entities.length + " entities in the game");
+            self.myHand.removeAll();
+            self.myBoard.removeAll();
+            self.opponentBoard.removeAll();
+            for(var i = 0; i < currentGameState.entities.length; i++) {
+                var e = currentGameState.entities[i];
+                var entity = new Entity(e);
+                if(e.cardId > 0) {
+                    card = self.getCardById(e.cardId);
+                    if(!card) {
+                        console.log("No card with id " + e.cardId);
+                        console.log(self.cardLookup[e.cardId]);
+                    } else {
+                        entity.setCard(self.getCardById(e.cardId));
+                    }
+                }
+                if(entity.ownerName == me) {
+                    if(entity.hasTag("IN_HAND")) {
+                        self.myHand.push(entity);
+                    } else {
+                        self.myBoard.push(entity);
+                    }
+                } else {
+                    if(entity.hasTag("IN_PLAY")) {
+                        self.opponentBoard.push(entity);
+                    }
+                }
+            }
+        }
+
+
+        var endTurn = function () {
+            var endTurnJson = {
+                command: "EndTurn",
+                object: {}
+            };
+            sendCommand(endTurnJson);
+        }
+
+        var play = function (cardId, targetId) {
+            var json = {
+                command: 'PlayCard',
+                object: {
+                    entityId: cardId,
+                    targetId: targetId
+                }
+            }
+            sendCommand(json);
+        }
+
+        var attack = function (attackerId, targetId) {
+            var json = {
+                command: 'Attack',
+                object: {
+                    attackerId: attackerId,
+                    targetId: targetId
+                }
+            }
+            sendCommand(json);
+        }
+
+        var chat = function(msg) {
+            var json = {
+                command: 'Chat',
+                object: {
+                    message: msg
+                }
+            }
+            sendCommand(json);
+        }
+
+        var sendCommand = function (command) {
+            command['object']['id'] = cmdCounter;
+            ++cmdCounter;
+
+            var encoded = JSON.stringify(command);
+            console.log('Sending command:' + encoded);
+            self.websocket.send(encoded);
+        }
+    }
+
+    function Entity(obj) {
+        var self = this;
+        self.entityId = obj.id;
+        self.name = ko.observable(obj.name);
+        self.description = ko.observable("");
+        self.ownerName = obj.ownerName;
+        self.card = null;
+        self.tags = ko.observableArray(obj.tags);
+
+        self.maxHealth = ko.observable(0);
+        self.currentHealth = ko.observable(0);
+        self.attack = ko.observable(0);
+
+        if(obj.hasOwnProperty('stats')) {
+            self.maxHealth(obj.stats['MAX_HEALTH']);
+            self.currentHealth(obj.vars['CURRENT_HEALTH']);
+            self.attack(obj.stats['ATTACK']);
+        }
+
+        self.hasTag = function(tag) {
+            if(self.tags.indexOf(tag) > -1) return true;
+            return false;
+        }
+
+        self.setCard = function(card) {
+            self.name(card.name);
+            self.description(card.description);
+        }
+    }
+
+
+    function Card(id, name, cardId) {
+        var self = this;
+        this.entityId = id;
+        this.cardId = cardId;
+        this.name = name;
+
+        this.longname = name + " (" + id + ")";
+    }
+
+    var client1 = new TestClient();
+    ko.applyBindings(client1, $('#client_1')[0]);
+
+    var client2 = new TestClient();
+    ko.applyBindings(client2, $('#client_2')[0]);
+
+    var handleTestGame = function(msg) {
+        console.log("Test game created, authenticating...");
+        var json = JSON.parse(msg.data)
+        var goodguytoken = json.goodguy;
+        var badguytoken = json.badguy;
+        client1.authenticate(goodguytoken);
+        client2.authenticate(badguytoken);
+    }
+    var creator = new TestGameCreate(url);
+    creator.create(handleTestGame);
+
+
+});
+
 </script>
-<h1>Web Socket Server Default Page</h1>
-<form onsubmit="return false;">
-<input type="text" name="message" value="Enter auth token"/><input type="button" value="Authenticate"
-       onclick="send(this.form.message.value)" />
-<h3>Command</h3>
-<p><textarea id="command" style="width:500px;height:300px;" disabled></textarea>
-<br/>
-<input type="button" value="Send Command"
-       onclick="send(this.form.command.value)" />
-</p>
-<h3>Output</h3>
-<p><textarea id="responseText" style="width:500px;height:300px;"></textarea></p>
-</form>
+
+    <link rel="stylesheet" type="text/css" href="testclient.css">
+</head>
+<body>
+<div id="client_1" class="clientArea">
+    <form>
+        <div data-bind="if: connected" class="connected">You are CONNECTED</div>
+        <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
+        <div data-bind="if: connected">
+            <div>
+                You are: <strong data-bind="text: playerName"></strong>
+            </div>
+
+            Current player: <strong data-bind="text: currentPlayer"></strong>
+            <p>Your Hand:</p>
+            <div class="hand">
+
+                <div data-bind="foreach: myHand">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+
+            <p>Your Entities:</p>
+            <div class="board">
+                <div data-bind="foreach: myBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <p>Opponent Entities:</p>
+            <div class="board">
+                <div data-bind="foreach: opponentBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
+            <div>
+                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
+            </div>
+            <div>
+                <p>Console:</p>
+                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+<div id="client_2" class="clientArea">
+    <form>
+        <div data-bind="if: connected" class="connected">You are CONNECTED</div>
+        <div data-bind="ifnot: connected" class="disconnected">You are DISCONNECTED</div>
+        <div data-bind="if: connected">
+            <div>
+                You are: <strong data-bind="text: playerName"></strong>
+            </div>
+
+            Current player: <strong data-bind="text: currentPlayer"></strong>
+            <p>Your Hand:</p>
+            <div class="hand">
+
+                <div data-bind="foreach: myHand">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+
+            <p>Your Entities:</p>
+            <div class="board">
+                <div data-bind="foreach: myBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <p>Opponent Entities:</p>
+            <div class="board">
+                <div data-bind="foreach: opponentBoard">
+                    <div class="card">
+                        <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <em data-bind="text: description"></em>
+                        <ul data-bind="foreach: tags">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
+            <div>
+                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
+            </div>
+            <div>
+                <p>Console:</p>
+                <textarea class="serverResponse" data-bind="value: consoleText"></textarea>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
 </body>
 </html>
