@@ -48,12 +48,7 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
- * The Datastore stores persistent data that needs to be available outside of 
- * a game session, or across different game sessions. This includes "static"
- * game data like cards, rules, and validators, as well as information 
- * about game instances so a central gateway/load balancer can access it.
- * <p>
- * The current implementations handles long-term storage via Hibernate, so 
+ * This implementation handles long-term storage via Hibernate, so 
  * it can use memory for local development/testing or a SQL database such as MySQL
  * for staging/production.
  * <p>
@@ -62,7 +57,7 @@ import com.wx3.cardbattle.game.rules.PlayValidator;
  * @author Kevin
  *
  */
-public class Datastore {
+public class HibernateDatastore implements GameDatastore {
 
 	private static SessionFactory sessionFactory;
 	
@@ -74,13 +69,14 @@ public class Datastore {
 	private Map<String, Card> cardsByName = new HashMap<String, Card>();
 	private Map<String, EntityRule> rulesById = new HashMap<String, EntityRule>();
 	
-	public Datastore() {
+	public HibernateDatastore() {
 		sessionFactory = createSessionFactory();
 	}
 	
-	/**
-	 * Refresh the datastores local cache of static game data (cards, rules, etc.)
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#loadCache()
 	 */
+	@Override
 	public void loadCache() {
 		Collection<Card> cards = loadCards();
 		for(Card card : cards) {
@@ -93,6 +89,10 @@ public class Datastore {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#saveUser(com.wx3.cardbattle.game.User)
+	 */
+	@Override
 	public void saveUser(User user) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
@@ -100,6 +100,10 @@ public class Datastore {
     	session.getTransaction().commit();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getUser(java.lang.String)
+	 */
+	@Override
 	public User getUser(String username) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
@@ -109,10 +113,18 @@ public class Datastore {
 		return user;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getCards()
+	 */
+	@Override
 	public Collection<Card> getCards() {
 		return cardsById.values();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getCard(java.lang.String)
+	 */
+	@Override
 	public Card getCard(String name) {
 		if(!cardsByName.containsKey(name)) {
 			throw new RuntimeException("Could not find card named '" + name + "' in datastore cache.");
@@ -120,6 +132,10 @@ public class Datastore {
 		return cardsByName.get(name);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getCard(int)
+	 */
+	@Override
 	public Card getCard(int id) {
 		if(!cardsById.containsKey(id)) {
 			throw new RuntimeException("Could not find card with id '" + id + "' in datastore cache");
@@ -127,10 +143,18 @@ public class Datastore {
 		return cardsById.get(id);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getRules()
+	 */
+	@Override
 	public Collection<EntityRule> getRules() {
 		return rulesById.values();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getRule(java.lang.String)
+	 */
+	@Override
 	public EntityRule getRule(String id) {
 		if(!rulesById.containsKey(id)) {
 			throw new RuntimeException("Could not find rule with id '" + id + "' in datastore cache");
@@ -138,6 +162,10 @@ public class Datastore {
 		return rulesById.get(id);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#createValidator(com.wx3.cardbattle.game.rules.PlayValidator)
+	 */
+	@Override
 	public void createValidator(PlayValidator pv) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
@@ -145,6 +173,10 @@ public class Datastore {
     	session.getTransaction().commit();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#createRule(com.wx3.cardbattle.game.rules.EntityRule)
+	 */
+	@Override
 	public void createRule(EntityRule rule) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
@@ -154,12 +186,10 @@ public class Datastore {
 	
 	
 	
-	/**
-	 * Create a new game instance and the corresponding game players, persisting them
-	 * to the database.
-	 * @param game
-	 * @param users
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#createGame(java.util.List)
 	 */
+	@Override
 	public GameInstance createGame(List<User> users) {
 		GameInstance game = GameInstance.createGame(this);
 		game.setGameRules(getGameRules());
@@ -187,6 +217,10 @@ public class Datastore {
 		return game;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getAuthtokens(long)
+	 */
+	@Override
 	public List<PlayerAuthtoken> getAuthtokens(long gameId) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
@@ -197,10 +231,18 @@ public class Datastore {
     	return tokens;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#getGame(long)
+	 */
+	@Override
 	public GameInstance getGame(long id) {
 		return gameInstances.get(id);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#createCard(com.wx3.cardbattle.game.Card)
+	 */
+	@Override
 	public void createCard(Card card) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
@@ -208,12 +250,10 @@ public class Datastore {
     	session.getTransaction().commit();
 	}
 	
-	/**
-	 * Find the GamePlayer with the corresponding authentication token
-	 * @param token
-	 * @return
-	 * @throws AuthenticationException 
+	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.Datastore#authenticate(java.lang.String)
 	 */
+	@Override
 	public GamePlayer authenticate(String token) throws AuthenticationException {
 		if(token.isEmpty() || token == null) {
 			throw new AuthenticationException(AuthenticationException.NO_TOKEN);

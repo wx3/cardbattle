@@ -3,7 +3,8 @@ package com.wx3.cardbattle;
 import java.util.List;
 
 import com.wx3.cardbattle.datastore.AuthenticationException;
-import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.datastore.GameDatastore;
+import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.EntityStats;
@@ -45,7 +46,7 @@ public class GameTest extends TestCase {
 	protected GameServer gameServer;
 	
 	protected void setUp() {
-		Datastore datastore = new Datastore();
+		GameDatastore datastore = new HibernateDatastore();
 		gameServer = new GameServer(datastore);
 		Bootstrap testSetup = new Bootstrap(datastore);
 		testSetup.importData("csv");

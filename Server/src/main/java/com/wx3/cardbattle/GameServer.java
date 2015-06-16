@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.datastore.AuthenticationException;
-import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
@@ -43,7 +43,8 @@ import com.wx3.cardbattle.game.User;
 
 /**
  * The gameserver handles the creation of games and connecting players to
- * the appropriate game.
+ * the appropriate game. 
+ * 
  * @author Kevin
  *
  */
@@ -51,9 +52,9 @@ public class GameServer {
 	
 	final Logger logger = LoggerFactory.getLogger(GameServer.class);
 
-	private Datastore datastore;
+	private GameDatastore datastore;
 	
-	public GameServer(Datastore datastore) {
+	public GameServer(GameDatastore datastore) {
 		this.datastore = datastore;
 	}
 	

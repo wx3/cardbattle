@@ -40,7 +40,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameInstance;
@@ -63,7 +63,7 @@ public class Bootstrap {
 	private Map<String, PlayValidator> validatorCache = new HashMap<String, PlayValidator>();
 	private Map<String, Card> cardCache = new HashMap<String, Card>();
 	
-	private Datastore datastore;
+	private GameDatastore datastore;
 	
 	static int parseIntOrZero(String i) {
 		try {
@@ -73,7 +73,7 @@ public class Bootstrap {
 		}
 	}
 	
-	public Bootstrap(Datastore datastore) {
+	public Bootstrap(GameDatastore datastore) {
 		this.datastore = datastore;
 	}
 	

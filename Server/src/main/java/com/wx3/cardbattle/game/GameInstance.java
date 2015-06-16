@@ -50,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.GameServer;
-import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
@@ -101,7 +101,7 @@ public class GameInstance {
 	private GameRuleEngine ruleEngine;
 	
 	@Transient
-	private Datastore datastore;
+	private GameDatastore datastore;
 	
 	private boolean started = false;
 	
@@ -112,7 +112,7 @@ public class GameInstance {
 	@Transient
 	private GameEntity ruleEntity;
 	
-	public static GameInstance createGame(Datastore datastore) {
+	public static GameInstance createGame(GameDatastore datastore) {
 		GameInstance game = new GameInstance();
 		game.datastore = datastore;
 		return game;

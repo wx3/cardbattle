@@ -5,7 +5,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import com.wx3.cardbattle.datastore.Datastore;
+import com.wx3.cardbattle.datastore.GameDatastore;
+import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
@@ -14,10 +15,10 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 
 public class DatastoreTest extends TestCase {
 	
-	Datastore datastore;
+	GameDatastore datastore;
 	
 	protected void setUp() {
-		datastore = new Datastore();
+		datastore = new HibernateDatastore();
 		Bootstrap testSetup = new Bootstrap(datastore);
 		testSetup.importData("csv");
 		datastore.loadCache();
