@@ -31,6 +31,14 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
 /**
  * A GameCommand is how a player communicates actions to the game.
+ * <p> 
+ * A command is first parsed, which converts the json data into game data (e.g., 
+ * if the json refers to an entity by its id, the parsing will get the actual 
+ * entity).
+ * <p>
+ * Next, the command is validated because we don't trust the client.
+ * <p>
+ * Finally the command is executed.
  * 
  * @author Kevin
  *
@@ -52,6 +60,13 @@ public abstract class GameCommand {
 		
 	}
 	
+	/**
+	 * Besides making sure the player and game exist, most commands can only
+	 * be executed on the player's turn, so we make this part of the default
+	 * validation. 
+	 * 
+	 * @return
+	 */
 	public ValidationResult validate()  {
 		ValidationResult result = new ValidationResult();
 		if(player == null) {

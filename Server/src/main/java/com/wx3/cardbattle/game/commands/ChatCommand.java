@@ -23,12 +23,23 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.commands;
 
+/**
+ * Tells the game that we want to say something to the 
+ * other player(s).
+ * 
+ * @author Kevin
+ *
+ */
 public class ChatCommand extends GameCommand {
 	
 	private String message;
 	
 	public ChatCommand() {}
 	
+	/**
+	 * We need to override valdiate because unlike most commands,
+	 * we can chat when it's not our turn.
+	 */
 	@Override
 	public ValidationResult validate() {
 		ValidationResult result = new ValidationResult();

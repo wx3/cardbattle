@@ -35,6 +35,12 @@ import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
+/**
+ * Attempt to play a card, with an optional target. 
+ * 
+ * @author Kevin
+ *
+ */
 public class PlayCardCommand extends GameCommand {
 	
 	@Transient
@@ -78,6 +84,10 @@ public class PlayCardCommand extends GameCommand {
 		}
 	}
 	
+	/**
+	 * We want to validate that the card entity exists, is in our hand. If there's a target, it
+	 * should be in play. Finally the game is can due additional validation.
+	 */
 	@Override
 	public ValidationResult validate() {
 		ValidationResult result = super.validate();

@@ -23,9 +23,12 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.commands;
 
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
-
+/**
+ * Ends our turn.
+ * 
+ * @author Kevin
+ *
+ */
 public class EndTurnCommand extends GameCommand {
 
 	@Override

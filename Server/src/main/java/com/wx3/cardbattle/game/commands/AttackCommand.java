@@ -30,8 +30,13 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
+/**
+ * Tell the game to attack a particular target with with a particular attacker.
+ * 
+ * @author Kevin
+ *
+ */
 public class AttackCommand extends GameCommand {
 	
 	private int attackerId;
@@ -64,12 +69,21 @@ public class AttackCommand extends GameCommand {
 		target = game.getEntity(targetId);
 	}
 	
+	/**
+	 * The attacker should exist, belong to the player, be in play,
+	 * and have an attack value.
+	 * <p>
+	 * The target should exist, be in play, and have positive health.
+	 */
 	@Override
 	public ValidationResult validate() {
 		ValidationResult result = super.validate();
 		if(attacker == null) {
 			result.addError("Attacker not found.");
 		} else {
+			if(attacker.getOwner() != getPlayer()) {
+				result.addError("Not your entity to attack with.");
+			}
 			if(!attacker.isInPlay()) {
 				result.addError("Attacker not in play.");
 			}
