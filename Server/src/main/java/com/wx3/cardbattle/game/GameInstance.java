@@ -250,8 +250,9 @@ public class GameInstance {
 		ruleEngine.validatePlay(result, command);	
 	}
 	
- 	public synchronized void update() {
-		
+ 	synchronized void update() {
+		// Do any regular updates that need occur without player action (e.g., 
+ 		// turn time limits)
 	}
 	
 	GameEntity spawnEntity() {

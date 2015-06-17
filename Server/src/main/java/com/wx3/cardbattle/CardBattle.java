@@ -27,6 +27,7 @@ package com.wx3.cardbattle;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.UpdateGamesTask;
 import com.wx3.cardbattle.server.GameServer;
 import com.wx3.cardbattle.server.NettyWebSocketServer;
 
@@ -46,8 +47,11 @@ public class CardBattle
     	bootstrap(datastore);
     	
     	GameServer gameserver = new GameServer(datastore);
+    	gameserver.start();
+    	
     	NettyWebSocketServer nettyServer = new NettyWebSocketServer(gameserver, PORT);
     	nettyServer.start();
+    	
     }
     
     /**

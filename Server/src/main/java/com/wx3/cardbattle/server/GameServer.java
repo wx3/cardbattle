@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Timer;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.Card;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.UpdateGamesTask;
 import com.wx3.cardbattle.game.User;
 
 /**
@@ -53,9 +55,17 @@ public class GameServer {
 	final Logger logger = LoggerFactory.getLogger(GameServer.class);
 
 	private GameDatastore datastore;
+	private Timer taskTimer;
+	private UpdateGamesTask updateTask;
 	
 	public GameServer(GameDatastore datastore) {
 		this.datastore = datastore;
+	}
+	
+	public void start() {
+		updateTask = new UpdateGamesTask(datastore);
+		taskTimer = new Timer();
+		taskTimer.schedule(updateTask, 1000, 1000);
 	}
 	
 	public GameInstance createGame(User user1, User user2) {
