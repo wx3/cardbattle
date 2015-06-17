@@ -9,7 +9,8 @@ import com.wx3.cardbattle.game.messages.IMessageHandler;
 
 /**
  * For unit tests, there is no websocket to send messages out, so we 
- * have this TestMessageHandler
+ * have this TestMessageHandler so the unit tests can see what messages
+ * the game generated.
  * 
  * @author Kevin
  *
@@ -47,6 +48,11 @@ public class TestMessageHandler implements IMessageHandler {
 		return null;
 	}
 
+	/**
+	 * Get all the messages sent to this handler in the order they were sent.
+	 * 
+	 * @return
+	 */
 	public List<GameMessage> getMessages() {
 		return messageHistory;
 	}

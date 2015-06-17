@@ -67,9 +67,7 @@ public class WebsocketMessageHandler implements IMessageHandler {
 	
 	public void handleMessage(GameMessage message) {
 		GsonBuilder builder = new GsonBuilder();
-		
 		builder.registerTypeAdapter(GameEntity.class, new GameEntityJsonSerializer());
-		
 		Gson gson = builder.create();
 		String encoded = gson.toJson(message);
 		this.channel.writeAndFlush(new TextWebSocketFrame(encoded));

@@ -34,9 +34,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 /**
- * <p>Starts Netty listening on the provided port. The 
+ * Starts Netty listening on the provided port. The 
  * {@link WebSocketServerInitializer} creates the channel pipeline
- * that will process requests.</p>
+ * that will process requests.
  * 
  * @author Kevin
  *

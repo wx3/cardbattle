@@ -23,7 +23,10 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
 
 /**
- * Initialize the channel pipeline
+ * Netty uses a pipeline model to process messages, with successive handlers processing
+ * the results of the previous handler. Here we define the initial pipeline to decode
+ * HTTP requests using existing Netty handlers and finally process that request with
+ * our own {@link HttpHandler}. 
  */
 public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
 

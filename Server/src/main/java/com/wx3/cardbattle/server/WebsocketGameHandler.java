@@ -43,7 +43,9 @@ import com.wx3.cardbattle.game.commands.JsonCommandFactory;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
 /**
- * Handles communications from an authenticated user
+ * Parses incoming messages as {@link GameCommand}s and sends them to the player 
+ * object.
+ * 
  * @author Kevin
  *
  */
