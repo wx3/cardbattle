@@ -28,6 +28,14 @@ import java.util.List;
 
 import javax.persistence.*;
 
+/**
+ * A user is the permanent model of someone who plays the game, as opposed
+ * to a {@link GamePlayer}, which is the model of a particular player for 
+ * a particular game instance.
+ *  
+ * @author Kevin
+ *
+ */
 @Entity
 @Table(name="users")
 public class User {

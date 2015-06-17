@@ -95,9 +95,6 @@ public class GameInstance {
 	List<GameEvent> eventHistory = new ArrayList<GameEvent>();
 	
 	@Transient
-	private GameUpdateTask updateTask;
-	
-	@Transient
 	private GameRuleEngine ruleEngine;
 	
 	@Transient
@@ -231,8 +228,6 @@ public class GameInstance {
 		ruleEngine = new GameRuleEngine(this);
 		
 		Timer taskTimer = new Timer();
-		updateTask = new GameUpdateTask(this);
-		taskTimer.schedule(updateTask, 0, 1000);
 		
 		ruleEngine.startup();
 		
@@ -255,7 +250,7 @@ public class GameInstance {
 		ruleEngine.validatePlay(result, command);	
 	}
 	
- 	synchronized void update() {
+ 	public synchronized void update() {
 		
 	}
 	
