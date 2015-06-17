@@ -351,11 +351,15 @@ $(document).ready(function(){
 
         self.drop = function(target) {
             if(selected != null) {
-                if(target == self) {
-                    console.log(selected);
-                    play(selected.entityId);
+                if(selected.hasTag("IN_PLAY")) {
+                    attack(selected.entityId, target.entityId);
                 } else {
-                    play(selected.entityId, target.entityId)
+                    if (target == self) {
+                        console.log(selected);
+                        play(selected.entityId);
+                    } else {
+                        play(selected.entityId, target.entityId);
+                    }
                 }
             }
         }
@@ -416,7 +420,16 @@ $(document).ready(function(){
         client2.authenticate(badguytoken);
     }
     var creator = new TestGameCreate(url);
-    creator.create(handleTestGame);
+
+    $('#createGameButton').click(
+        function() {
+            $('#client_container').show();
+            $('#intro').hide();
+            creator.create(handleTestGame);
+        }
+    );
+
+    //creator.create(handleTestGame);
 
 });
 
@@ -425,6 +438,24 @@ $(document).ready(function(){
     <link rel="stylesheet" type="text/css" href="testclient.css">
 </head>
 <body>
+<div id="intro">
+    <p>This page demonstrates a simple CardBattle client. Click "Create Game" to tell the game to create a test game. You'll be able
+    to control both sides via two side-by-side clients, each connected to same game.</p>
+    <button id="createGameButton">Create Game</button>
+</div>
+<div id="client_container" style="display: none">
+    <div id="help">
+        <p>Below are two side-by-side clients, connected to the same game, for testing purposes.
+            You can play cards by dragging them from your hand onto either: your board, one of your entities, or one of your opponent's entities. Currently the cards
+        aren't designed as much for fun game play as to demonstrate CardBattle's flexible rule system.</p>
+        <p>
+            The console area gives a human readable summary of the messages from the server.
+        </p>
+        <p>
+            You can end your turn and switch to the other player by clicking the "End Turn" button for that client.
+        </p>
+    </div>
+
 <div id="client_1" class="clientArea" data-bind="style: { opacity: myTurn() ? 1 : 0.5}">
     <form>
         <div data-bind="if: connected" class="connected">You are CONNECTED</div>
@@ -468,8 +499,9 @@ $(document).ready(function(){
                 <div data-bind="foreach: myBoard">
                     <div class="card" data-bind="event: {
                     dragover: function(event) {return false},
-                drop: $root.drop
-            }, dropBubble: false">
+                    drop: $root.drop,
+                    dragstart: $root.startDrag
+            }, dropBubble: false" draggable="true">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
@@ -596,6 +628,6 @@ $(document).ready(function(){
 
     </form>
 </div>
-
+</div>
 </body>
 </html>
