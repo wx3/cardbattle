@@ -78,6 +78,8 @@ public interface GameDatastore {
 	public abstract GameInstance createGame(List<User> users);
 
 	public abstract List<PlayerAuthtoken> getAuthtokens(long gameId);
+	
+	public abstract Collection<GameInstance> getGames();
 
 	public abstract GameInstance getGame(long id);
 

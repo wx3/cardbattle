@@ -232,6 +232,14 @@ public class HibernateDatastore implements GameDatastore {
 	}
 	
 	/* (non-Javadoc)
+	 * @see com.wx3.cardbattle.datastore.GameDatastore#getGames()
+	 */
+	@Override
+	public Collection<GameInstance> getGames() {
+		return gameInstances.values();
+	}
+	
+	/* (non-Javadoc)
 	 * @see com.wx3.cardbattle.datastore.Datastore#getGame(long)
 	 */
 	@Override
@@ -321,4 +329,5 @@ public class HibernateDatastore implements GameDatastore {
         ServiceRegistry serviceRegistry = serviceRegistryBuilder.build();
         return configuration.buildSessionFactory(serviceRegistry);
     }
+
 }
