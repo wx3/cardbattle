@@ -63,8 +63,13 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
-import com.wx3.cardbattle.server.GameServer;
 
+/**
+ * The game instance contains the game's state data.
+ * 
+ * @author Kevin
+ *
+ */
 @Entity
 @Table(name="game_instances")
 public class GameInstance {
@@ -77,7 +82,7 @@ public class GameInstance {
 	private long id;
 	
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name="created", insertable=false, updatable=false, columnDefinition="timestamp default current_timestamp")
+	@Column(name="created")
 	private java.util.Date created;	
 	
 	int turn;
@@ -101,6 +106,7 @@ public class GameInstance {
 	private GameDatastore datastore;
 	
 	private boolean started = false;
+	private boolean stopped = false;
 	
 	/**
 	 * General game rules, such as detecting game ending conditions are applied 
@@ -112,8 +118,11 @@ public class GameInstance {
 	public static GameInstance createGame(GameDatastore datastore) {
 		GameInstance game = new GameInstance();
 		game.datastore = datastore;
+		game.created = new Date();
 		return game;
 	}
+	
+	private GameInstance() {}
 	
 	public long getId() {
 		return id;
@@ -129,6 +138,10 @@ public class GameInstance {
 	
 	public GameRuleEngine getRuleEngine() {
 		return ruleEngine;
+	}
+	
+	public boolean isStopped() {
+		return stopped;
 	}
 	
 	public void setGameRules(List<EntityRule> rules) {
@@ -226,12 +239,16 @@ public class GameInstance {
 	
 	public void start() {
 		ruleEngine = new GameRuleEngine(this);
-		
-		Timer taskTimer = new Timer();
-		
 		ruleEngine.startup();
-		
 		started = true;
+	}
+	
+	public void stop() {
+		logger.info("Game stopped.");
+		stopped = true;
+		for(GamePlayer player : players) {
+			player.disconnect();
+		}
 	}
 	
 	public GameEntity getEntity(int id) {
@@ -251,8 +268,17 @@ public class GameInstance {
 	}
 	
  	synchronized void update() {
-		// Do any regular updates that need occur without player action (e.g., 
- 		// turn time limits)
+ 		if(isStopped()) return;
+ 		// If the game has no connected players and is older than 30 seconds, consider it abandoned:
+		Date now = new Date();
+		int age = (int) ((now.getTime() - created.getTime()) / 1000);
+		int connected = 0;
+		for(GamePlayer player : players) {
+			if(player.isConnected()) ++connected;
+		}
+		if(age > 30 && connected == 0){
+			stop();
+		}
 	}
 	
 	GameEntity spawnEntity() {

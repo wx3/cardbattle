@@ -217,6 +217,10 @@ public class HibernateDatastore implements GameDatastore {
 		return game;
 	}
 	
+	public void removeGame(long gameId) {
+		gameInstances.remove(gameId);
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.wx3.cardbattle.datastore.Datastore#getAuthtokens(long)
 	 */
@@ -236,7 +240,7 @@ public class HibernateDatastore implements GameDatastore {
 	 */
 	@Override
 	public Collection<GameInstance> getGames() {
-		return gameInstances.values();
+		return new ArrayList<GameInstance>(gameInstances.values());
 	}
 	
 	/* (non-Javadoc)

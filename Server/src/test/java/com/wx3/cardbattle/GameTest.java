@@ -12,6 +12,7 @@ import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.GameRuleEngine;
+import com.wx3.cardbattle.game.GameServer;
 import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.commands.AttackCommand;
 import com.wx3.cardbattle.game.commands.ChatCommand;
@@ -25,7 +26,6 @@ import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameMessage;
-import com.wx3.cardbattle.server.GameServer;
 
 import junit.framework.TestCase;
 

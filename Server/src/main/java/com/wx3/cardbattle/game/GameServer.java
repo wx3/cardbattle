@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.server;
+package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,11 +37,6 @@ import org.slf4j.LoggerFactory;
 import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
-import com.wx3.cardbattle.game.Card;
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.UpdateGamesTask;
-import com.wx3.cardbattle.game.User;
 
 /**
  * The gameserver handles the creation of games and connecting players to
@@ -88,7 +83,7 @@ public class GameServer {
 		}
 		
 		List<Card> deck = new ArrayList<Card>();
-		String cardNames[] = new String[]{"Measley Minion","Death Ray","Zaptastic","Health Buff +3","Sympathy Collector","Strong Minion","Disenchant"};
+		String cardNames[] = new String[]{"Measley Minion","Zaptastic","Sympathy Collector","Health Buff +3","Strong Minion","Disenchant","Death Ray"};
 		for(String cardName : cardNames) {
 			Card card = datastore.getCard(cardName);
 			deck.add(card);

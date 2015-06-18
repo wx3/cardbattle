@@ -24,6 +24,7 @@
 package com.wx3.cardbattle.server;
 
 import com.wx3.cardbattle.datastore.HibernateDatastore;
+import com.wx3.cardbattle.game.GameServer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;

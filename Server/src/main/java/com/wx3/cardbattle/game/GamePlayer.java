@@ -52,6 +52,19 @@ import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
 
+/**
+ * A GamePlayer is a player in a particular game (as opposed to a 
+ * {@link User} which may be associated with many games). 
+ * <p>
+ * Player's actions are processed as {@link GameCommand} which 
+ * are parsed, validated and finally executed.
+ * <p>
+ * Typically a player is connected to a messageHandler which sends
+ * messages to a client via the network.
+ * 
+ * @author Kevin
+ *
+ */
 @Entity
 @Table(name="game_players")
 public class GamePlayer {
@@ -174,12 +187,33 @@ public class GamePlayer {
 		if(this.game == null) {
 			throw new RuntimeException("Player has no game.");
 		}
+		if(game.isStopped()) {
+			throw new RuntimeException("Game is over.");
+		}
 		if(this.messageHandler != null) {
 			logger.warn("Replacing existing message handler, booting old.");
 			this.messageHandler.disconnect();
 		}
 		this.messageHandler = messageHandler;
 		game.playerConnected(this);
+	}
+	
+	public synchronized void disconnect() {
+		if(messageHandler != null) {
+			logger.info("Disconnecting " + this);
+			messageHandler.disconnect();
+			messageHandler = null;
+		}
+	}
+	
+	/**
+	 * The player is considered connected if he has a message handler.
+	 * 
+	 * @return
+	 */
+	public boolean isConnected() {
+		if(messageHandler != null) return true;
+		return false;
 	}
 	
 	public Card drawCard() {

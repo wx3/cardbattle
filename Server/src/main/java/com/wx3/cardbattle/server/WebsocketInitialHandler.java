@@ -144,7 +144,7 @@ public class WebsocketInitialHandler extends SimpleChannelInboundHandler<Object>
     	try {
     		String token = obj.get("authtoken").getAsString();
         	GamePlayer player = server.getGameServer().authenticate(token);
-        	WebsocketMessageHandler messageHandler = new WebsocketMessageHandler(ctx.channel(), player);
+        	WebsocketMessageHandler messageHandler = new WebsocketMessageHandler(ctx.channel());
         	player.connect(messageHandler);
         	ctx.channel().pipeline().replace(WebsocketInitialHandler.class, "MessageHandler", new WebsocketGameHandler(server.getGameServer(), player));
         } catch (AuthenticationException authex) {
@@ -157,10 +157,10 @@ public class WebsocketInitialHandler extends SimpleChannelInboundHandler<Object>
         }*/
     }
     
-    /* @Override
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.warn("Exception caught: " + cause.getStackTrace());
         ctx.close();
-    }*/
+    }
     
 }

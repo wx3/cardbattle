@@ -27,14 +27,15 @@
  */
 package com.wx3.cardbattle.game;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.TimerTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.datastore.GameDatastore;
-import com.wx3.cardbattle.server.GameServer;
 
 /**
  * Tries to call the update method on all games in the datastore.
@@ -46,7 +47,10 @@ public class UpdateGamesTask extends TimerTask {
 	
 	final Logger logger = LoggerFactory.getLogger(UpdateGamesTask.class);
 	
-	GameDatastore datastore;
+	private static final int EXPIRATION = 10;
+	
+	private GameDatastore datastore;
+	private int updates;
 
 	public UpdateGamesTask(GameDatastore datastore) {
 		this.datastore = datastore;
@@ -57,11 +61,22 @@ public class UpdateGamesTask extends TimerTask {
 		Collection<GameInstance> games = datastore.getGames();
 		for(GameInstance game : games) {
 			try {
-				game.update();
+				if(game.isStopped()) {
+					datastore.removeGame(game.getId());	
+				} else {
+					game.update();
+				}
 			} catch (Exception ex) {
 				logger.error("Exception trying to update '" + game + "': " + ex.getMessage());
+				if(game != null) {
+					datastore.removeGame(game.getId());
+				}
 			}
 		}
+		if(updates % 100 == 0) {
+			logger.info("Update #" + updates + " updated " + games.size() + " games");
+		}
+		++updates;
 	}
 
 }

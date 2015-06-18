@@ -104,7 +104,6 @@ public class Bootstrap {
 			PlayValidator validator = PlayValidator.createValidator(id, script, description);
 			datastore.createValidator(validator);
 			validatorCache.put(id, validator);
-			logger.info("Created validator " + id);
 		}
 		parser.close();
 	}
@@ -120,7 +119,6 @@ public class Bootstrap {
 			EntityRule rule = EntityRule.createRule(trigger, script, id, description);
 			datastore.createRule(rule);
 			ruleCache.put(id, rule);
-			logger.info("Created rule " + id);
 		}
 		parser.close();
 	}
@@ -170,7 +168,6 @@ public class Bootstrap {
 			Card card = Card.createCard(name, description, tags, rules, validator, stats);
 			datastore.createCard(card);
 			cardCache.put(card.getName(), card);
-			logger.info("Created card " + name);
 		}
 		parser.close();
 	}
@@ -178,7 +175,7 @@ public class Bootstrap {
 	private void createTestUsers() {
     	List<Card> deck1 = new ArrayList<Card>();
     	List<Card> deck2 = new ArrayList<Card>();
-		String cardNames[] = new String[]{"Measley Minion","Zaptastic","Health Buff +3","Sympathy Collector","Strong Minion","Disenchant"};
+		String cardNames[] = new String[]{"Measley Minion","Sympathy Collector","Zaptastic","Health Buff +3","Strong Minion","Disenchant"};
 		for(String cardName : cardNames) {
 			Card card = datastore.getCard(cardName);
 			deck1.add(card);

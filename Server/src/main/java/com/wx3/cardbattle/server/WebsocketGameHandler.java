@@ -38,6 +38,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.GameServer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.JsonCommandFactory;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
@@ -63,6 +64,10 @@ public class WebsocketGameHandler extends
 		this.player = player;
 		this.commandFactory = new JsonCommandFactory();
 	}
+	
+	private void close() {
+		if(player != null) player.disconnect();
+	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Object msg)
@@ -70,7 +75,7 @@ public class WebsocketGameHandler extends
 		WebSocketFrame frame = (WebSocketFrame) msg;
 		if (frame instanceof CloseWebSocketFrame) {
 			System.err.printf("%s closed websocket", ctx.channel());
-            ctx.close();
+            close();
             return;
         }
 		if (frame instanceof TextWebSocketFrame) {
@@ -88,14 +93,14 @@ public class WebsocketGameHandler extends
 			}*/
 			
 		} else {
-			logger.error("Invalid websocket frame");
+			throw new RuntimeException("Invalid websocket frame");
 		}
 	}
-
+/*
 	@Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
-    }
+		logger.warn("Exception caught, kicking player: " + cause);
+		close();
+    }*/
 
 }

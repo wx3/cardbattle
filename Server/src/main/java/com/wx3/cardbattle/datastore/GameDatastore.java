@@ -76,6 +76,8 @@ public interface GameDatastore {
 	 * @param users
 	 */
 	public abstract GameInstance createGame(List<User> users);
+	
+	public abstract void removeGame(long gameId);
 
 	public abstract List<PlayerAuthtoken> getAuthtokens(long gameId);
 	

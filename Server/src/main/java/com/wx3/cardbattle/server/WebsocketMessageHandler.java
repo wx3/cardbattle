@@ -53,12 +53,10 @@ import com.wx3.cardbattle.game.messages.IMessageHandler;
  */
 public class WebsocketMessageHandler implements IMessageHandler {
 	
-	private GamePlayer player;
 	private Channel channel;
 	
-	public WebsocketMessageHandler(Channel channel, GamePlayer player) {
+	public WebsocketMessageHandler(Channel channel) {
 		this.channel = channel;
-		this.player = player;
 	}
 	
 	public void disconnect() {
