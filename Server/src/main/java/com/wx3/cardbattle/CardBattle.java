@@ -26,10 +26,9 @@ package com.wx3.cardbattle;
 
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GameServer;
-import com.wx3.cardbattle.game.UpdateGamesTask;
 import com.wx3.cardbattle.server.NettyWebSocketServer;
+
 
 /**
  * The main entry point for the game application, creates a Datastore,

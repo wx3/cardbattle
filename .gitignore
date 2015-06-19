@@ -5,7 +5,7 @@
 .settings/
 
 #Maven
-Server/log/
+Server/logs/
 Server/target/
 
 #General

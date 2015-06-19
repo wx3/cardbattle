@@ -429,8 +429,6 @@ $(document).ready(function(){
         }
     );
 
-    //creator.create(handleTestGame);
-
 });
 
 </script>
@@ -445,8 +443,10 @@ $(document).ready(function(){
 </div>
 <div id="client_container" style="display: none">
     <div id="help">
-        <p>Below are two side-by-side clients, connected to the same game, for testing purposes.
-            You can play cards by dragging them from your hand onto either: your board, one of your entities, or one of your opponent's entities. Currently the cards
+        <p>Below are two side-by-side clients, connected to the same game, for testing purposes. When first connecting, you may need to wait a few second for the clients
+            to connect.</p>
+
+        <p> You can play cards by dragging them from your hand onto either: your board, one of your entities, or one of your opponent's entities. Currently the cards
         aren't designed as much for fun game play as to demonstrate CardBattle's flexible rule system.</p>
         <p>
             The console area gives a human readable summary of the messages from the server.
@@ -534,9 +534,6 @@ $(document).ready(function(){
             </div>
 
             <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
-            <div>
-                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-            </div>
 
         </div>
 
@@ -586,8 +583,9 @@ $(document).ready(function(){
                 <div data-bind="foreach: myBoard">
                     <div class="card" data-bind="event: {
                     dragover: function(event) {return false},
-                drop: $root.drop
-            }, dropBubble: false">
+                    drop: $root.drop,
+                    dragstart: $root.startDrag
+            }, dropBubble: false" draggable="true">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
@@ -620,9 +618,6 @@ $(document).ready(function(){
             </div>
 
             <p>Your opponent has <span data-bind="text: opponentHandSize"></span> cards.</p>
-            <div>
-                Command: <input type="text" data-bind="textInput: commandInput, event: {keypress: handleCommand}">
-            </div>
 
         </div>
 
