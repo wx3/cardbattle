@@ -44,6 +44,14 @@ body {
     width: 130px;
     height: 150px;
 }
+.cardDragging {
+    font-size: small;
+    float:left;
+    margin: 10px;
+    background-color: #90a0cc;
+    width: 130px;
+    height: 150px;
+}
 .clear {
     clear: both;
 }

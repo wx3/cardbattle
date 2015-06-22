@@ -344,8 +344,15 @@ $(document).ready(function(){
             self.websocket.send(encoded);
         }
 
-        self.startDrag = function(obj) {
+        self.startDrag = function(obj, event) {
             selected = obj;
+            event.target.className = "cardDragging";
+            return true;
+        }
+
+        self.endDrag = function(obj, event) {
+            selected = null;
+            event.target.className = "card";
             return true;
         }
 
@@ -476,7 +483,8 @@ $(document).ready(function(){
 
                 <div data-bind="foreach: myHand">
                     <div class="card" data-bind="event: {
-                        dragstart: $root.startDrag
+                        dragstart: $root.startDrag,
+                        dragend: $root.endDrag
                     }" draggable="true">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
                         <em data-bind="text: description"></em>
