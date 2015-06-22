@@ -33,9 +33,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.persistence.Transient;
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.script.SimpleScriptContext;
 
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
@@ -78,15 +81,21 @@ public class GameRuleEngine {
 	
 	private static final int MAX_EVENTS = 1000;
 	
+	// We use a singleton of the script engine for performance (Nashorn seems to take up
+	// a couple 100k per engine instance). Each game gets its own script context and 
+	// bindings scope to avoid polluting other games. Still uses a fair amount of mem.
+	private static ScriptEngine scriptEngine;
+	private ScriptContext scriptContext;
+	private Bindings scriptScope;
+	
 	final Logger logger = LoggerFactory.getLogger(GameRuleEngine.class);
 
 	private GameInstance game;
-	private ScriptEngine scriptEngine;
 	
 	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
 	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
 	
-	class RestrictiveFilter implements ClassFilter {
+	static class RestrictiveFilter implements ClassFilter {
 
 		@Override
 		public boolean exposeToScripts(String s) {
@@ -95,14 +104,23 @@ public class GameRuleEngine {
 		
 	}
 	
+	private static ScriptEngine getScriptEngine() {
+		if(scriptEngine == null) {
+			NashornScriptEngineFactory factory = new NashornScriptEngineFactory(); 
+			scriptEngine = factory.getScriptEngine(new RestrictiveFilter());
+			if(scriptEngine == null) {
+				throw new RuntimeException("Unable to get script engine");
+			}
+		}
+		return scriptEngine;
+	}
+	
 	GameRuleEngine(GameInstance game) {
 		this.game = game;
-		NashornScriptEngineFactory factory = new NashornScriptEngineFactory(); 
-		
-		this.scriptEngine = factory.getScriptEngine(new RestrictiveFilter());
-		if(this.scriptEngine == null) {
-			throw new RuntimeException("Unable to get script engine");
-		}
+		ScriptEngine script = getScriptEngine();
+		this.scriptContext = new SimpleScriptContext();
+		this.scriptContext.setBindings(script.createBindings(), ScriptContext.ENGINE_SCOPE);
+		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
 	/**
@@ -117,14 +135,14 @@ public class GameRuleEngine {
 		// If the command's card has no validator, we don't need to do anything
 		if(command.getCard().getValidator() == null) return;
 		try {
-			scriptEngine.put("command", command);
-			scriptEngine.put("target", command.getTarget());
-			scriptEngine.put("rules", this);
-			scriptEngine.put("error", null);
+			scriptScope.put("command", command);
+			scriptScope.put("target", command.getTarget());
+			scriptScope.put("rules", this);
+			scriptScope.put("error", null);
 			PlayValidator validator = command.getCard().getValidator();
-			scriptEngine.eval(validator.getScript());
-			if(scriptEngine.get("error") != null) {
-				result.addError(scriptEngine.get("error").toString());
+			getScriptEngine().eval(validator.getScript(), scriptContext);
+			if(scriptScope.get("error") != null) {
+				result.addError(scriptScope.get("error").toString());
 			}
 		} catch (final ScriptException se) {
 			result.addError("Scripting exception: " + se.getMessage());
@@ -440,11 +458,11 @@ public class GameRuleEngine {
 		try {
 			if(rule.isTriggered(event)) {
 				// Let the rule access the event, game and entity objects
-				scriptEngine.put("event", event);
-				scriptEngine.put("rules", this);
-				scriptEngine.put("entity", entity);
+				scriptScope.put("event", event);
+				scriptScope.put("rules", this);
+				scriptScope.put("entity", entity);
 				logger.info("Executing " + rule + " for " + event + " on " + entity);
-				scriptEngine.eval(rule.getScript());
+				getScriptEngine().eval(rule.getScript(),scriptContext);
 			}
 		} catch (final ScriptException se) {
 			logger.error("ScriptException processing rule: " + se.getMessage());
@@ -469,11 +487,11 @@ public class GameRuleEngine {
 			if(entity.isInPlay()) {
 				for(EntityRule rule : entity.getRules()) {
 					if(rule.getEventTrigger().equals(BuffRecalc.class.getSimpleName())) {
-						scriptEngine.put("rules", this);
-						scriptEngine.put("entity", entity);
+						scriptScope.put("rules", this);
+						scriptScope.put("entity", entity);
 						logger.info("Recalculating buff " + rule + " on " + entity);
 						try {
-							scriptEngine.eval(rule.getScript());	
+							getScriptEngine().eval(rule.getScript(), scriptContext);	
 						} catch (Exception ex) {
 							throw new RuleException("Exception processing buff " + rule + ":" + ex.getMessage());
 						}
