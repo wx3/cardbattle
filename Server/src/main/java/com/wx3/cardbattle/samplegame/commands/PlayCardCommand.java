@@ -21,17 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.commands;
+package com.wx3.cardbattle.samplegame.commands;
 
 import javax.persistence.Transient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wx3.cardbattle.game.Card;
+import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.Tag;
+import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
@@ -59,7 +61,11 @@ public class PlayCardCommand extends GameCommand {
 		this.targetId = targetId;
 	}
 	
-	public Card getCard() {
+	public GameEntity getCardEntity() {
+		return cardEntity;
+	}
+	
+	public EntityPrototype getCard() {
 		return cardEntity.getCreatingCard();
 	}
 	
@@ -86,7 +92,7 @@ public class PlayCardCommand extends GameCommand {
 	
 	/**
 	 * We want to validate that the card entity exists, is in our hand. If there's a target, it
-	 * should be in play. Finally the game is can due additional validation.
+	 * should be in play. Finally the game can do additional validation.
 	 */
 	@Override
 	public ValidationResult validate() {
@@ -108,13 +114,13 @@ public class PlayCardCommand extends GameCommand {
 				result.addError("Target not in play.");
 			}
 		}
-		game.validatePlay(result, this);
+		game.getRuleSystem().validatePlay(result, this);
 		return result;
 	};
 
 	@Override
 	public void execute() {
-		game.getRuleEngine().playCard(cardEntity, targetEntity);
+		game.getRuleSystem().playCard(cardEntity, targetEntity);
 	}
 
 }

@@ -24,17 +24,18 @@
 package com.wx3.cardbattle.game.gameevents;
 
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.rules.EntityRule;
 
-public final class DisenchantEvent extends GameEvent {
+public final class AddRuleEvent extends GameEvent {
+	
+	public int targetId;
+	public String ruleId;
 
-	@SuppressWarnings("unused")
-	private transient int targetId;
-	
-	public transient GameEntity target;
-	
-	public DisenchantEvent(GameEntity target, GameEntity cause) {
-		this.targetId = target.getId();
+	public AddRuleEvent(GameEntity enchanted, EntityRule rule, GameEntity cause) {
+		this.targetId = enchanted.getId();
+		this.ruleId = rule.getId();
 		if(cause != null) {
+			this.cause = cause;
 			this.causeId = cause.getId();
 		}
 	}

@@ -46,6 +46,7 @@ public class GameView {
 	
 	public int turn;
 	public String currentPlayer;
+	public boolean gameOver;
 	/**
 	 * Which player is this the view for?
 	 */
@@ -56,8 +57,9 @@ public class GameView {
 	
 	public static GameView createViewForPlayer(GameInstance game, GamePlayer player) {
 		GameView view = new GameView();
-		view.currentPlayer = game.getRuleEngine().getCurrentPlayer().getUsername();
+		view.currentPlayer = game.getRuleSystem().getCurrentPlayer().getUsername();
 		view.playerName = player.getUsername();
+		view.gameOver = game.isGameOver();
 		for(GamePlayer p : game.getPlayers()) {
 			GamePlayerView pv = GamePlayerView.createViewForPlayer(p, player);
 			view.players.put(p.getUsername(), pv);

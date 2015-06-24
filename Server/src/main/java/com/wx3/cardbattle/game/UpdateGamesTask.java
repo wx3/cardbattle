@@ -47,8 +47,6 @@ public class UpdateGamesTask extends TimerTask {
 	
 	final Logger logger = LoggerFactory.getLogger(UpdateGamesTask.class);
 	
-	private static final int EXPIRATION = 10;
-	
 	private GameDatastore datastore;
 	private int updates;
 

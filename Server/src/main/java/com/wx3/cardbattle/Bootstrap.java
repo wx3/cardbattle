@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.datastore.GameDatastore;
-import com.wx3.cardbattle.game.Card;
+import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.Tag;
@@ -61,7 +61,7 @@ public class Bootstrap {
 	
 	private Map<String, EntityRule> ruleCache = new HashMap<String, EntityRule>();
 	private Map<String, PlayValidator> validatorCache = new HashMap<String, PlayValidator>();
-	private Map<String, Card> cardCache = new HashMap<String, Card>();
+	private Map<String, EntityPrototype> cardCache = new HashMap<String, EntityPrototype>();
 	
 	private GameDatastore datastore;
 	
@@ -165,7 +165,7 @@ public class Bootstrap {
 				}
 				validator = validatorCache.get(validatorName);
 			}
-			Card card = Card.createCard(name, description, tags, rules, validator, stats);
+			EntityPrototype card = EntityPrototype.createPrototype(name, description, tags, rules, validator, stats);
 			datastore.createCard(card);
 			cardCache.put(card.getName(), card);
 		}
@@ -173,15 +173,6 @@ public class Bootstrap {
 	}
 	
 	private void createTestUsers() {
-    	List<Card> deck1 = new ArrayList<Card>();
-    	List<Card> deck2 = new ArrayList<Card>();
-		String cardNames[] = new String[]{"Measley Minion","Sympathy Collector","Zaptastic","Health Buff +3","Strong Minion","Disenchant"};
-		for(String cardName : cardNames) {
-			Card card = datastore.getCard(cardName);
-			deck1.add(card);
-			deck2.add(card);
-		}
-    	
     	User user1 = datastore.getUser("user1");
     	if(user1 == null) {
     		user1 = new User("goodguy");
@@ -193,8 +184,6 @@ public class Bootstrap {
     		user2 = new User("badguy");
         	datastore.saveUser(user2);
     	}
-    	user1.setCurrentDeck(deck1);
-    	user2.setCurrentDeck(deck2);
 	}
 	
 }

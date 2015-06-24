@@ -23,25 +23,21 @@
  *******************************************************************************/
 package com.wx3.cardbattle.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
-import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.GameServer;
 import com.wx3.cardbattle.game.commands.GameCommand;
-import com.wx3.cardbattle.game.commands.JsonCommandFactory;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
 /**
  * Parses incoming messages as {@link GameCommand}s and sends them to the player 
@@ -57,12 +53,10 @@ public class WebsocketGameHandler extends
 	
 	private GamePlayer player;
 	private GameServer gameServer;
-	private JsonCommandFactory commandFactory;
 	
 	public WebsocketGameHandler(GameServer gameServer, GamePlayer player) {
 		this.gameServer = gameServer;
 		this.player = player;
-		this.commandFactory = new JsonCommandFactory();
 	}
 	
 	private void close() {
@@ -79,18 +73,20 @@ public class WebsocketGameHandler extends
             return;
         }
 		if (frame instanceof TextWebSocketFrame) {
-			//try {
+			try {
 				String request = ((TextWebSocketFrame) frame).text();
 				JsonParser parser = new JsonParser();
 				JsonElement root = parser.parse(request);
 				JsonObject obj = root.getAsJsonObject();
 				String commandName = obj.get("command").getAsString();
-				GameCommand command = commandFactory.createCommand(commandName, obj.get("object"));
+				GameCommand command = gameServer.getGameFactory().createCommand(commandName, obj.get("object"));
 				logger.info("Received command: " + command.toString());
 				player.handleCommand(command);
-			/*} catch (Exception ex) {
+			} catch (Exception ex) {
+				// Client caused errors (like missing entities) shouldn't cause an exception,
+				// so if we end up here we've got a bug in the server.
 				logger.error("Failed to process command.", ex);
-			}*/
+			}
 			
 		} else {
 			throw new RuntimeException("Invalid websocket frame");

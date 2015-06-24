@@ -30,6 +30,10 @@ public final class GameViewMessage extends GameMessage {
 	
 	private GameView game;
 	
+	public GameView getGameView() {
+		return game;
+	}
+	
 	public static GameViewMessage createMessage(GameInstance game, GamePlayer recipient) {
 		GameViewMessage message = new GameViewMessage();
 		message.messageClass = GameViewMessage.class.getSimpleName();

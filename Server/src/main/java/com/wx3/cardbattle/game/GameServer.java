@@ -52,9 +52,11 @@ public class GameServer {
 	private GameDatastore datastore;
 	private Timer taskTimer;
 	private UpdateGamesTask updateTask;
+	private GameFactory gameFactory;
 	
-	public GameServer(GameDatastore datastore) {
+	public GameServer(GameDatastore datastore, GameFactory gameFactory) {
 		this.datastore = datastore;
+		this.gameFactory = gameFactory;
 	}
 	
 	public void start() {
@@ -63,9 +65,19 @@ public class GameServer {
 		taskTimer.schedule(updateTask, 1000, 1000);
 	}
 	
-	public GameInstance createGame(User user1, User user2) {
+	public GameFactory getGameFactory() {
+		return gameFactory;
+	}
+	
+	public GameInstance newGame(User user1, User user2) {
 		logger.info("Creating game for " + user1 + " and " + user2);
-		GameInstance  game = datastore.createGame(Arrays.asList(user1,user2));	
+		GameInstance  game = gameFactory.createGame();
+		GamePlayer p1 = new GamePlayer(user1);
+		
+		game.addPlayer(p1);
+		GamePlayer p2 = new GamePlayer(user2);
+		game.addPlayer(p2);
+		datastore.saveNewGame(game);
 		game.start();
 		return game;
 	}
@@ -82,17 +94,17 @@ public class GameServer {
 			throw new RuntimeException("The test users 'goodguy' and 'badguy' don't exist");
 		}
 		
-		List<Card> deck = new ArrayList<Card>();
+		List<EntityPrototype> deck = new ArrayList<EntityPrototype>();
 		String cardNames[] = new String[]{"Measley Minion","Zaptastic","Sympathy Collector","Health Buff +3","Strong Minion","Disenchant","Death Ray"};
 		for(String cardName : cardNames) {
-			Card card = datastore.getCard(cardName);
+			EntityPrototype card = datastore.getCard(cardName);
 			deck.add(card);
 		}
-		user1.setCurrentDeck(deck);
-		user2.setCurrentDeck(new ArrayList<Card>(deck));
 		
-		GameInstance  game = datastore.createGame(Arrays.asList(user1,user2));	
-		game.start();
+		GameInstance  game = newGame(user1,user2);	
+		for(GamePlayer player : game.getPlayers()) {
+			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
+		}
 		return datastore.getAuthtokens(game.getId());
 	}
 	

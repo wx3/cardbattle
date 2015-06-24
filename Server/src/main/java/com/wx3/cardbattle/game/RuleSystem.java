@@ -47,14 +47,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.ChatEvent;
 import com.wx3.cardbattle.game.gameevents.DamageEvent;
-import com.wx3.cardbattle.game.gameevents.DisenchantEvent;
+import com.wx3.cardbattle.game.gameevents.RemoveRulesEvent;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
-import com.wx3.cardbattle.game.gameevents.EnchantEvent;
+import com.wx3.cardbattle.game.gameevents.AddRuleEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.GameOverEvent;
@@ -64,6 +63,7 @@ import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
+import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
 
 /**
  * The GameRuleEngine uses the Nashorn javascript engine to process
@@ -77,20 +77,20 @@ import com.wx3.cardbattle.game.rules.PlayValidator;
  * @author Kevin
  *
  */
-public class GameRuleEngine {
+public class RuleSystem {
 	
 	private static final int MAX_EVENTS = 1000;
 	
 	// We use a singleton of the script engine for performance (Nashorn seems to take up
 	// a couple 100k per engine instance). Each game gets its own script context and 
-	// bindings scope to avoid polluting other games. Still uses a fair amount of mem.
+	// bindings scope to avoid polluting other games. 
 	private static ScriptEngine scriptEngine;
 	private ScriptContext scriptContext;
 	private Bindings scriptScope;
 	
-	final Logger logger = LoggerFactory.getLogger(GameRuleEngine.class);
+	final Logger logger = LoggerFactory.getLogger(RuleSystem.class);
 
-	private GameInstance game;
+	protected GameInstance game;
 	
 	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
 	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
@@ -115,12 +115,26 @@ public class GameRuleEngine {
 		return scriptEngine;
 	}
 	
-	GameRuleEngine(GameInstance game) {
+	public RuleSystem(GameInstance game) {
 		this.game = game;
 		ScriptEngine script = getScriptEngine();
 		this.scriptContext = new SimpleScriptContext();
 		this.scriptContext.setBindings(script.createBindings(), ScriptContext.ENGINE_SCOPE);
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+	}
+	
+	/**
+	 * Set the general game rules that are not tied to a specific entity by spawning
+	 * a "rule entity" and attaching the rule set to it.
+	 * 
+	 * @param rules
+	 */
+	public void setGlobalRules(List<EntityRule> rules) {
+		GameEntity ruleEntity = game.spawnEntity();
+		ruleEntity.setRules(rules);
+		ruleEntity.name = "Rule Entity";
+		ruleEntity.setTag(Tag.RULES);
+		ruleEntity.setTag(Tag.IN_PLAY);
 	}
 	
 	/**
@@ -131,11 +145,16 @@ public class GameRuleEngine {
 		processEvents();
 	}
 	
-	void validatePlay(ValidationResult result, PlayCardCommand command) {
+	/**
+	 * Test whether the PlayCardCommand is valid. 
+	 * 
+	 * @param result
+	 * @param command
+	 */
+	public void validatePlay(ValidationResult result, PlayCardCommand command) {
 		// If the command's card has no validator, we don't need to do anything
 		if(command.getCard().getValidator() == null) return;
 		try {
-			scriptScope.put("command", command);
 			scriptScope.put("target", command.getTarget());
 			scriptScope.put("rules", this);
 			scriptScope.put("error", null);
@@ -150,7 +169,7 @@ public class GameRuleEngine {
 	}
 	
 	void addEvent(GameEvent event) {
-		logger.info("Adding event " + event);
+		logger.debug("Adding event " + event);
 		eventQueue.add(event);
 	}
 	
@@ -188,18 +207,24 @@ public class GameRuleEngine {
 		return getCurrentPlayer(game.getTurn());
 	}
 	
-	
-	public void enchantEntity(GameEntity entity, String ruleId, GameEntity cause) {
+	/**
+	 * Add a rule to an entity. Rules are processed in the order they were added.
+	 * 
+	 * @param entity	The entity to add the rule to.
+	 * @param ruleId	The string id corresponding to the rule.
+	 * @param cause		The entity that caused the rule to be added.
+	 */
+	public void addRule(GameEntity entity, String ruleId, GameEntity cause) {
 		if(entity == null) {
 			throw new RuleException("Entity is null");
 		}
 		EntityRule rule = game.getRule(ruleId);
 		entity.addRule(rule);
-		// An enchantment requires that we recalculate stats now, so that any additional 
+		// A rule add requires that we recalculate stats now, so that any additional 
 		// actions by the same rule has the correct values. For example, a health buff
 		// combined with a heal:
 		recalculateStats();
-		addEvent(new EnchantEvent(entity, rule, cause));
+		addEvent(new AddRuleEvent(entity, rule, cause));
 	}
 	
 	/**
@@ -208,7 +233,7 @@ public class GameRuleEngine {
 	 * @param entity
 	 * @throws RuleException 
 	 */
-	public void disenchantEntity(GameEntity entity)  {
+	public void removeRules(GameEntity entity)  {
 		if(entity == null) {
 			throw new RuleException("Entity is null");
 		}
@@ -223,7 +248,7 @@ public class GameRuleEngine {
 		entity.setRules(rules);
 		// Like enchantment, disenchanting also requires a stat recalculation:
 		recalculateStats();
-		addEvent(new DisenchantEvent(entity, null));
+		addEvent(new RemoveRulesEvent(entity, null));
 	}
 	
 	/**
@@ -259,35 +284,6 @@ public class GameRuleEngine {
 	public void healEntity(GameEntity entity) {
 		int damage = entity.getMaxHealth() - entity.getCurrentHealth();
 		healEntity(entity, damage);
-	}
-	
-	/**
-	 * Deliver damage from attacker to the target equal to its attack stat,
-	 * and vice versa.
-	 * 
-	 * @param attacker
-	 * @param target
-	 */
-	public void attack(GameEntity attacker, GameEntity target) {
-		if(attacker == null) {
-			throw new RuleException("Attacker is null");
-		}
-		if(target == null) {
-			throw new RuleException("Target is null");
-		}
-		if(!attacker.isInPlay()) {
-			throw new RuleException("Attacker is not in play");
-		}
-		if(!target.isInPlay()) {
-			throw new RuleException("Target is not in play");
-		}
-		int attackerAttack = attacker.getStat(EntityStats.ATTACK);
-		int targetAttack = target.getStat(EntityStats.ATTACK);
-		if(attackerAttack <= 0) {
-			throw new RuleException("Attacker has no attack value");
-		}
-		damageEntity(target, attackerAttack, attacker);
-		damageEntity(attacker, targetAttack, target);
 	}
 
 	/**
@@ -341,7 +337,7 @@ public class GameRuleEngine {
 	 * @return The entity created by the draw
 	 */
 	public GameEntity drawCard(GamePlayer player, GameEntity cause) {
-		Card card = player.drawCard();
+		EntityPrototype card = player.drawCard();
 		if(card != null) {
 			GameEntity entity = instantiateCard(card);
 			entity.setTag(Tag.IN_HAND);
@@ -377,13 +373,13 @@ public class GameRuleEngine {
 	
 	
 	/**
-	 * Create a {@link GameEntity} from a {@link Card}, acquiring the card's
+	 * Create a {@link GameEntity} from a {@link EntityPrototype}, acquiring the card's
 	 * name, stats, tags and rules.
 	 * 
 	 * @param card
 	 * @return
 	 */
-	public GameEntity instantiateCard(Card card) {
+	public GameEntity instantiateCard(EntityPrototype card) {
 		GameEntity entity = game.spawnEntity();
 		entity.copyFromCard(card);
 		return entity;
@@ -401,6 +397,7 @@ public class GameRuleEngine {
 	
 	public void gameOver() {
 		logger.info("Game over, man");
+		game.setGameOver(true);
 		GamePlayer winner = null;
 		for(GamePlayer player : game.getPlayers()) {
 			if(player.getEntity().getCurrentHealth() > 0) {
@@ -454,20 +451,20 @@ public class GameRuleEngine {
 	 * @param rule
 	 * @param entity
 	 */
-	void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
+	private void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
 		try {
 			if(rule.isTriggered(event)) {
 				// Let the rule access the event, game and entity objects
 				scriptScope.put("event", event);
 				scriptScope.put("rules", this);
 				scriptScope.put("entity", entity);
-				logger.info("Executing " + rule + " for " + event + " on " + entity);
+				logger.debug("Executing " + rule + " for " + event + " on " + entity);
 				getScriptEngine().eval(rule.getScript(),scriptContext);
 			}
 		} catch (final ScriptException se) {
-			logger.error("ScriptException processing rule: " + se.getMessage());
+			throw new RuntimeException("Error in rule: " + rule.getId(), se.getCause());
 		} catch (Exception ex) {
-			logger.error("Exception processing rule: " + ex.getMessage());
+			throw new RuntimeException("Unexpected error in processing rule: " + rule.getId(), ex.getCause());
 		}
 	}
 	
@@ -475,7 +472,7 @@ public class GameRuleEngine {
 	 * Resets all entities' stats to their base values, then evaluates
 	 * all buff rules to update them.
 	 */
-	void recalculateStats() {
+	private void recalculateStats() {
 		List<GameEntity> gameEntities = game.getEntities();
 		// First, reset all stats. This sets each stat to the base value:
 		for(GameEntity entity : gameEntities) {

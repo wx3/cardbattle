@@ -66,7 +66,7 @@
         <mapping class="com.wx3.cardbattle.game.GameInstance"/>
         <mapping class="com.wx3.cardbattle.game.User"/>
         <mapping class="com.wx3.cardbattle.game.GamePlayer"/>
-        <mapping class="com.wx3.cardbattle.game.Card"/>
+        <mapping class="com.wx3.cardbattle.game.EntityPrototype"/>
         <mapping class="com.wx3.cardbattle.game.rules.EntityRule"/>
         <mapping class="com.wx3.cardbattle.game.rules.PlayValidator"/>
         <mapping class="com.wx3.cardbattle.datastore.PlayerAuthtoken"/>

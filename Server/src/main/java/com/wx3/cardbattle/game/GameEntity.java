@@ -59,7 +59,7 @@ public class GameEntity {
 
 	private int id;
 
-	private Card card;
+	private EntityPrototype card;
 	
 	private GamePlayer owner;
 	
@@ -95,7 +95,7 @@ public class GameEntity {
 	/**
 	 * What card, if any, is assocated with this entity? May or may not be the card that created the entity.
 	 */
-	public Card getCreatingCard() {
+	public EntityPrototype getCreatingCard() {
 		return card;
 	}
 
@@ -104,7 +104,7 @@ public class GameEntity {
 	 * 
 	 * @param card
 	 */
-	void copyFromCard(Card card) {
+	void copyFromCard(EntityPrototype card) {
 		this.card = card;
 		this.name = card.getName();
 		for(String tag : card.getTags()) {

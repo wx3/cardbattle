@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.commands.GameCommand;
-import com.wx3.cardbattle.game.commands.PlayCardCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
@@ -63,6 +62,7 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
+import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
 
 /**
  * The game instance contains the game's state data.
@@ -100,20 +100,14 @@ public class GameInstance {
 	List<GameEvent> eventHistory = new ArrayList<GameEvent>();
 	
 	@Transient
-	private GameRuleEngine ruleEngine;
+	private RuleSystem ruleSystem;
 	
 	@Transient
 	private GameDatastore datastore;
 	
 	private boolean started = false;
 	private boolean stopped = false;
-	
-	/**
-	 * General game rules, such as detecting game ending conditions are applied 
-	 * to the rule entity.
-	 */
-	@Transient
-	private GameEntity ruleEntity;
+	private boolean gameOver = false;
 	
 	public static GameInstance createGame(GameDatastore datastore) {
 		GameInstance game = new GameInstance();
@@ -136,23 +130,16 @@ public class GameInstance {
 		this.created = created;
 	}
 	
-	public GameRuleEngine getRuleEngine() {
-		return ruleEngine;
+	public void setRuleSystem(RuleSystem rules) {
+		ruleSystem = rules;
+	}
+	
+	public RuleSystem getRuleSystem() {
+		return ruleSystem;
 	}
 	
 	public boolean isStopped() {
 		return stopped;
-	}
-	
-	public void setGameRules(List<EntityRule> rules) {
-		if(ruleEntity != null) {
-			throw new RuntimeException("Rule entity already created.");
-		}
-		ruleEntity = spawnEntity();
-		ruleEntity.name = "Rule Entity";
-		ruleEntity.setTag(Tag.RULES);
-		ruleEntity.setTag(Tag.IN_PLAY);
-		ruleEntity.setRules(rules);
 	}
 	
 	public void addPlayer(GamePlayer player) {
@@ -167,6 +154,7 @@ public class GameInstance {
 		playerEntity.name = player.getUsername();
 		playerEntity.setTag(Tag.PLAYER);
 		playerEntity.setTag(Tag.IN_PLAY);
+		
 		playerEntity.stats.setBase(EntityStats.MAX_HEALTH, 100);
 		playerEntity.setCurrentHealth(playerEntity.getMaxHealth());
 		playerEntity.setOwner(player);
@@ -213,11 +201,11 @@ public class GameInstance {
 		return players;
 	}
 	
-	public Card getCard(int cardId) {
+	public EntityPrototype getCard(int cardId) {
 		return datastore.getCard(cardId);
 	}
 	
-	public Card getCard(String cardName) {
+	public EntityPrototype getCard(String cardName) {
 		return datastore.getCard(cardName);
 	}
 	
@@ -238,8 +226,10 @@ public class GameInstance {
 	}
 	
 	public void start() {
-		ruleEngine = new GameRuleEngine(this);
-		ruleEngine.startup();
+		if(ruleSystem == null) {
+			throw new RuntimeException("Rule system must be defined before start.");
+		}
+		ruleSystem.startup();
 		started = true;
 	}
 	
@@ -249,6 +239,15 @@ public class GameInstance {
 		for(GamePlayer player : players) {
 			player.disconnect();
 		}
+	}
+	
+
+	public boolean isGameOver() {
+		return gameOver;
+	}
+
+	void setGameOver(boolean gameOver) {
+		this.gameOver = gameOver;
 	}
 	
 	public GameEntity getEntity(int id) {
@@ -261,10 +260,6 @@ public class GameInstance {
 	
 	public int getTurn() {
 		return turn;
-	}
-	
-	public void validatePlay(ValidationResult result, PlayCardCommand command) {
-		ruleEngine.validatePlay(result, command);	
 	}
 	
  	synchronized void update() {
@@ -297,7 +292,7 @@ public class GameInstance {
 			throw new RuntimeException("Cannot handle command before game is started.");
 		}
 		command.execute();
-		ruleEngine.processEvents();
+		ruleSystem.processEvents();
 		for(GamePlayer player : getPlayers()) {
 			player.sendMessage(GameViewMessage.createMessage(this, player));
 		}

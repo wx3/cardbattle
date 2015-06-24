@@ -71,7 +71,7 @@ public final class GameEntityView {
 			view.vars = entity.getCurrentVars();
 		} else {
 			view.visible = false;
-			// If an entity is in hand, that tag is visible:
+			// If an entity is in hand, the IN_HAND tag is always visible:
 			view.tags = new HashSet<String>();
 			if(entity.hasTag(Tag.IN_HAND)) {
 				view.tags.add(Tag.IN_HAND);

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.commands;
+package com.wx3.cardbattle.samplegame.commands;
 
 import javax.persistence.Transient;
 
@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.cardbattle.samplegame.SampleGameRules;
 
 /**
  * Tell the game to attack a particular target with with a particular attacker.
@@ -45,6 +49,8 @@ public class AttackCommand extends GameCommand {
 	private GameEntity attacker;
 	private GameEntity target;
 	
+	private SampleGameRules gameRules;
+	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(AttackCommand.class);
 	
@@ -54,7 +60,7 @@ public class AttackCommand extends GameCommand {
 		this.attackerId = attackerId;
 		this.targetId = targetId;
 	}
-	
+
 	public GameEntity getAttacker() {
 		return attacker;
 	}
@@ -106,7 +112,8 @@ public class AttackCommand extends GameCommand {
 
 	@Override
 	public void execute() {
-		game.getRuleEngine().attack(attacker, target);
+		SampleGameRules rules = (SampleGameRules) game.getRuleSystem();
+		rules.attack(attacker, target);
 	}
 
 }

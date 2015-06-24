@@ -46,9 +46,6 @@ public class User {
 	@Column(unique=true)
 	private String username;
 	
-	@Transient
-	private List<Card> currentDeck = new ArrayList<Card>();
-	
 	public User() {}
 	
 	public User(String username) {
@@ -70,14 +67,6 @@ public class User {
 	
 	public void setUsername(String username) {
 		this.username = username;
-	}
-
-	public List<Card> getCurrentDeck() {
-		return currentDeck;
-	}
-
-	public void setCurrentDeck(List<Card> currentDeck) {
-		this.currentDeck = currentDeck;
 	}
 	
 }

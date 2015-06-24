@@ -31,6 +31,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**
@@ -57,19 +58,17 @@ public class PlayerAuthtoken {
 		return  new BigInteger(130, random).toString(32);
 	}
 	
-	public PlayerAuthtoken() {
-		
-	}
+	public PlayerAuthtoken() {}
 	
-	public PlayerAuthtoken(GamePlayer player) {
+	public PlayerAuthtoken(GamePlayer player, GameInstance game) {
 		this.player = player;
-		this.gameId = player.getGameId();
+		this.gameId = game.getId();
 		this.authtoken = generateToken();
 	}
 	
-	public PlayerAuthtoken(GamePlayer player, String token) {
+	public PlayerAuthtoken(GamePlayer player, GameInstance game, String token) {
 		this.player = player;
-		this.gameId = player.getGameId();
+		this.gameId = game.getId();
 		this.authtoken = token;
 	}
 	

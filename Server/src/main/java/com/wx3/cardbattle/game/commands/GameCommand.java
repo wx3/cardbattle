@@ -27,19 +27,20 @@ import javax.persistence.Transient;
 
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
 /**
- * A GameCommand is how a player communicates actions to the game.
- * <p> 
- * A command is first parsed, which converts the json data into game data (e.g., 
+ * A GameCommand is how a player communicates actions to the game:
+ * <p>
+ * <ol> 
+ * <li>A command is first parsed, which converts the json data into game data (e.g., 
  * if the json refers to an entity by its id, the parsing will get the actual 
  * entity).
- * <p>
- * Next, the command is validated because we don't trust the client.
- * <p>
- * Finally the command is executed.
- * 
+ * <li> Next, the command is validated because we don't trust the client.
+ * <li> Finally the command is executed, usually by calling some method of the 
+ * {@link RuleSystem}.
+ * </ol>
  * @author Kevin
  *
  */
@@ -75,7 +76,7 @@ public abstract class GameCommand {
 		if(game == null) {
 			result.addError("Game is null");
 		}
-		if(game.getRuleEngine().getCurrentPlayer() != player) {
+		if(game.getRuleSystem().getCurrentPlayer() != player) {
 			result.addError("Not your turn");
 		}
 		return result;

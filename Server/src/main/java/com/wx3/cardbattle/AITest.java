@@ -1,18 +1,18 @@
-/*******************************************************************************
+/**
  * The MIT License (MIT)
- *
+ * 
  * Copyright (c) 2015 Kevin Lin
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,43 +20,63 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *******************************************************************************/
-
+ * 
+ */
+/**
+ * 
+ */
 package com.wx3.cardbattle;
 
+import java.util.List;
+
+import com.wx3.cardbattle.ai.AIManager;
+import com.wx3.cardbattle.ai.SimpleAI;
+import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
+import com.wx3.cardbattle.datastore.PlayerAuthtoken;
+import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.GameServer;
 import com.wx3.cardbattle.samplegame.SampleGameFactory;
-import com.wx3.cardbattle.server.NettyWebSocketServer;
-
 
 /**
- * The main entry point for the game application, creates a Datastore,
- * GameServer and Netty server. 
+ * @author Kevin
  *
  */
-public class CardBattle 
-{
-	static final boolean SSL = System.getProperty("ssl") != null;
-    static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
-    
-    public static void main( String[] args )
-    {
-    	GameDatastore datastore = new HibernateDatastore();
+public class AITest {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		GameDatastore datastore = new HibernateDatastore();
     	bootstrap(datastore);
-    	
     	SampleGameFactory gameFactory = new SampleGameFactory(datastore);
-    	
     	GameServer gameserver = new GameServer(datastore, gameFactory);
     	gameserver.start();
     	
-    	NettyWebSocketServer nettyServer = new NettyWebSocketServer(gameserver, PORT);
-    	nettyServer.start();
+    	AIManager aimanager = new AIManager(1);
     	
-    }
-    
-    /**
+    	aimanager.start();
+    	
+    	for(int i = 0; i < 100; i++) {
+	    	List<PlayerAuthtoken> tokens = gameserver.createTestGame();
+	    	for(PlayerAuthtoken token : tokens) {
+	    		try {
+					GamePlayer player = gameserver.authenticate(token.getAuthtoken());
+					SimpleAI ai = new SimpleAI(player);
+					player.connect(ai);
+					aimanager.registerAI(ai);
+				} catch (AuthenticationException e) {
+					// This shouldn't happen since we're authenticating with the token
+					// just supplied.
+					e.printStackTrace();
+				}
+	    	}
+    	}
+	}
+	
+	/**
      * Load initial game data into the datastore
      * @param datastore
      */
@@ -65,5 +85,5 @@ public class CardBattle
     	test.importData("csv");
     	datastore.loadCache();
     }
-    
+
 }

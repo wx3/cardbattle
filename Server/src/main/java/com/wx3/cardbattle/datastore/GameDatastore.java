@@ -28,7 +28,7 @@ package com.wx3.cardbattle.datastore;
 import java.util.Collection;
 import java.util.List;
 
-import com.wx3.cardbattle.game.Card;
+import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
@@ -55,11 +55,11 @@ public interface GameDatastore {
 
 	public abstract User getUser(String username);
 
-	public abstract Collection<Card> getCards();
+	public abstract Collection<EntityPrototype> getCards();
 
-	public abstract Card getCard(String name);
+	public abstract EntityPrototype getCard(String name);
 
-	public abstract Card getCard(int id);
+	public abstract EntityPrototype getCard(int id);
 
 	public abstract Collection<EntityRule> getRules();
 
@@ -69,13 +69,7 @@ public interface GameDatastore {
 
 	public abstract void createRule(EntityRule rule);
 
-	/**
-	 * Create a new game instance and the corresponding game players, persisting them
-	 * to the database.
-	 * @param game
-	 * @param users
-	 */
-	public abstract GameInstance createGame(List<User> users);
+	public abstract void saveNewGame(GameInstance game);
 	
 	public abstract void removeGame(long gameId);
 
@@ -85,7 +79,7 @@ public interface GameDatastore {
 
 	public abstract GameInstance getGame(long id);
 
-	public abstract void createCard(Card card);
+	public abstract void createCard(EntityPrototype card);
 
 	/**
 	 * Find the GamePlayer with the corresponding authentication token

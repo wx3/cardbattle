@@ -33,7 +33,7 @@ public class EndTurnCommand extends GameCommand {
 
 	@Override
 	public void execute() {
-		game.getRuleEngine().endTurn();
+		game.getRuleSystem().endTurn();
 	}
 
 }

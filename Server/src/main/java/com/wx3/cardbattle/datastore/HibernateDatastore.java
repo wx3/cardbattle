@@ -39,7 +39,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.service.ServiceRegistry;
 
-import com.wx3.cardbattle.game.Card;
+import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
@@ -65,8 +65,8 @@ public class HibernateDatastore implements GameDatastore {
 	
 	// Cards & rules are only expected to change during game updates, so we should 
 	// only need to load them once:
-	private Map<Integer, Card> cardsById = new HashMap<Integer, Card>();
-	private Map<String, Card> cardsByName = new HashMap<String, Card>();
+	private Map<Integer, EntityPrototype> cardsById = new HashMap<Integer, EntityPrototype>();
+	private Map<String, EntityPrototype> cardsByName = new HashMap<String, EntityPrototype>();
 	private Map<String, EntityRule> rulesById = new HashMap<String, EntityRule>();
 	
 	public HibernateDatastore() {
@@ -78,8 +78,8 @@ public class HibernateDatastore implements GameDatastore {
 	 */
 	@Override
 	public void loadCache() {
-		Collection<Card> cards = loadCards();
-		for(Card card : cards) {
+		Collection<EntityPrototype> cards = loadCards();
+		for(EntityPrototype card : cards) {
 			cardsById.put(card.getId(), card);
 			cardsByName.put(card.getName(), card);
 		}
@@ -117,7 +117,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#getCards()
 	 */
 	@Override
-	public Collection<Card> getCards() {
+	public Collection<EntityPrototype> getCards() {
 		return cardsById.values();
 	}
 	
@@ -125,7 +125,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#getCard(java.lang.String)
 	 */
 	@Override
-	public Card getCard(String name) {
+	public EntityPrototype getCard(String name) {
 		if(!cardsByName.containsKey(name)) {
 			throw new RuntimeException("Could not find card named '" + name + "' in datastore cache.");
 		}
@@ -136,7 +136,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#getCard(int)
 	 */
 	@Override
-	public Card getCard(int id) {
+	public EntityPrototype getCard(int id) {
 		if(!cardsById.containsKey(id)) {
 			throw new RuntimeException("Could not find card with id '" + id + "' in datastore cache");
 		}
@@ -184,15 +184,7 @@ public class HibernateDatastore implements GameDatastore {
     	session.getTransaction().commit();
 	}
 	
-	
-	
-	/* (non-Javadoc)
-	 * @see com.wx3.cardbattle.datastore.Datastore#createGame(java.util.List)
-	 */
-	@Override
-	public GameInstance createGame(List<User> users) {
-		GameInstance game = GameInstance.createGame(this);
-		game.setGameRules(getGameRules());
+	public void saveNewGame(GameInstance game) {
 		Session session = sessionFactory.openSession();
 		SecureRandom random = new SecureRandom();
     	session.beginTransaction();
@@ -201,21 +193,17 @@ public class HibernateDatastore implements GameDatastore {
     	session = sessionFactory.openSession();
     	session.beginTransaction();
     	int i = 0;
-    	for(User user : users) {
-        	String token =  new BigInteger(130, random).toString(32);
-        	GamePlayer player = new GamePlayer(user, game.getId(), i);
-        	PlayerAuthtoken auth = new PlayerAuthtoken(player, token);
-        	session.save(auth);
-        	List<Card> gameDeck = new ArrayList<Card>(user.getCurrentDeck());
-        	player.setPlayerDeck(gameDeck);
+    	for(GamePlayer player : game.getPlayers()) {
     		session.save(player);
-    		game.addPlayer(player);
+        	PlayerAuthtoken auth = new PlayerAuthtoken(player, game);
+        	session.save(auth);
     		++i;
     	}
     	session.getTransaction().commit();
 		gameInstances.put(game.getId(), game);
-		return game;
+		
 	}
+	
 	
 	public void removeGame(long gameId) {
 		gameInstances.remove(gameId);
@@ -255,7 +243,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#createCard(com.wx3.cardbattle.game.Card)
 	 */
 	@Override
-	public void createCard(Card card) {
+	public void createCard(EntityPrototype card) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	session.save(card);
@@ -283,7 +271,7 @@ public class HibernateDatastore implements GameDatastore {
     	// Note that the GamePlayer we retrieve from the DB is not the one attached to the
     	// game, but has the same data, so we use its values to get the game id and player id
     	GamePlayer player = authtoken.getPlayer();
-    	GameInstance game = getGame(player.getGameId());
+    	GameInstance game = getGame(authtoken.getGameId());
     	if(game == null) {
     		throw new AuthenticationException(AuthenticationException.MISSING_GAME);
     	}
@@ -294,13 +282,13 @@ public class HibernateDatastore implements GameDatastore {
     	return gamePlayer;
 	}
 	
-	private Collection<Card> loadCards() {
+	private Collection<EntityPrototype> loadCards() {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	// If we're using some kind of SQL database, there may be a behind-the-scenes
     	// join creating multiple results, so we need the DISTINCT_ROOT_ENTITY transformer:
     	@SuppressWarnings("unchecked")
-    	List<Card> cardList = session.createCriteria(Card.class)
+    	List<EntityPrototype> cardList = session.createCriteria(EntityPrototype.class)
 			.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY)  
     		.list();
     	session.getTransaction().commit();
@@ -316,14 +304,6 @@ public class HibernateDatastore implements GameDatastore {
 				.list();
     	session.getTransaction().commit();
     	return ruleList;
-	}
-	
-	// This should be somewhere else:
-	private List<EntityRule> getGameRules() {
-		List<EntityRule> rules = new ArrayList<EntityRule>();
-		EntityRule gameOverRule = EntityRule.createRule(KilledEvent.class, "if(event.getEntity().hasTag('PLAYER')){rules.gameOver()}", "GAME_OVER", "Detects end of game on player death.");
-		rules.add(gameOverRule);
-		return rules;
 	}
 	
 	private SessionFactory createSessionFactory() {

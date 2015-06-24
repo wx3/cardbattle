@@ -85,7 +85,7 @@ public class GamePlayer {
 		joinColumns = @JoinColumn(name="playerId"),
 		inverseJoinColumns = @JoinColumn(name="cardId"))
 	@OrderColumn(name="deckOrder")
-	private List<Card> playerDeck = new ArrayList<Card>();
+	private List<EntityPrototype> playerDeck = new ArrayList<EntityPrototype>();
 	
 	@Transient
 	private GameInstance game;
@@ -101,10 +101,8 @@ public class GamePlayer {
 	
 	public GamePlayer() {}
 	
-	public GamePlayer(User user, long gameId, int position) {
+	public GamePlayer(User user) {
 		this.user = user;
-		this.setGameId(gameId);
-		this.setPosition(position);
 	}
 	
 	public long getId() {
@@ -123,10 +121,6 @@ public class GamePlayer {
 		return gameId;
 	}
 
-	void setGameId(long gameId) {
-		this.gameId = gameId;
-	}
-
 	public int getPosition() {
 		return position;
 	}
@@ -141,6 +135,7 @@ public class GamePlayer {
 
 	void setGame(GameInstance game) {
 		this.game = game;
+		this.gameId = game.getId();
 	}
 	
 	void setEntity(GameEntity entity) {
@@ -152,31 +147,23 @@ public class GamePlayer {
 	}
 	
 	public void handleCommand(GameCommand command) {
-		try {
-			command.setGameInstance(game);
-			command.setPlayer(this);
-			CommandResponseMessage resp;
-			ValidationResult result;
-			command.parse();
-			result = command.validate();
-			if(result.isValid()) {
-				game.handleCommand(command);
-			}
-			logger.debug("Sending command response");
-			CommandResponseMessage message = new CommandResponseMessage(command, result);
-			messageHandler.handleMessage(message);
-		} catch(Exception ex) {
-			CommandResponseMessage message = new CommandResponseMessage(command, false, "There was an error processing the command: " + ex.getMessage());
-			messageHandler.handleMessage(message);
+		command.setGameInstance(game);
+		command.setPlayer(this);
+		CommandResponseMessage resp;
+		ValidationResult result;
+		command.parse();
+		result = command.validate();
+		if(result.isValid()) {
+			game.handleCommand(command);
 		}
+		CommandResponseMessage message = new CommandResponseMessage(command, result);
+		messageHandler.handleMessage(message);
 	}
 	
 	void sendMessage(GameMessage message) {
 		if(messageHandler != null) {
 			messageHandler.handleMessage(message);	
-		} else {
-			logger.warn("Cannot send message, no handler.");
-		}
+		} 
 	}
 
 	void handleEvent(GameEvent event) {
@@ -216,19 +203,18 @@ public class GamePlayer {
 		return false;
 	}
 	
-	public Card drawCard() {
+	public EntityPrototype drawCard() {
 		if (playerDeck.size() > 0) {
 			return playerDeck.remove(0);
 		}
-		logger.warn("Player's deck is empty, cannot draw");
 		return null;
 	}
 
-	public List<Card> getPlayerDeck() {
+	public List<EntityPrototype> getPlayerDeck() {
 		return playerDeck;
 	}
 
-	public void setPlayerDeck(List<Card> playerDeck) {
+	public void setPlayerDeck(List<EntityPrototype> playerDeck) {
 		this.playerDeck = playerDeck;
 	}
 	

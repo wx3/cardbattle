@@ -52,19 +52,16 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 
 /**
- * A Card represents a game card in a deck. Once a card is drawn into a player's
- * hand, it is represented by a {@link GameEntity}, although the GameEntity will
- * maintain a reference to creating card.
- * 
- * Cards should be immutable since different references to the same card may be 
- * backed by the same underlying object.
+ * An entity prototype is what it sounds like-- a template for
+ * entities created in the game. For example in a Collectible
+ * Card Game, an entity prototype might be a particular card.
  * 
  * @author Kevin
  *
  */
 @Entity
-@Table(name="cards")
-public class Card {
+@Table(name="entity_prototypes")
+public class EntityPrototype {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
@@ -73,18 +70,18 @@ public class Card {
 	private String description;
 	
 	@ElementCollection(fetch = FetchType.EAGER)
-	@CollectionTable(name = "card_tags")
+	@CollectionTable(name = "prototype_tags")
 	private Set<String> tags = new HashSet<String>();
 	
 	@ElementCollection(fetch = FetchType.EAGER)
-	@CollectionTable(name = "card_stats")
+	@CollectionTable(name = "prototype_stats")
 	@Column(name="stat_value")
 	@MapKeyColumn(name="stat_name")
 	private Map<String,Integer> stats = new HashMap<String,Integer>();
 	
 	@ManyToMany(cascade={CascadeType.ALL}, fetch = FetchType.EAGER)
-	@JoinTable(name="card_rules", 
-		joinColumns = @JoinColumn(name="cardId"),
+	@JoinTable(name="prototype_rules", 
+		joinColumns = @JoinColumn(name="prototypeId"),
 		inverseJoinColumns = @JoinColumn(name="ruleId"))
 	@OrderColumn(name="ruleOrder")
 	private List<EntityRule> rules = new ArrayList<EntityRule>();
@@ -93,25 +90,25 @@ public class Card {
 	@JoinColumn(name = "validator")
 	private PlayValidator validator;
 	
-	public static Card createCard(String name, 
+	public static EntityPrototype createPrototype(String name, 
 			String description, 
 			Collection<String> tags, 
 			List<EntityRule> rules,
 			PlayValidator validator,
 			Map<String,Integer> stats) {
-		Card card = new Card();
-		card.name = name;
-		card.description = description;
-		card.tags = new HashSet<String>(tags);
-		card.validator = validator;
-		card.rules = new ArrayList<EntityRule>(rules);
-		card.stats = new HashMap<String,Integer>(stats);
-		return card;
+		EntityPrototype prototype = new EntityPrototype();
+		prototype.name = name;
+		prototype.description = description;
+		prototype.tags = new HashSet<String>(tags);
+		prototype.validator = validator;
+		prototype.rules = new ArrayList<EntityRule>(rules);
+		prototype.stats = new HashMap<String,Integer>(stats);
+		return prototype;
 	}
 	
-	public Card() {}
+	public EntityPrototype() {}
 	
-	public Card(String name, String description) {
+	public EntityPrototype(String name, String description) {
 		this.name = name;
 		this.description = description;
 	}

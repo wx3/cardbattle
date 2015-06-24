@@ -21,33 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.messages;
+package com.wx3.cardbattle.game.gameevents;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import com.wx3.cardbattle.game.GameEntity;
 
-import com.wx3.cardbattle.game.EntityPrototype;
+public final class RemoveRulesEvent extends GameEvent {
 
-/**
- * Message sent to the client on join, containing initial game
- * data like all the card prototypes.
- * 
- * @author Kevin
- *
- */
-public final class JoinMessage extends GameMessage {
-
-	private Map<Integer, EntityPrototype> cards;
+	@SuppressWarnings("unused")
+	private transient int targetId;
 	
-	public static JoinMessage createMessage(Collection<EntityPrototype> cardList) {
-		JoinMessage message = new JoinMessage();
-		message.cards = new HashMap<Integer, EntityPrototype>();
-		for(EntityPrototype card : cardList) {
-			message.cards.put(card.getId(), card);
+	public transient GameEntity target;
+	
+	public RemoveRulesEvent(GameEntity target, GameEntity cause) {
+		this.targetId = target.getId();
+		if(cause != null) {
+			this.causeId = cause.getId();
 		}
-		message.messageClass = JoinMessage.class.getSimpleName();
-		return message;
 	}
-	
 }

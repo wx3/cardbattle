@@ -51,7 +51,7 @@ public class ChatCommand extends GameCommand {
 	
 	@Override
 	public void execute() {
-		game.getRuleEngine().chat(player, message);
+		game.getRuleSystem().chat(player, message);
 	}
 
 	public String getMessage() {
