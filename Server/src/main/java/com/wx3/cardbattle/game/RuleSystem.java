@@ -76,7 +76,9 @@ import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
  * @author Kevin
  *
  */
-public class RuleSystem {
+public abstract class RuleSystem<T extends GameEntity> {
+	
+	private transient final Logger logger = LoggerFactory.getLogger(RuleSystem.class);
 	
 	private static final int MAX_EVENTS = 1000;
 	
@@ -86,10 +88,8 @@ public class RuleSystem {
 	private static ScriptEngine scriptEngine;
 	protected ScriptContext scriptContext;
 	protected Bindings scriptScope;
-	
-	final Logger logger = LoggerFactory.getLogger(RuleSystem.class);
 
-	protected GameInstance game;
+	protected GameInstance<T> game;
 	
 	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
 	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
@@ -120,12 +120,20 @@ public class RuleSystem {
 		return scriptEngine;
 	}
 	
-	public RuleSystem(GameInstance game) {
+	public RuleSystem(GameInstance<T> game) {
 		this.game = game;
 		ScriptEngine script = getScriptEngine();
 		this.scriptContext = new SimpleScriptContext();
 		this.scriptContext.setBindings(script.createBindings(), ScriptContext.ENGINE_SCOPE);
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+	}
+	
+	protected abstract T createEntityInstance();
+	
+	public T spawnEntity() {
+		T entity = createEntityInstance();
+		game.registerEntity(entity);
+		return entity;
 	}
 	
 	public void addPlayer(GamePlayer player) {}
@@ -137,7 +145,7 @@ public class RuleSystem {
 	 * @param rules
 	 */
 	public void setGlobalRules(List<EntityRule> rules) {
-		GameEntity ruleEntity = game.spawnEntity();
+		GameEntity ruleEntity = spawnEntity();
 		ruleEntity.setRules(rules);
 		ruleEntity.name = "Rule Entity";
 		ruleEntity.setTag(Tag.RULES);
@@ -358,7 +366,7 @@ public class RuleSystem {
 	 * @return
 	 */
 	public GameEntity instantiatePrototype(EntityPrototype card) {
-		GameEntity entity = game.spawnEntity();
+		GameEntity entity = spawnEntity();
 		entity.copyFromCard(card);
 		return entity;
 	}
@@ -387,10 +395,6 @@ public class RuleSystem {
 	
 	public void trace(String message) {
 		logger.info(message);
-	}
-	
-	protected GameEntity spawnEntity() {
-		return game.spawnEntity();
 	}
 	
 	void processEvents() {
@@ -460,7 +464,7 @@ public class RuleSystem {
 	 * all buff rules to update them.
 	 */
 	private void recalculateStats() {
-		List<GameEntity> gameEntities = game.getEntities();
+		List<T> gameEntities = game.getEntities();
 		// First, reset all stats. This sets each stat to the base value:
 		for(GameEntity entity : gameEntities) {
 			entity.resetStats();

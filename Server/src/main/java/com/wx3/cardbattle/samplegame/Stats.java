@@ -25,25 +25,16 @@
 /**
  * 
  */
-package com.wx3.cardbattle.game;
-
-import com.google.gson.JsonObject;
-import com.wx3.cardbattle.game.commands.GameCommand;
+package com.wx3.cardbattle.samplegame;
 
 /**
- * A GameFactory creates game instances, supplying them with the appropriate 
- * {@link RuleSystem} for the game.
- * 
- * It also provides a factory method for creating commands from JSON, included
- * in the same class for the convenience of implementors.
- * 
  * @author Kevin
  *
  */
-public interface GameFactory {
+public enum Stats {
 
-	public abstract GameInstance<? extends GameEntity> createGame();
-	public abstract GameCommand createCommand(GamePlayer player,
-			JsonObject json);
+	MAX_HEALTH,
+	ATTACK,
+	COST
 	
 }

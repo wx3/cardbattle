@@ -29,6 +29,7 @@ package com.wx3.cardbattle.samplegame;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.script.ScriptException;
 
@@ -55,14 +56,14 @@ import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
  * @author Kevin
  *
  */
-public class SampleGameRules extends RuleSystem {
+public class SampleGameRules extends RuleSystem<SampleEntity> {
 	
-	final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
+	private transient final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
 
 	/**
 	 * @param game
 	 */
-	SampleGameRules(GameInstance game) {
+	SampleGameRules(GameInstance<SampleEntity> game) {
 		super(game);
 		addGlobalRules();
 	}
@@ -73,6 +74,19 @@ public class SampleGameRules extends RuleSystem {
 		rules.add(gameOverRule);
 		setGlobalRules(rules);
 	}
+	
+	@Override
+	protected SampleEntity createEntityInstance() {
+		return new SampleEntity();
+	}
+	
+	public List<SampleEntity> getPlayerHand(GamePlayer player) {
+		List<SampleEntity> hand = game.getEntities().stream().filter(
+				e -> e.getOwner() == player && e.hasTag(Tag.IN_HAND)
+				).collect(Collectors.toList());
+		return hand;
+	}
+	
 	
 	@Override
 	public void addPlayer(GamePlayer player) {
@@ -175,5 +189,6 @@ public class SampleGameRules extends RuleSystem {
 			result.addError("Scripting exception: " + se.getMessage());
 		} 
 	}
+
 
 }

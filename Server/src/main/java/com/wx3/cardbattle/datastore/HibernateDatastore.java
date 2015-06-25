@@ -40,6 +40,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.service.ServiceRegistry;
 
 import com.wx3.cardbattle.game.EntityPrototype;
+import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
@@ -61,7 +62,7 @@ public class HibernateDatastore implements GameDatastore {
 
 	private static SessionFactory sessionFactory;
 	
-	private Map<Long, GameInstance> gameInstances = new HashMap<Long, GameInstance>();
+	private Map<Long, GameInstance<? extends GameEntity>> gameInstances = new HashMap<Long, GameInstance<? extends GameEntity>>();
 	
 	// Cards & rules are only expected to change during game updates, so we should 
 	// only need to load them once:
@@ -184,20 +185,17 @@ public class HibernateDatastore implements GameDatastore {
     	session.getTransaction().commit();
 	}
 	
-	public void saveNewGame(GameInstance game) {
+	public void saveNewGame(GameInstance<? extends GameEntity> game) {
 		Session session = sessionFactory.openSession();
-		SecureRandom random = new SecureRandom();
     	session.beginTransaction();
     	session.save(game);
     	session.getTransaction().commit();
     	session = sessionFactory.openSession();
     	session.beginTransaction();
-    	int i = 0;
     	for(GamePlayer player : game.getPlayers()) {
     		session.save(player);
         	PlayerAuthtoken auth = new PlayerAuthtoken(player, game);
         	session.save(auth);
-    		++i;
     	}
     	session.getTransaction().commit();
 		gameInstances.put(game.getId(), game);
@@ -227,15 +225,15 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.GameDatastore#getGames()
 	 */
 	@Override
-	public Collection<GameInstance> getGames() {
-		return new ArrayList<GameInstance>(gameInstances.values());
+	public Collection<GameInstance<? extends GameEntity>> getGames() {
+		return new ArrayList<GameInstance<? extends GameEntity>>(gameInstances.values());
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.wx3.cardbattle.datastore.Datastore#getGame(long)
 	 */
 	@Override
-	public GameInstance getGame(long id) {
+	public GameInstance<? extends GameEntity> getGame(long id) {
 		return gameInstances.get(id);
 	}
 	
@@ -271,7 +269,7 @@ public class HibernateDatastore implements GameDatastore {
     	// Note that the GamePlayer we retrieve from the DB is not the one attached to the
     	// game, but has the same data, so we use its values to get the game id and player id
     	GamePlayer player = authtoken.getPlayer();
-    	GameInstance game = getGame(authtoken.getGameId());
+    	GameInstance<? extends GameEntity> game = getGame(authtoken.getGameId());
     	if(game == null) {
     		throw new AuthenticationException(AuthenticationException.MISSING_GAME);
     	}

@@ -54,9 +54,9 @@ public class SampleGameFactory implements GameFactory {
 	}
 
 	@Override
-	public GameInstance createGame() {
-		GameInstance game = GameInstance.createGame(datastore);
-		RuleSystem rules = new SampleGameRules(game);
+	public GameInstance<SampleEntity> createGame() {
+		GameInstance<SampleEntity> game = new GameInstance<SampleEntity>(datastore);
+		RuleSystem<SampleEntity> rules = new SampleGameRules(game);
 		game.setRuleSystem(rules);
 		return game;
 	}

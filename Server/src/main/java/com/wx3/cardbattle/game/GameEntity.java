@@ -84,6 +84,13 @@ public class GameEntity {
 	void setGame(GameInstance game) {
 		this.game = game;
 	}
+	
+	void setId(int id) {
+		if(this.id > 0) {
+			throw new RuntimeException("Cannot reset entity id.");
+		}
+		this.id = id;
+	}
 
 	/**
 	 * The in-game id used to refer to the entity when communicating with clients

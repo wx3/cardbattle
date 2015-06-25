@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.wx3.cardbattle.game.EntityPrototype;
+import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
@@ -69,15 +70,15 @@ public interface GameDatastore {
 
 	public abstract void createRule(EntityRule rule);
 
-	public abstract void saveNewGame(GameInstance game);
+	public abstract void saveNewGame(GameInstance<? extends GameEntity> game);
 	
 	public abstract void removeGame(long gameId);
 
 	public abstract List<PlayerAuthtoken> getAuthtokens(long gameId);
 	
-	public abstract Collection<GameInstance> getGames();
+	public abstract Collection<GameInstance<? extends GameEntity>> getGames();
 
-	public abstract GameInstance getGame(long id);
+	public abstract GameInstance<? extends GameEntity> getGame(long id);
 
 	public abstract void createCard(EntityPrototype card);
 

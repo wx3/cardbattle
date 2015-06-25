@@ -56,8 +56,8 @@ public class UpdateGamesTask extends TimerTask {
 
 	@Override
 	public void run() {
-		Collection<GameInstance> games = datastore.getGames();
-		for(GameInstance game : games) {
+		Collection<GameInstance<? extends GameEntity>> games = datastore.getGames();
+		for(GameInstance<? extends GameEntity> game : games) {
 			try {
 				if(game.isStopped()) {
 					datastore.removeGame(game.getId());	

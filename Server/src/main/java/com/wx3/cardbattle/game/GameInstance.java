@@ -73,7 +73,7 @@ import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
  */
 @Entity
 @Table(name="game_instances")
-public class GameInstance {
+public class GameInstance<T extends GameEntity> {
 	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(GameInstance.class);
@@ -84,7 +84,7 @@ public class GameInstance {
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="created")
-	private java.util.Date created;	
+	private java.util.Date created = new Date();	
 	
 	int turn;
 	
@@ -95,13 +95,13 @@ public class GameInstance {
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
 	
 	@Transient
-	private List<GameEntity> entities = new ArrayList<GameEntity>();
+	private List<T> entities = new ArrayList<T>();
 	
 	@Transient
 	List<GameEvent> eventHistory = new ArrayList<GameEvent>();
 	
 	@Transient
-	private RuleSystem ruleSystem;
+	private RuleSystem<T> ruleSystem;
 	
 	@Transient
 	private GameDatastore datastore;
@@ -110,14 +110,9 @@ public class GameInstance {
 	private boolean stopped = false;
 	private boolean gameOver = false;
 	
-	public static GameInstance createGame(GameDatastore datastore) {
-		GameInstance game = new GameInstance();
-		game.datastore = datastore;
-		game.created = new Date();
-		return game;
+	public GameInstance(GameDatastore datastore) {
+		this.datastore = datastore;
 	}
-	
-	private GameInstance() {}
 	
 	public long getId() {
 		return id;
@@ -131,11 +126,11 @@ public class GameInstance {
 		this.created = created;
 	}
 	
-	public void setRuleSystem(RuleSystem rules) {
+	public void setRuleSystem(RuleSystem<T> rules) {
 		ruleSystem = rules;
 	}
 	
-	public RuleSystem getRuleSystem() {
+	public RuleSystem<T> getRuleSystem() {
 		return ruleSystem;
 	}
 	
@@ -229,12 +224,12 @@ public class GameInstance {
 		this.gameOver = gameOver;
 	}
 	
-	public GameEntity getEntity(int id) {
+	public T getEntity(int id) {
 		return entities.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
 	}
 	
-	public List<GameEntity> getEntities() {
-		return new ArrayList<GameEntity>(entities);
+	public List<T> getEntities() {
+		return new ArrayList<T>(entities);
 	}
 	
 	public int getTurn() {
@@ -254,13 +249,12 @@ public class GameInstance {
 			stop();
 		}
 	}
-	
-	GameEntity spawnEntity() {
-		GameEntity entity = new GameEntity(this, entityIdCounter);
-		entities.add(entity);
-		++entityIdCounter;
-		return entity;
-	}	
+ 	
+ 	public void registerEntity(T entity) {
+ 		++entityIdCounter;
+ 		entity.setId(entityIdCounter);
+ 		entities.add(entity);
+ 	}	
 	
 	boolean removeEntity(GameEntity entity) {
 		return entities.remove(entity);

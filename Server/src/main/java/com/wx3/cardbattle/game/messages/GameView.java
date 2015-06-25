@@ -55,7 +55,7 @@ public class GameView {
 	
 	public List<GameEntityView> entities = new ArrayList<GameEntityView>();
 	
-	public static GameView createViewForPlayer(GameInstance game, GamePlayer player) {
+	public static GameView createViewForPlayer(GameInstance<GameEntity> game, GamePlayer player) {
 		GameView view = new GameView();
 		view.currentPlayer = game.getRuleSystem().getCurrentPlayer().getUsername();
 		view.playerName = player.getUsername();

@@ -99,7 +99,7 @@ public class GameServer {
 			deck.add(card);
 		}
 		
-		GameInstance  game = newGame(user1,user2);	
+		GameInstance<GameEntity>  game = newGame(user1,user2);	
 		for(GamePlayer player : game.getPlayers()) {
 			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
 		}

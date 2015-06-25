@@ -75,7 +75,7 @@ public class WebsocketGameHandler extends
             return;
         }
 		if (frame instanceof TextWebSocketFrame) {
-			try {
+			//try {
 				String request = ((TextWebSocketFrame) frame).text();
 				JsonParser parser = new JsonParser();
 				JsonElement root = parser.parse(request);
@@ -85,10 +85,10 @@ public class WebsocketGameHandler extends
 				ValidationResult result = player.handleCommand(command);
 				CommandResponseMessage message = new CommandResponseMessage(command, result);
 				player.sendMessage(message);
-			} catch (Exception ex) {
-				logger.error("Failed to process command.", ex);
-				close();
-			}
+			//} catch (Exception ex) {
+				//logger.error("Failed to process command.", ex);
+				//close();
+			//}
 			
 		} else {
 			throw new RuntimeException("Invalid websocket frame");
