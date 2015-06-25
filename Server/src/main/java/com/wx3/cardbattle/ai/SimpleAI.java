@@ -28,12 +28,12 @@
 package com.wx3.cardbattle.ai;
 
 import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.commands.EndTurnCommand;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameView;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
+import com.wx3.cardbattle.samplegame.commands.EndTurnCommand;
 
 /**
  * Very simple AI for testing

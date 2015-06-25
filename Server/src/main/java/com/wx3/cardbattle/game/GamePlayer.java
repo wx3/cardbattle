@@ -146,7 +146,8 @@ public class GamePlayer {
 		return this.playerEntity;
 	}
 	
-	public void handleCommand(GameCommand command) {
+	public ValidationResult handleCommand(GameCommand command) {
+		command.setPlayer(this);
 		CommandResponseMessage resp;
 		ValidationResult result;
 		command.parse();
@@ -154,11 +155,10 @@ public class GamePlayer {
 		if(result.isValid()) {
 			game.handleCommand(command);
 		}
-		CommandResponseMessage message = new CommandResponseMessage(command, result);
-		messageHandler.handleMessage(message);
+		return result;
 	}
 	
-	void sendMessage(GameMessage message) {
+	public void sendMessage(GameMessage message) {
 		if(messageHandler != null) {
 			messageHandler.handleMessage(message);	
 		} 

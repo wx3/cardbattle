@@ -38,6 +38,8 @@ import com.google.gson.JsonParser;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.GameServer;
 import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
 /**
  * Parses incoming messages as {@link GameCommand}s and sends them to the player 
@@ -80,7 +82,9 @@ public class WebsocketGameHandler extends
 				JsonObject obj = root.getAsJsonObject();
 				GameCommand command = gameServer.getGameFactory().createCommand(player, obj);
 				logger.info("Received command: " + command.toString());
-				player.handleCommand(command);
+				ValidationResult result = player.handleCommand(command);
+				CommandResponseMessage message = new CommandResponseMessage(command, result);
+				player.sendMessage(message);
 			} catch (Exception ex) {
 				// Client caused errors (like missing entities) shouldn't cause an exception,
 				// so if we end up here we've got a bug in the server.

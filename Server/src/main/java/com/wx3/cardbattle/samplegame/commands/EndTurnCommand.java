@@ -21,7 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.commands;
+package com.wx3.cardbattle.samplegame.commands;
+
+import com.wx3.cardbattle.game.commands.GameCommand;
 
 /**
  * Ends our turn.
@@ -29,7 +31,7 @@ package com.wx3.cardbattle.game.commands;
  * @author Kevin
  *
  */
-public class EndTurnCommand extends GameCommand {
+public class EndTurnCommand extends SampleGameCommand {
 
 	@Override
 	public void execute() {

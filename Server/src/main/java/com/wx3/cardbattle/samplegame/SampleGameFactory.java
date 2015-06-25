@@ -36,9 +36,9 @@ import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.commands.ChatCommand;
-import com.wx3.cardbattle.game.commands.EndTurnCommand;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.samplegame.commands.AttackCommand;
+import com.wx3.cardbattle.samplegame.commands.EndTurnCommand;
 import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
 
 /**
