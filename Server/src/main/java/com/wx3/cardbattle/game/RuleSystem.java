@@ -50,20 +50,19 @@ import com.google.common.base.Strings;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.ChatEvent;
-import com.wx3.cardbattle.game.gameevents.DamageEvent;
 import com.wx3.cardbattle.game.gameevents.RemoveRulesEvent;
-import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.AddRuleEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
-import com.wx3.cardbattle.game.gameevents.GameOverEvent;
-import com.wx3.cardbattle.game.gameevents.KilledEvent;
-import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
-import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
-import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
+import com.wx3.cardbattle.samplegame.events.DamageEvent;
+import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
+import com.wx3.cardbattle.samplegame.events.GameOverEvent;
+import com.wx3.cardbattle.samplegame.events.KilledEvent;
+import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
+import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
 
 /**
  * The GameRuleEngine uses the Nashorn javascript engine to process
@@ -85,8 +84,8 @@ public class RuleSystem {
 	// a couple 100k per engine instance). Each game gets its own script context and 
 	// bindings scope to avoid polluting other games. 
 	private static ScriptEngine scriptEngine;
-	private ScriptContext scriptContext;
-	private Bindings scriptScope;
+	protected ScriptContext scriptContext;
+	protected Bindings scriptScope;
 	
 	final Logger logger = LoggerFactory.getLogger(RuleSystem.class);
 
@@ -94,7 +93,13 @@ public class RuleSystem {
 	
 	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
 	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
-	
+
+	/**
+	 * Don't allow scripts to access general Java classes.
+	 *  
+	 * @author Kevin
+	 *
+	 */
 	static class RestrictiveFilter implements ClassFilter {
 
 		@Override
@@ -104,7 +109,7 @@ public class RuleSystem {
 		
 	}
 	
-	private static ScriptEngine getScriptEngine() {
+	protected static ScriptEngine getScriptEngine() {
 		if(scriptEngine == null) {
 			NashornScriptEngineFactory factory = new NashornScriptEngineFactory(); 
 			scriptEngine = factory.getScriptEngine(new RestrictiveFilter());
@@ -123,9 +128,7 @@ public class RuleSystem {
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
-	public void addPlayer(GamePlayer player) {
-		
-	}
+	public void addPlayer(GamePlayer player) {}
 	
 	/**
 	 * Set the general game rules that are not tied to a specific entity by spawning
@@ -149,35 +152,12 @@ public class RuleSystem {
 		processEvents();
 	}
 	
-	/**
-	 * Test whether the PlayCardCommand is valid. 
-	 * 
-	 * @param result
-	 * @param command
-	 */
-	public void validatePlay(ValidationResult result, PlayCardCommand command) {
-		// If the command's card has no validator, we don't need to do anything
-		if(command.getCard().getValidator() == null) return;
-		try {
-			scriptScope.put("target", command.getTarget());
-			scriptScope.put("rules", this);
-			scriptScope.put("error", null);
-			PlayValidator validator = command.getCard().getValidator();
-			getScriptEngine().eval(validator.getScript(), scriptContext);
-			if(scriptScope.get("error") != null) {
-				result.addError(scriptScope.get("error").toString());
-			}
-		} catch (final ScriptException se) {
-			result.addError("Scripting exception: " + se.getMessage());
-		} 
-	}
-	
-	void addEvent(GameEvent event) {
+	protected void addEvent(GameEvent event) {
 		logger.info("Adding event " + event);
 		eventQueue.add(event);
 	}
 	
-	void startTurn() {
+	protected void startTurn() {
 		addEvent(new StartTurnEvent(game.turn));
 	}
 	
@@ -358,7 +338,7 @@ public class RuleSystem {
 	public GameEntity drawCard(GamePlayer player, GameEntity cause) {
 		EntityPrototype card = player.drawCard();
 		if(card != null) {
-			GameEntity entity = instantiateCard(card);
+			GameEntity entity = instantiatePrototype(card);
 			entity.setTag(Tag.IN_HAND);
 			entity.setOwner(player);
 			addEvent(new DrawCardEvent(player, entity, cause));
@@ -371,35 +351,13 @@ public class RuleSystem {
 	}
 	
 	/**
-	 * Play a card onto the board with an optional targetEntity
-	 * 
-	 * @param cardEntity
-	 */
-	public void playCard(GameEntity cardEntity, GameEntity targetEntity) {
-		String msg = "Playing " + cardEntity;
-		if(targetEntity != null) msg += " on " + targetEntity;
-		logger.info(msg);
-		cardEntity.setTag(Tag.IN_PLAY);
-		cardEntity.clearTag(Tag.IN_HAND);
-		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
-		addEvent(event);
-		if(cardEntity.hasTag(Tag.MINION)) {
-			addEvent(new SummonMinionEvent(cardEntity));
-		}
-		else {
-			removeEntity(cardEntity);
-		}
-	}
-	
-	
-	/**
 	 * Create a {@link GameEntity} from a {@link EntityPrototype}, acquiring the card's
 	 * name, stats, tags and rules.
 	 * 
 	 * @param card
 	 * @return
 	 */
-	public GameEntity instantiateCard(EntityPrototype card) {
+	public GameEntity instantiatePrototype(EntityPrototype card) {
 		GameEntity entity = game.spawnEntity();
 		entity.copyFromCard(card);
 		return entity;

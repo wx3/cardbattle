@@ -30,6 +30,11 @@ package com.wx3.cardbattle.samplegame;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.script.ScriptException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
@@ -37,15 +42,22 @@ import com.wx3.cardbattle.game.RuleException;
 import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.Tag;
-import com.wx3.cardbattle.game.gameevents.KilledEvent;
+import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
+import com.wx3.cardbattle.game.rules.PlayValidator;
+import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
+import com.wx3.cardbattle.samplegame.events.KilledEvent;
+import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
+import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
 
 /**
  * @author Kevin
  *
  */
 public class SampleGameRules extends RuleSystem {
+	
+	final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
 
 	/**
 	 * @param game
@@ -89,6 +101,29 @@ public class SampleGameRules extends RuleSystem {
 		player.setEntity(playerEntity);
 	};
 	
+	
+	/**
+	 * Play a card onto the board with an optional targetEntity
+	 * 
+	 * @param cardEntity
+	 */
+	public void playCard(GameEntity cardEntity, GameEntity targetEntity) {
+		String msg = "Playing " + cardEntity;
+		if(targetEntity != null) msg += " on " + targetEntity;
+		logger.info(msg);
+		cardEntity.setTag(Tag.IN_PLAY);
+		cardEntity.clearTag(Tag.IN_HAND);
+		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
+		addEvent(event);
+		if(cardEntity.hasTag(Tag.MINION)) {
+			addEvent(new SummonMinionEvent(cardEntity));
+		}
+		else {
+			removeEntity(cardEntity);
+		}
+	}
+	
+	
 	/**
 	 * Deliver damage from attacker to the target equal to its attack stat,
 	 * and vice versa.
@@ -116,6 +151,29 @@ public class SampleGameRules extends RuleSystem {
 		}
 		damageEntity(target, attackerAttack, attacker);
 		damageEntity(attacker, targetAttack, target);
+	}
+	
+	/**
+	 * Test whether the PlayCardCommand is valid. 
+	 * 
+	 * @param result
+	 * @param command
+	 */
+	public void validatePlay(ValidationResult result, PlayCardCommand command) {
+		// If the command's card has no validator, we don't need to do anything
+		if(command.getCard().getValidator() == null) return;
+		try {
+			scriptScope.put("target", command.getTarget());
+			scriptScope.put("rules", this);
+			scriptScope.put("error", null);
+			PlayValidator validator = command.getCard().getValidator();
+			getScriptEngine().eval(validator.getScript(), scriptContext);
+			if(scriptScope.get("error") != null) {
+				result.addError(scriptScope.get("error").toString());
+			}
+		} catch (final ScriptException se) {
+			result.addError("Scripting exception: " + se.getMessage());
+		} 
 	}
 
 }

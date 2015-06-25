@@ -43,9 +43,9 @@ import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
-import com.wx3.cardbattle.game.gameevents.KilledEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
+import com.wx3.cardbattle.samplegame.events.KilledEvent;
 
 /**
  * This implementation handles long-term storage via Hibernate, so 

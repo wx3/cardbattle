@@ -86,9 +86,8 @@ public class WebsocketGameHandler extends
 				CommandResponseMessage message = new CommandResponseMessage(command, result);
 				player.sendMessage(message);
 			} catch (Exception ex) {
-				// Client caused errors (like missing entities) shouldn't cause an exception,
-				// so if we end up here we've got a bug in the server.
 				logger.error("Failed to process command.", ex);
+				close();
 			}
 			
 		} else {

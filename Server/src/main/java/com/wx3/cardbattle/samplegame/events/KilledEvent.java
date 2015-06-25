@@ -21,29 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.gameevents;
+package com.wx3.cardbattle.samplegame.events;
 
 import javax.persistence.Transient;
 
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 
-/**
- * Fired whenever a minion is brought into play.
- * 
- * @author Kevin
- *
- */
-public final class SummonMinionEvent extends GameEvent {
+public class KilledEvent extends GameEvent {
 	
-	public int entityId;
+	private int entityId;
 	
-	@Transient
-	public GameEntity minion;
+	public transient GameEntity entity;
 	
-	public SummonMinionEvent(GameEntity minion) {
-		this.minion = minion;
-		this.entityId = minion.getId();
+	public KilledEvent(GameEntity entity) {
+		this.entityId = entity.getId();
+		this.entity = entity;
+	}
+	
+	public int getEntityId() {
+		return entityId;
+	}
+	
+	public GameEntity getEntity() {
+		return entity;
 	}
 
 }

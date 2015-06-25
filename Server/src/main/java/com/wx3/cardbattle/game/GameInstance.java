@@ -52,17 +52,17 @@ import org.slf4j.LoggerFactory;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.cardbattle.game.gameevents.DrawCardEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
-import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
-import com.wx3.cardbattle.game.gameevents.SummonMinionEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
+import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
+import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
+import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
 
 /**
  * The game instance contains the game's state data: the current turn,

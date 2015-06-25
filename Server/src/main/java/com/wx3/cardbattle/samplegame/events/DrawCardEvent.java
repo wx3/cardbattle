@@ -21,30 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.gameevents;
-
-import javax.persistence.Transient;
+package com.wx3.cardbattle.samplegame.events;
 
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 
-public class KilledEvent extends GameEvent {
-	
+/**
+ * A DrawCardEvent is fired whenever a player draws a card.
+ * 
+ * @author Kevin
+ *
+ */
+public final class DrawCardEvent extends GameEvent {
+
+	@SuppressWarnings("unused")
+	private long playerId;
+	@SuppressWarnings("unused")
 	private int entityId;
-	
-	public transient GameEntity entity;
-	
-	public KilledEvent(GameEntity entity) {
+
+	public DrawCardEvent(GamePlayer player, GameEntity entity, GameEntity cause) {
+		this.playerId = player.getId();
 		this.entityId = entity.getId();
-		this.entity = entity;
-	}
-	
-	public int getEntityId() {
-		return entityId;
-	}
-	
-	public GameEntity getEntity() {
-		return entity;
+		if(cause != null) {
+			this.cause = cause;
+			this.causeId = cause.getId();
+		}
 	}
 
 }

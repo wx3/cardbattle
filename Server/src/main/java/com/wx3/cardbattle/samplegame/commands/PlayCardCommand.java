@@ -34,8 +34,8 @@ import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.cardbattle.game.gameevents.PlayCardEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
+import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
 
 /**
  * Attempt to play a card, with an optional target. 

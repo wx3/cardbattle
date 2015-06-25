@@ -21,31 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.gameevents;
+package com.wx3.cardbattle.samplegame.events;
+
+import javax.persistence.Transient;
 
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 
 /**
- * A DrawCardEvent is fired whenever a player draws a card.
+ * Fired whenever a minion is brought into play.
  * 
  * @author Kevin
  *
  */
-public final class DrawCardEvent extends GameEvent {
-
-	@SuppressWarnings("unused")
-	private long playerId;
-	@SuppressWarnings("unused")
-	private int entityId;
-
-	public DrawCardEvent(GamePlayer player, GameEntity entity, GameEntity cause) {
-		this.playerId = player.getId();
-		this.entityId = entity.getId();
-		if(cause != null) {
-			this.cause = cause;
-			this.causeId = cause.getId();
-		}
+public final class SummonMinionEvent extends GameEvent {
+	
+	public int entityId;
+	
+	@Transient
+	public GameEntity minion;
+	
+	public SummonMinionEvent(GameEntity minion) {
+		this.minion = minion;
+		this.entityId = minion.getId();
 	}
 
 }

@@ -21,9 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.gameevents;
+package com.wx3.cardbattle.samplegame.events;
 
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 
 /**
  * Fired whenever an entity takes damage
