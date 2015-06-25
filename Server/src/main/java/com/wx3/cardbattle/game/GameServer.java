@@ -73,12 +73,10 @@ public class GameServer {
 		logger.info("Creating game for " + user1 + " and " + user2);
 		GameInstance  game = gameFactory.createGame();
 		GamePlayer p1 = new GamePlayer(user1);
-		
 		game.addPlayer(p1);
 		GamePlayer p2 = new GamePlayer(user2);
 		game.addPlayer(p2);
 		datastore.saveNewGame(game);
-		game.start();
 		return game;
 	}
 	
@@ -105,6 +103,7 @@ public class GameServer {
 		for(GamePlayer player : game.getPlayers()) {
 			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
 		}
+		game.start();
 		return datastore.getAuthtokens(game.getId());
 	}
 	

@@ -123,6 +123,10 @@ public class RuleSystem {
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
+	public void addPlayer(GamePlayer player) {
+		
+	}
+	
 	/**
 	 * Set the general game rules that are not tied to a specific entity by spawning
 	 * a "rule entity" and attaching the rule set to it.
@@ -169,7 +173,7 @@ public class RuleSystem {
 	}
 	
 	void addEvent(GameEvent event) {
-		logger.debug("Adding event " + event);
+		logger.info("Adding event " + event);
 		eventQueue.add(event);
 	}
 	
@@ -207,18 +211,33 @@ public class RuleSystem {
 		return getCurrentPlayer(game.getTurn());
 	}
 	
+	public GameEntity getEntity(int id) {
+		return game.getEntity(id);
+	}
+	
 	/**
-	 * Add a rule to an entity. Rules are processed in the order they were added.
+	 * Add a rule to an entity by rule name. 
 	 * 
 	 * @param entity	The entity to add the rule to.
 	 * @param ruleId	The string id corresponding to the rule.
 	 * @param cause		The entity that caused the rule to be added.
 	 */
 	public void addRule(GameEntity entity, String ruleId, GameEntity cause) {
+		EntityRule rule = game.getRule(ruleId);
+		addRule(entity, rule, cause);
+	}
+	
+	/**
+	 * Add a rule to an entity.
+	 * 
+	 * @param entity
+	 * @param rule
+	 * @param cause
+	 */
+	public void addRule(GameEntity entity, EntityRule rule, GameEntity cause) {
 		if(entity == null) {
 			throw new RuleException("Entity is null");
 		}
-		EntityRule rule = game.getRule(ruleId);
 		entity.addRule(rule);
 		// A rule add requires that we recalculate stats now, so that any additional 
 		// actions by the same rule has the correct values. For example, a health buff
@@ -346,6 +365,7 @@ public class RuleSystem {
 			return entity;
 		}
 		else {
+			logger.info("Hand is empty.");
 			return null;
 		}
 	}
@@ -407,6 +427,14 @@ public class RuleSystem {
 		addEvent(new GameOverEvent(winner));
 	}
 	
+	public void trace(String message) {
+		logger.info(message);
+	}
+	
+	protected GameEntity spawnEntity() {
+		return game.spawnEntity();
+	}
+	
 	void processEvents() {
 		int i = 0;
 		while(!eventQueue.isEmpty()) {
@@ -458,6 +486,7 @@ public class RuleSystem {
 				scriptScope.put("event", event);
 				scriptScope.put("rules", this);
 				scriptScope.put("entity", entity);
+				GamePlayer current = getCurrentPlayer();
 				logger.debug("Executing " + rule + " for " + event + " on " + entity);
 				getScriptEngine().eval(rule.getScript(),scriptContext);
 			}

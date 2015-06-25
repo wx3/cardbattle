@@ -131,7 +131,7 @@ public class EntityRule {
 	
 	@Override
 	public String toString() {
-		return "EntityRule." + description;
+		return "EntityRule_" + id;
 	}
 
 }

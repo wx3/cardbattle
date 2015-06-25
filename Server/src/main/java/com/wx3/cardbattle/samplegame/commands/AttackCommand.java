@@ -41,15 +41,13 @@ import com.wx3.cardbattle.samplegame.SampleGameRules;
  * @author Kevin
  *
  */
-public class AttackCommand extends GameCommand {
+public class AttackCommand extends SampleGameCommand {
 	
 	private int attackerId;
 	private int targetId;
 	
 	private GameEntity attacker;
 	private GameEntity target;
-	
-	private SampleGameRules gameRules;
 	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(AttackCommand.class);
@@ -71,8 +69,8 @@ public class AttackCommand extends GameCommand {
 	
 	@Override 
 	public void parse() {
-		attacker = game.getEntity(attackerId);
-		target = game.getEntity(targetId);
+		attacker = rules.getEntity(attackerId);
+		target = rules.getEntity(targetId);
 	}
 	
 	/**
@@ -112,7 +110,6 @@ public class AttackCommand extends GameCommand {
 
 	@Override
 	public void execute() {
-		SampleGameRules rules = (SampleGameRules) game.getRuleSystem();
 		rules.attack(attacker, target);
 	}
 

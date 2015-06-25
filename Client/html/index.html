@@ -306,10 +306,8 @@ $(document).ready(function(){
         var play = function (cardId, targetId) {
             var json = {
                 command: 'PlayCard',
-                object: {
-                    entityId: cardId,
-                    targetId: targetId
-                }
+                entityId: cardId,
+                targetId: targetId
             }
             sendCommand(json);
         }
@@ -317,10 +315,8 @@ $(document).ready(function(){
         var attack = function (attackerId, targetId) {
             var json = {
                 command: 'Attack',
-                object: {
-                    attackerId: attackerId,
-                    targetId: targetId
-                }
+                attackerId: attackerId,
+                targetId: targetId
             }
             sendCommand(json);
         }
@@ -328,17 +324,14 @@ $(document).ready(function(){
         var chat = function(msg) {
             var json = {
                 command: 'Chat',
-                object: {
-                    message: msg
-                }
+                message: msg
             }
             sendCommand(json);
         }
 
         var sendCommand = function (command) {
-            command['object']['id'] = cmdCounter;
+            command['id'] = cmdCounter;
             ++cmdCounter;
-
             var encoded = JSON.stringify(command);
             console.log('Sending command:' + encoded);
             self.websocket.send(encoded);

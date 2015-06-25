@@ -36,22 +36,9 @@ public class ChatCommand extends GameCommand {
 	
 	public ChatCommand() {}
 	
-	/**
-	 * We need to override valdiate because unlike most commands,
-	 * we can chat when it's not our turn.
-	 */
-	@Override
-	public ValidationResult validate() {
-		ValidationResult result = new ValidationResult();
-		if(game == null) {
-			result.addError("Game is null");
-		}
-		return result;
-	}
-	
 	@Override
 	public void execute() {
-		game.getRuleSystem().chat(player, message);
+		player.getGame().getRuleSystem().chat(player, message);
 	}
 
 	public String getMessage() {

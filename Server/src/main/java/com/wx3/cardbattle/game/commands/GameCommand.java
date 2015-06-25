@@ -47,8 +47,6 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 public abstract class GameCommand {
 	
 	@Transient
-	protected GameInstance game;
-	@Transient
 	protected GamePlayer player;
 	
 	protected int id;
@@ -72,21 +70,17 @@ public abstract class GameCommand {
 		ValidationResult result = new ValidationResult();
 		if(player == null) {
 			result.addError("Player is null");
+			return result;
 		}
+		GameInstance game = player.getGame();
 		if(game == null) {
 			result.addError("Game is null");
-		}
-		if(game.getRuleSystem().getCurrentPlayer() != player) {
-			result.addError("Not your turn");
+			return result;
 		}
 		return result;
 	}
 	
 	public abstract void execute(); 
-	
-	public void setGameInstance(GameInstance game) {
-		this.game = game;
-	}
 	
 	public int getId() {
 		return id;

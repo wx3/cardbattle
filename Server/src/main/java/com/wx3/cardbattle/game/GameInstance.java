@@ -65,7 +65,8 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
 
 /**
- * The game instance contains the game's state data.
+ * The game instance contains the game's state data: the current turn,
+ * the entities, players, etc. Game logic is handled by the {@link RuleSystem}
  * 
  * @author Kevin
  *
@@ -149,29 +150,7 @@ public class GameInstance {
 		players.add(player);
 		player.setGame(this); 
 		
-		// Create an entity for the player. 
-		GameEntity playerEntity = spawnEntity();
-		playerEntity.name = player.getUsername();
-		playerEntity.setTag(Tag.PLAYER);
-		playerEntity.setTag(Tag.IN_PLAY);
-		
-		playerEntity.stats.setBase(EntityStats.MAX_HEALTH, 100);
-		playerEntity.setCurrentHealth(playerEntity.getMaxHealth());
-		playerEntity.setOwner(player);
-		// Eventually player rules should move out of here into the database/bootstrap:
-		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
-				+ "if(event.getTurn() < 2){"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "} else {"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "}"
-				+ "}";
-		EntityRule drawRule = EntityRule.createRule(StartTurnEvent.class, s2, "PLAYER_DRAW", "Player draws at start of turn.");
-		playerEntity.addRule(drawRule);
-		
-		player.setEntity(playerEntity);
+		ruleSystem.addPlayer(player);
 	}
 	
 	void playerConnected(GamePlayer player) {

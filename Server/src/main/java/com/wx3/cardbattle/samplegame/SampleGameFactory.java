@@ -29,9 +29,11 @@ package com.wx3.cardbattle.samplegame;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.GameFactory;
 import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.commands.ChatCommand;
 import com.wx3.cardbattle.game.commands.EndTurnCommand;
@@ -60,23 +62,25 @@ public class SampleGameFactory implements GameFactory {
 	}
 
 	@Override
-	public GameCommand createCommand(String commandName, JsonElement jsonElement) {
-		if(jsonElement == null) {
+	public GameCommand createCommand(GamePlayer player,	JsonObject json) {
+		if(json == null) {
 			throw new RuntimeException("Suppied Json cannot be null");
 		}
 		GameCommand command = null;
+		String commandName = json.get("command").getAsString();
 		Gson gson = new Gson();
 		switch(commandName) {
-			case "Chat" : command = gson.fromJson(jsonElement, ChatCommand.class);
+			case "Chat" : command = gson.fromJson(json, ChatCommand.class);
 				break;
-			case "EndTurn" : command = gson.fromJson(jsonElement, EndTurnCommand.class);
+			case "EndTurn" : command = gson.fromJson(json, EndTurnCommand.class);
 				break;
-			case "PlayCard" : command = gson.fromJson(jsonElement, PlayCardCommand.class);
+			case "PlayCard" : command = gson.fromJson(json, PlayCardCommand.class);
 				break;
-			case "Attack" : command = gson.fromJson(jsonElement, AttackCommand.class);
+			case "Attack" : command = gson.fromJson(json, AttackCommand.class);
 				break;
 			default : throw new RuntimeException("Invalid command '" + commandName + "'");
 		}
+		command.setPlayer(player);
 		return command;
 	}
 

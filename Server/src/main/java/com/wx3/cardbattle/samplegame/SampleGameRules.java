@@ -32,10 +32,13 @@ import java.util.List;
 
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleException;
 import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.Tag;
 import com.wx3.cardbattle.game.gameevents.KilledEvent;
+import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 
 /**
@@ -58,6 +61,33 @@ public class SampleGameRules extends RuleSystem {
 		rules.add(gameOverRule);
 		setGlobalRules(rules);
 	}
+	
+	@Override
+	public void addPlayer(GamePlayer player) {
+		GameEntity playerEntity = spawnEntity();
+		playerEntity.name = player.getUsername();
+		playerEntity.setTag(Tag.PLAYER);
+		playerEntity.setTag(Tag.IN_PLAY);
+		
+		playerEntity.setBaseStat(EntityStats.MAX_HEALTH, 100);
+		playerEntity.setVar(GameEntity.CURRENT_HEALTH, playerEntity.getStat(EntityStats.MAX_HEALTH));
+		playerEntity.setOwner(player);
+		// Eventually player rules should move out of here into the database/bootstrap:
+		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
+				+ "if(event.getTurn() < 2){"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "rules.trace('Initial draw for ' + entity.getOwner());"
+				+ "} else {"
+				+ "rules.drawCard(entity.getOwner());"
+				+ "}"
+				+ "}";
+		EntityRule drawRule = EntityRule.createRule(StartTurnEvent.class, s2, "PLAYER_DRAW", "Player draws at start of turn.");
+		addRule(playerEntity, drawRule, null);
+		
+		player.setEntity(playerEntity);
+	};
 	
 	/**
 	 * Deliver damage from attacker to the target equal to its attack stat,

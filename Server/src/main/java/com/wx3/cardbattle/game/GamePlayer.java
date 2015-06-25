@@ -138,7 +138,7 @@ public class GamePlayer {
 		this.gameId = game.getId();
 	}
 	
-	void setEntity(GameEntity entity) {
+	public void setEntity(GameEntity entity) {
 		this.playerEntity = entity;
 	}
 	
@@ -147,8 +147,6 @@ public class GamePlayer {
 	}
 	
 	public void handleCommand(GameCommand command) {
-		command.setGameInstance(game);
-		command.setPlayer(this);
 		CommandResponseMessage resp;
 		ValidationResult result;
 		command.parse();

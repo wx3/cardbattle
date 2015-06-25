@@ -158,6 +158,10 @@ public class GameEntity {
 		return stats.getValue(stat);
 	}
 	
+	public void setBaseStat(String stat, int val) {
+		stats.setBase(stat, val);
+	}
+	
 	public int getBaseStat(String stat) {
 		return stats.getBaseValue(stat);
 	}

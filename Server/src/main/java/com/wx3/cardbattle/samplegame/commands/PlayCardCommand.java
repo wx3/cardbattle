@@ -43,7 +43,7 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
  * @author Kevin
  *
  */
-public class PlayCardCommand extends GameCommand {
+public class PlayCardCommand extends SampleGameCommand {
 	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(PlayCardCommand.class);
@@ -78,12 +78,12 @@ public class PlayCardCommand extends GameCommand {
 	
 	@Override 
 	public void parse() {
-		cardEntity = game.getEntity(entityId);
+		cardEntity = rules.getEntity(entityId);
 		if(cardEntity == null) {
 			throw new RuntimeException("Could not find entity with id '" + entityId + "'");
 		}
 		if(targetId > 0) {
-			targetEntity = game.getEntity(targetId);
+			targetEntity = rules.getEntity(targetId);
 			if(targetEntity == null) {
 				throw new RuntimeException("Could not find target with id '" + targetId + "'");	
 			}
@@ -114,13 +114,13 @@ public class PlayCardCommand extends GameCommand {
 				result.addError("Target not in play.");
 			}
 		}
-		game.getRuleSystem().validatePlay(result, this);
+		rules.validatePlay(result, this);
 		return result;
 	};
 
 	@Override
 	public void execute() {
-		game.getRuleSystem().playCard(cardEntity, targetEntity);
+		rules.playCard(cardEntity, targetEntity);
 	}
 
 }

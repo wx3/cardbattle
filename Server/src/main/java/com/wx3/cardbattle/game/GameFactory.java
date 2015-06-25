@@ -27,7 +27,7 @@
  */
 package com.wx3.cardbattle.game;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.wx3.cardbattle.game.commands.GameCommand;
 
 /**
@@ -43,7 +43,7 @@ import com.wx3.cardbattle.game.commands.GameCommand;
 public interface GameFactory {
 
 	public abstract GameInstance createGame();
-	public abstract GameCommand createCommand(String commandName,
-			JsonElement jsonElement);
+	public abstract GameCommand createCommand(GamePlayer player,
+			JsonObject json);
 	
 }

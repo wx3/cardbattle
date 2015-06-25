@@ -78,8 +78,7 @@ public class WebsocketGameHandler extends
 				JsonParser parser = new JsonParser();
 				JsonElement root = parser.parse(request);
 				JsonObject obj = root.getAsJsonObject();
-				String commandName = obj.get("command").getAsString();
-				GameCommand command = gameServer.getGameFactory().createCommand(commandName, obj.get("object"));
+				GameCommand command = gameServer.getGameFactory().createCommand(player, obj);
 				logger.info("Received command: " + command.toString());
 				player.handleCommand(command);
 			} catch (Exception ex) {

@@ -27,7 +27,10 @@
  */
 package com.wx3.cardbattle.samplegame.commands;
 
+import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.cardbattle.samplegame.SampleGameRules;
 
 /**
  * @author Kevin
@@ -35,7 +38,25 @@ import com.wx3.cardbattle.game.commands.GameCommand;
  */
 public class SampleGameCommand extends GameCommand {
 
-
+	SampleGameRules rules;
+	
+	@Override
+	public void setPlayer(GamePlayer player) {
+		super.setPlayer(player);
+		rules = (SampleGameRules) player.getGame().getRuleSystem();
+		if(rules == null) {
+			throw new RuntimeException("Unable to get rule system");
+		}
+	}
+	
+	@Override
+	public ValidationResult validate() {
+		ValidationResult result = super.validate();
+		if(rules.getCurrentPlayer() != player) {
+			result.addError("Not your turn");
+		}
+		return result;
+	}
 	
 	@Override
 	public void execute() {
