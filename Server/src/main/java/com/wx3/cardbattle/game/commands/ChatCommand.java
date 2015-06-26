@@ -30,7 +30,7 @@ package com.wx3.cardbattle.game.commands;
  * @author Kevin
  *
  */
-public class ChatCommand extends GameCommand {
+public final class ChatCommand extends GameCommand {
 	
 	private String message;
 	

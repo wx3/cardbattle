@@ -49,7 +49,7 @@ public class AIManager {
 
 	// Use a concurrent collection so we can safely iterate over the list 
 	// while other threads add to it:
-	private Collection<SimpleAI> ais = new ConcurrentLinkedQueue<SimpleAI>();
+	private Collection<GameAI> ais = new ConcurrentLinkedQueue<GameAI>();
 	
 	private UpdateTask task;
 	private long period;
@@ -88,17 +88,17 @@ public class AIManager {
 	 * Add a new AI to be updated by the manager
 	 * @param ai
 	 */
-	public void registerAI(SimpleAI ai){
+	public void registerAI(GameAI ai){
 		ais.add(ai);
 	}
 	
 	void update() {
 		long start = System.nanoTime();
-		Iterator<SimpleAI> iter = ais.iterator();
+		Iterator<GameAI> iter = ais.iterator();
 		int i = 0;
 		while(iter.hasNext()) {
-			SimpleAI ai = iter.next();
-			if(ai.gameView.gameOver) {
+			GameAI ai = iter.next();
+			if(ai.gameOver()) {
 				iter.remove();
 			} else {
 				try {

@@ -37,7 +37,7 @@ import javax.persistence.Transient;
  * @author Kevin
  *
  */
-public class EntityStats {
+public final class EntityStats {
 
 	private Map<String, Integer> baseValues = new HashMap<String,Integer>();
 	

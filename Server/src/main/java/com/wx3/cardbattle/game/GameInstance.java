@@ -73,7 +73,7 @@ import com.wx3.samplegame.events.SummonMinionEvent;
  */
 @Entity
 @Table(name="game_instances")
-public class GameInstance<T extends GameEntity> {
+public final class GameInstance<T extends GameEntity> {
 	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(GameInstance.class);

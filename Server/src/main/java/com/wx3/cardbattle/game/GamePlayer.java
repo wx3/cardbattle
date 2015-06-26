@@ -68,7 +68,7 @@ import com.wx3.samplegame.SampleGameRules;
  */
 @Entity
 @Table(name="game_players")
-public class GamePlayer {
+public final class GamePlayer {
 	@Transient
 	final Logger logger = LoggerFactory.getLogger(GamePlayer.class);
 	

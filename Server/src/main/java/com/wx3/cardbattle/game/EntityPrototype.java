@@ -61,7 +61,7 @@ import com.wx3.cardbattle.game.rules.PlayValidator;
  */
 @Entity
 @Table(name="entity_prototypes")
-public class EntityPrototype {
+public final class EntityPrototype {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)

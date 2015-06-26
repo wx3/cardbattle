@@ -36,35 +36,37 @@ import com.wx3.cardbattle.game.messages.IMessageHandler;
 import com.wx3.samplegame.commands.EndTurnCommand;
 
 /**
- * Very simple AI for testing
+ * 
  * 
  * @author Kevin
  *
  */
-public class SimpleAI implements IMessageHandler {
+public class GameAI {
 	
-	protected GameView gameView;
 	protected GamePlayer player;
+	private AIEvaluator evaluator;
 	
-	public SimpleAI(GamePlayer player) {
+	public GameAI(GamePlayer player, AIEvaluator evaluator) {
 		this.player = player;
+		this.evaluator = evaluator;
 	}
-
-	@Override
-	public void disconnect() {
-	}
-
-	@Override
-	public void handleMessage(GameMessage message) {
-		if(message instanceof GameViewMessage) {
-			this.gameView = ((GameViewMessage) message).getGameView();
+	
+	boolean gameOver() {
+		if(player.getGame() != null) {
+			return player.getGame().isGameOver();
 		}
+		return false;
+	}
+	
+	protected boolean isPlayerTurn() {
+		if(player.getGame() != null) {
+			
+		}
+		return false;
 	}
 	
 	public void update() {
-		if(gameView == null) return;
-		// Is it our turn?
-		if(gameView.currentPlayer.equals(player.getUsername())) {
+		if(isPlayerTurn()) {
 			GameCommand command = getBestCommand();
 			player.handleCommand(command);
 		}

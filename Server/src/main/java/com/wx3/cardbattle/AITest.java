@@ -30,7 +30,7 @@ package com.wx3.cardbattle;
 import java.util.List;
 
 import com.wx3.cardbattle.ai.AIManager;
-import com.wx3.cardbattle.ai.SimpleAI;
+import com.wx3.cardbattle.ai.GameAI;
 import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
@@ -60,13 +60,13 @@ public class AITest {
     	AIManager aimanager = new AIManager(1);
     	
     	aimanager.start();
-    	
+    	/*
     	for(int i = 0; i < 100; i++) {
 	    	List<PlayerAuthtoken> tokens = gameserver.createTestGame();
 	    	for(PlayerAuthtoken token : tokens) {
 	    		try {
 					GamePlayer player = gameserver.authenticate(token.getAuthtoken());
-					SimpleAI ai = new SimpleAI(player);
+					GameAI ai = new GameAI(player);
 					player.connect(ai);
 					aimanager.registerAI(ai);
 				} catch (AuthenticationException e) {
@@ -76,6 +76,7 @@ public class AITest {
 				}
 	    	}
     	}
+    	*/
 	}
 	
 	/**
