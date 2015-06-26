@@ -45,19 +45,21 @@ import com.wx3.cardbattle.datastore.PlayerAuthtoken;
  * @author Kevin
  *
  */
-public class GameServer {
+public abstract class GameServer {
 	
 	final Logger logger = LoggerFactory.getLogger(GameServer.class);
 
-	private GameDatastore datastore;
+	protected GameDatastore datastore;
 	private Timer taskTimer;
 	private UpdateGamesTask updateTask;
-	private GameFactory gameFactory;
+	private CommandFactory gameFactory;
 	
-	public GameServer(GameDatastore datastore, GameFactory gameFactory) {
+	public GameServer(GameDatastore datastore, CommandFactory gameFactory) {
 		this.datastore = datastore;
 		this.gameFactory = gameFactory;
 	}
+	
+	public abstract GameInstance<? extends GameEntity> createGame();
 	
 	public void start() {
 		updateTask = new UpdateGamesTask(datastore);
@@ -65,13 +67,13 @@ public class GameServer {
 		taskTimer.schedule(updateTask, 1000, 1000);
 	}
 	
-	public GameFactory getGameFactory() {
+	public CommandFactory getGameFactory() {
 		return gameFactory;
 	}
 	
-	public GameInstance newGame(User user1, User user2) {
+	public GameInstance<? extends GameEntity> newGame(User user1, User user2) {
 		logger.info("Creating game for " + user1 + " and " + user2);
-		GameInstance  game = gameFactory.createGame();
+		GameInstance<? extends GameEntity>  game = createGame();
 		GamePlayer p1 = new GamePlayer(user1);
 		game.addPlayer(p1);
 		GamePlayer p2 = new GamePlayer(user2);
@@ -80,7 +82,7 @@ public class GameServer {
 		return game;
 	}
 	
-	public GameInstance getGame(long id) {
+	public GameInstance<? extends GameEntity> getGame(long id) {
 		return datastore.getGame(id);
 	}
 	
@@ -99,7 +101,7 @@ public class GameServer {
 			deck.add(card);
 		}
 		
-		GameInstance<GameEntity>  game = newGame(user1,user2);	
+		GameInstance<? extends GameEntity>  game = newGame(user1,user2);	
 		for(GamePlayer player : game.getPlayers()) {
 			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
 		}

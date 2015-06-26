@@ -25,7 +25,7 @@
 /**
  * 
  */
-package com.wx3.cardbattle.samplegame;
+package com.wx3.samplegame;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +36,22 @@ import javax.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleException;
 import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.Tag;
+import com.wx3.cardbattle.game.DefaultTags;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
+import com.wx3.cardbattle.samplegame.events.DamageEvent;
+import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
+import com.wx3.cardbattle.samplegame.events.GameOverEvent;
 import com.wx3.cardbattle.samplegame.events.KilledEvent;
 import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
 import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
@@ -58,15 +62,21 @@ import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
  */
 public class SampleGameRules extends RuleSystem<SampleEntity> {
 	
-	private transient final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
-
 	/**
 	 * @param game
 	 */
-	SampleGameRules(GameInstance<SampleEntity> game) {
+	public SampleGameRules(GameInstance<SampleEntity> game) {
 		super(game);
-		addGlobalRules();
 	}
+
+	private transient final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
+	
+	// Applied to Minions:
+	public static final String MINION = "MINION";
+	// Applied to Spells:
+	public static final String SPELL = "SPELL";
+	// This entity is a card in hand:
+	public static final String IN_HAND = "IN_HAND";
 	
 	void addGlobalRules() {
 		List<EntityRule> rules = new ArrayList<EntityRule>();
@@ -82,7 +92,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	
 	public List<SampleEntity> getPlayerHand(GamePlayer player) {
 		List<SampleEntity> hand = game.getEntities().stream().filter(
-				e -> e.getOwner() == player && e.hasTag(Tag.IN_HAND)
+				e -> e.getOwner() == player && e.hasTag(IN_HAND)
 				).collect(Collectors.toList());
 		return hand;
 	}
@@ -92,8 +102,8 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	public void addPlayer(GamePlayer player) {
 		GameEntity playerEntity = spawnEntity();
 		playerEntity.name = player.getUsername();
-		playerEntity.setTag(Tag.PLAYER);
-		playerEntity.setTag(Tag.IN_PLAY);
+		playerEntity.setTag(DefaultTags.PLAYER);
+		playerEntity.setTag(DefaultTags.IN_PLAY);
 		
 		playerEntity.setBaseStat(EntityStats.MAX_HEALTH, 100);
 		playerEntity.setVar(GameEntity.CURRENT_HEALTH, playerEntity.getStat(EntityStats.MAX_HEALTH));
@@ -115,21 +125,48 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		player.setEntity(playerEntity);
 	};
 	
+	public GameEntity drawCard(GamePlayer player) {
+		return drawCard(player, null);
+	}
+	
+	/**
+	 * Draw a card for the supplied player, creating the necessary
+	 * card entity.
+	 * 
+	 * @param player
+	 * @param cause 	The GameEntity that triggered the draw
+	 * @return The entity created by the draw
+	 */
+	public GameEntity drawCard(GamePlayer player, GameEntity cause) {
+		EntityPrototype card = player.drawCard();
+		if(card != null) {
+			GameEntity entity = instantiatePrototype(card);
+			entity.setTag(IN_HAND);
+			entity.setOwner(player);
+			addEvent(new DrawCardEvent(player, entity, cause));
+			return entity;
+		}
+		else {
+			logger.info("Hand is empty.");
+			return null;
+		}
+	}
+	
 	
 	/**
 	 * Play a card onto the board with an optional targetEntity
 	 * 
 	 * @param cardEntity
 	 */
-	public void playCard(GameEntity cardEntity, GameEntity targetEntity) {
+	public void playCard(SampleEntity cardEntity, SampleEntity targetEntity) {
 		String msg = "Playing " + cardEntity;
 		if(targetEntity != null) msg += " on " + targetEntity;
 		logger.info(msg);
-		cardEntity.setTag(Tag.IN_PLAY);
-		cardEntity.clearTag(Tag.IN_HAND);
+		cardEntity.setTag(DefaultTags.IN_PLAY);
+		cardEntity.clearTag(IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
 		addEvent(event);
-		if(cardEntity.hasTag(Tag.MINION)) {
+		if(cardEntity.isMinion()) {
 			addEvent(new SummonMinionEvent(cardEntity));
 		}
 		else {
@@ -145,7 +182,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	 * @param attacker
 	 * @param target
 	 */
-	public void attack(GameEntity attacker, GameEntity target) {
+	public void attack(SampleEntity attacker, SampleEntity target) {
 		if(attacker == null) {
 			throw new RuleException("Attacker is null");
 		}
@@ -165,6 +202,56 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		}
 		damageEntity(target, attackerAttack, attacker);
 		damageEntity(attacker, targetAttack, target);
+	}
+	
+	/**
+	 * Heal the entity by amount up to the entity's max health.
+	 * 
+	 * @param entity
+	 * @param amount
+	 */
+	public void healEntity(SampleEntity entity, int amount) {
+		entity.setCurrentHealth(entity.getCurrentHealth() + amount);
+		if(entity.getCurrentHealth() > entity.getMaxHealth()) {
+			entity.setCurrentHealth(entity.getMaxHealth());
+		}
+	}
+	
+	/**
+	 * Heal the entity by however much damage it's taken.
+	 * @param entity
+	 */
+	public void healEntity(SampleEntity entity) {
+		int damage = entity.getMaxHealth() - entity.getCurrentHealth();
+		healEntity(entity, damage);
+	}
+
+	/**
+	 * Deliver damage to an entity, destroying it if total
+	 * damage exceeds its max health.
+	 * 
+	 * @param entity
+	 * @param damage
+	 */
+	public void damageEntity(SampleEntity entity, int damage, GameEntity cause) {
+		if(entity == null) {
+			throw new RuntimeException("Entity is null");
+		}
+		if(!entity.isInPlay()) {
+			throw new RuntimeException("Entity is not in play");
+		}
+		// Cap damage at the entity's max health:
+		if(damage > entity.getCurrentHealth()) {
+			damage = entity.getCurrentHealth();
+		}
+		if(damage <= 0) return;
+		int currentHealth = entity.getCurrentHealth();
+		currentHealth -= damage;
+		entity.setCurrentHealth(currentHealth);
+		addEvent(new DamageEvent(entity, damage, cause));
+		if(currentHealth <= 0) {
+			killEntity(entity);
+		}
 	}
 	
 	/**
@@ -189,6 +276,18 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 			result.addError("Scripting exception: " + se.getMessage());
 		} 
 	}
-
+	
+	@Override
+	protected void recalculateStats() {
+		// TODO Auto-generated method stub
+		super.recalculateStats();
+		// Finally, make sure no entity has a health greater than its max health
+		// (this could happen as a result of losing a buff for example):
+		for(SampleEntity entity : game.getEntities()) {
+			if(entity.getCurrentHealth() > entity.getMaxHealth()) {
+				entity.setCurrentHealth(entity.getMaxHealth());
+			}
+		}
+	}
 
 }

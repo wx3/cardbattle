@@ -25,43 +25,34 @@
 /**
  * 
  */
-package com.wx3.cardbattle.samplegame.commands;
+package com.wx3.samplegame;
 
-import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.commands.GameCommand;
-import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.samplegame.SampleGameRules;
+import com.wx3.cardbattle.datastore.GameDatastore;
+import com.wx3.cardbattle.game.CommandFactory;
+import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.GameServer;
 
 /**
  * @author Kevin
  *
  */
-public class SampleGameCommand extends GameCommand {
+public class SampleGameServer extends GameServer {
 
-	SampleGameRules rules;
-	
-	@Override
-	public void setPlayer(GamePlayer player) {
-		super.setPlayer(player);
-		rules = (SampleGameRules) player.getGame().getRuleSystem();
-		if(rules == null) {
-			throw new RuntimeException("Unable to get rule system");
-		}
+	/**
+	 * @param datastore
+	 * @param gameFactory
+	 */
+	public SampleGameServer(GameDatastore datastore, CommandFactory gameFactory) {
+		super(datastore, gameFactory);
 	}
-	
-	@Override
-	public ValidationResult validate() {
-		ValidationResult result = super.validate();
-		if(rules.getCurrentPlayer() != player) {
-			result.addError("Not your turn");
-		}
-		return result;
-	}
-	
-	@Override
-	public void execute() {
-		// TODO Auto-generated method stub
 
+	@Override
+	public GameInstance<? extends GameEntity> createGame() {
+		GameInstance<SampleEntity> game = new GameInstance<SampleEntity>(datastore); 
+		SampleGameRules rules = new SampleGameRules(game);
+		game.setRuleSystem(rules);
+		return game;
 	}
 
 }

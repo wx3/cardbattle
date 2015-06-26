@@ -29,7 +29,6 @@ import java.util.Set;
 
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.Tag;
 
 /**
  * Like the GameView, creates a serializable representation of an entity relative
@@ -71,11 +70,7 @@ public final class GameEntityView {
 			view.vars = entity.getCurrentVars();
 		} else {
 			view.visible = false;
-			// If an entity is in hand, the IN_HAND tag is always visible:
 			view.tags = new HashSet<String>();
-			if(entity.hasTag(Tag.IN_HAND)) {
-				view.tags.add(Tag.IN_HAND);
-			}
 		}
 		return view;
 	}

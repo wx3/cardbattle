@@ -1,18 +1,18 @@
-/*******************************************************************************
+/**
  * The MIT License (MIT)
- *
+ * 
  * Copyright (c) 2015 Kevin Lin
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,27 +20,29 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *******************************************************************************/
+ * 
+ */
+/**
+ * 
+ */
 package com.wx3.cardbattle.game;
 
+import com.google.gson.JsonObject;
+import com.wx3.cardbattle.game.commands.GameCommand;
+
 /**
- * Default tags
+ * A GameFactory creates game instances, supplying them with the appropriate 
+ * {@link RuleSystem} for the game.
+ * 
+ * It also provides a factory method for creating commands from JSON, included
+ * in the same class for the convenience of implementors.
  * 
  * @author Kevin
  *
  */
-public class Tag {
+public interface CommandFactory {
 
-	// This is the general rules entity:
-	public static final String RULES = "RULES";
-	// This entity is a card in hand:
-	public static final String IN_HAND = "IN_HAND";
-	// This entity is on the board and in play:
-	public static final String IN_PLAY = "IN_PLAY";
-	// Represents a player's character:
-	public static final String PLAYER = "PLAYER";
-	// Applied to Minions:
-	public static final String MINION = "MINION";
-	// Applied to Spells:
-	public static final String SPELL = "SPELL";
+	public abstract GameCommand createCommand(GamePlayer player,
+			JsonObject json);
+	
 }

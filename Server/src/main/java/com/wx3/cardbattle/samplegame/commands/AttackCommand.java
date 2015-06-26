@@ -33,7 +33,8 @@ import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.cardbattle.samplegame.SampleGameRules;
+import com.wx3.samplegame.SampleEntity;
+import com.wx3.samplegame.SampleGameRules;
 
 /**
  * Tell the game to attack a particular target with with a particular attacker.
@@ -46,8 +47,8 @@ public class AttackCommand extends SampleGameCommand {
 	private int attackerId;
 	private int targetId;
 	
-	private GameEntity attacker;
-	private GameEntity target;
+	private SampleEntity attacker;
+	private SampleEntity target;
 	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(AttackCommand.class);

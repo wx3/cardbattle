@@ -24,7 +24,6 @@
 package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -32,11 +31,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.persistence.Transient;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 
@@ -46,23 +43,20 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Strings;
-import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.google.gson.JsonObject;
+import com.wx3.cardbattle.datastore.GameDatastore;
+import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.gameevents.AddRuleEvent;
 import com.wx3.cardbattle.game.gameevents.BuffRecalc;
 import com.wx3.cardbattle.game.gameevents.ChatEvent;
-import com.wx3.cardbattle.game.gameevents.RemoveRulesEvent;
-import com.wx3.cardbattle.game.gameevents.AddRuleEvent;
 import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
+import com.wx3.cardbattle.game.gameevents.RemoveRulesEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
-import com.wx3.cardbattle.game.rules.PlayValidator;
-import com.wx3.cardbattle.samplegame.events.DamageEvent;
 import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
 import com.wx3.cardbattle.samplegame.events.GameOverEvent;
 import com.wx3.cardbattle.samplegame.events.KilledEvent;
-import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
-import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
 
 /**
  * The GameRuleEngine uses the Nashorn javascript engine to process
@@ -76,7 +70,7 @@ import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
  * @author Kevin
  *
  */
-public abstract class RuleSystem<T extends GameEntity> {
+public abstract class RuleSystem<T extends GameEntity> implements CommandFactory {
 	
 	private transient final Logger logger = LoggerFactory.getLogger(RuleSystem.class);
 	
@@ -91,6 +85,7 @@ public abstract class RuleSystem<T extends GameEntity> {
 
 	protected GameInstance<T> game;
 	
+	private CommandFactory commandFactory;
 	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
 	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
 
@@ -148,8 +143,8 @@ public abstract class RuleSystem<T extends GameEntity> {
 		GameEntity ruleEntity = spawnEntity();
 		ruleEntity.setRules(rules);
 		ruleEntity.name = "Rule Entity";
-		ruleEntity.setTag(Tag.RULES);
-		ruleEntity.setTag(Tag.IN_PLAY);
+		ruleEntity.setTag(DefaultTags.RULES);
+		ruleEntity.setTag(DefaultTags.IN_PLAY);
 	}
 	
 	/**
@@ -158,6 +153,10 @@ public abstract class RuleSystem<T extends GameEntity> {
 	void startup() {
 		startTurn();
 		processEvents();
+	}
+	
+	public GameCommand createCommand(GamePlayer player, JsonObject json) {
+		return commandFactory.createCommand(player, json);
 	}
 	
 	protected void addEvent(GameEvent event) {
@@ -199,7 +198,7 @@ public abstract class RuleSystem<T extends GameEntity> {
 		return getCurrentPlayer(game.getTurn());
 	}
 	
-	public GameEntity getEntity(int id) {
+	public T getEntity(int id) {
 		return game.getEntity(id);
 	}
 	
@@ -271,91 +270,16 @@ public abstract class RuleSystem<T extends GameEntity> {
 		entity.stats.buff(stat, amount);
 	}
 	
-	/**
-	 * Heal the entity by amount up to the entity's max health.
-	 * 
-	 * @param entity
-	 * @param amount
-	 */
-	public void healEntity(GameEntity entity, int amount) {
-		entity.setCurrentHealth(entity.getCurrentHealth() + amount);
-		if(entity.getCurrentHealth() > entity.getMaxHealth()) {
-			entity.setCurrentHealth(entity.getMaxHealth());
-		}
-	}
 	
-	/**
-	 * Heal the entity by however much damage it's taken.
-	 * @param entity
-	 */
-	public void healEntity(GameEntity entity) {
-		int damage = entity.getMaxHealth() - entity.getCurrentHealth();
-		healEntity(entity, damage);
-	}
-
-	/**
-	 * Deliver damage to an entity, destroying it if total
-	 * damage exceeds its max health.
-	 * 
-	 * @param entity
-	 * @param damage
-	 */
-	public void damageEntity(GameEntity entity, int damage, GameEntity cause) {
-		if(entity == null) {
-			throw new RuntimeException("Entity is null");
-		}
-		if(!entity.isInPlay()) {
-			throw new RuntimeException("Entity is not in play");
-		}
-		// Cap damage at the entity's max health:
-		if(damage > entity.getCurrentHealth()) {
-			damage = entity.getCurrentHealth();
-		}
-		if(damage <= 0) return;
-		int currentHealth = entity.getCurrentHealth();
-		currentHealth -= damage;
-		entity.setCurrentHealth(currentHealth);
-		addEvent(new DamageEvent(entity, damage, cause));
-		if(currentHealth <= 0) {
-			killEntity(entity);
-		}
-	}
 	
 	/**
 	 * Mark an entity for removal and fire a {@link KilledEvent}
 	 * @param entity
 	 */
-	void killEntity(GameEntity entity) {
+	protected void killEntity(GameEntity entity) {
 		KilledEvent event = new KilledEvent(entity);
 		addEvent(event);
 		game.removeEntity(entity);
-	}
-	
-	public GameEntity drawCard(GamePlayer player) {
-		return drawCard(player, null);
-	}
-	
-	/**
-	 * Draw a card for the supplied player, creating the necessary
-	 * card entity.
-	 * 
-	 * @param player
-	 * @param cause 	The GameEntity that triggered the draw
-	 * @return The entity created by the draw
-	 */
-	public GameEntity drawCard(GamePlayer player, GameEntity cause) {
-		EntityPrototype card = player.drawCard();
-		if(card != null) {
-			GameEntity entity = instantiatePrototype(card);
-			entity.setTag(Tag.IN_HAND);
-			entity.setOwner(player);
-			addEvent(new DrawCardEvent(player, entity, cause));
-			return entity;
-		}
-		else {
-			logger.info("Hand is empty.");
-			return null;
-		}
 	}
 	
 	/**
@@ -365,8 +289,8 @@ public abstract class RuleSystem<T extends GameEntity> {
 	 * @param card
 	 * @return
 	 */
-	public GameEntity instantiatePrototype(EntityPrototype card) {
-		GameEntity entity = spawnEntity();
+	public T instantiatePrototype(EntityPrototype card) {
+		T entity = spawnEntity();
 		entity.copyFromCard(card);
 		return entity;
 	}
@@ -377,19 +301,13 @@ public abstract class RuleSystem<T extends GameEntity> {
 	 * @param entity
 	 */
 
-	public void removeEntity(GameEntity entity) {
+	public void removeEntity(T entity) {
 		markedForRemoval.add(entity);
 	}
 	
-	public void gameOver() {
+	public void gameOver(GamePlayer winner) {
 		logger.info("Game over, man");
 		game.setGameOver(true);
-		GamePlayer winner = null;
-		for(GamePlayer player : game.getPlayers()) {
-			if(player.getEntity().getCurrentHealth() > 0) {
-				winner = player;
-			}
-		}
 		addEvent(new GameOverEvent(winner));
 	}
 	
@@ -417,7 +335,7 @@ public abstract class RuleSystem<T extends GameEntity> {
 			if(!markedForRemoval.isEmpty()) {
 				for(GameEntity entity : markedForRemoval) {
 					logger.info("Removing " + entity);
-					entity.clearTag(Tag.IN_PLAY);
+					entity.clearTag(DefaultTags.IN_PLAY);
 					if(!game.removeEntity(entity)) {
 						logger.warn("Failed to find " + entity + " for removal");
 					}
@@ -463,7 +381,7 @@ public abstract class RuleSystem<T extends GameEntity> {
 	 * Resets all entities' stats to their base values, then evaluates
 	 * all buff rules to update them.
 	 */
-	private void recalculateStats() {
+	protected void recalculateStats() {
 		List<T> gameEntities = game.getEntities();
 		// First, reset all stats. This sets each stat to the base value:
 		for(GameEntity entity : gameEntities) {
@@ -485,13 +403,6 @@ public abstract class RuleSystem<T extends GameEntity> {
 						}
 					}
 				}
-			}
-		}
-		// Finally, make sure no entity has a health greater than its max health
-		// (this could happen as a result of losing a buff for example):
-		for(GameEntity entity : gameEntities) {
-			if(entity.getCurrentHealth() > entity.getMaxHealth()) {
-				entity.setCurrentHealth(entity.getMaxHealth());
 			}
 		}
 	}

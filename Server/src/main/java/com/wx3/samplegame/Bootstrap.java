@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle;
+package com.wx3.samplegame;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -44,7 +44,7 @@ import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.Tag;
+import com.wx3.cardbattle.game.DefaultTags;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
@@ -131,11 +131,11 @@ public class Bootstrap {
 			String description = record.get("description");
 			Set<String> tags = new HashSet<String>();
 			Map<String, Integer> stats = new HashMap<String,Integer>();
-			if(record.get(Tag.MINION).equals("Y")) {
-				tags.add(Tag.MINION);
+			if(record.get(SampleGameRules.MINION).equals("Y")) {
+				tags.add(SampleGameRules.MINION);
 			}
-			if(record.get(Tag.SPELL).equals("Y")) {
-				tags.add(Tag.SPELL);
+			if(record.get(SampleGameRules.SPELL).equals("Y")) {
+				tags.add(SampleGameRules.SPELL);
 			}
 			int maxHealth = parseIntOrZero(record.get(EntityStats.MAX_HEALTH));
 			if(maxHealth > 0) {

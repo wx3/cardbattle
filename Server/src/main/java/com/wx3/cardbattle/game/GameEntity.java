@@ -111,7 +111,7 @@ public class GameEntity {
 	 * 
 	 * @param card
 	 */
-	void copyFromCard(EntityPrototype card) {
+	protected void copyFromCard(EntityPrototype card) {
 		this.card = card;
 		this.name = card.getName();
 		for(String tag : card.getTags()) {
@@ -126,8 +126,6 @@ public class GameEntity {
 		}
 		rules = new ArrayList<EntityRule>(card.getRules());
 		stats.reset();
-		// Do this last so max health is equal to base:
-		setCurrentHealth(getMaxHealth());
 	}
 	
 	/**
@@ -204,28 +202,8 @@ public class GameEntity {
 		this.rules = rules;
 	}
 	
-	public boolean isInHand() {
-		return hasTag(Tag.IN_HAND);
-	}
-	
 	public boolean isInPlay() {
-		return hasTag(Tag.IN_PLAY);
-	}
-	
-	public boolean isMinion() {
-		return hasTag(Tag.MINION);
-	}
-	
-	public int getCurrentHealth() {
-		return getVar(CURRENT_HEALTH);
-	}
-	
-	void setCurrentHealth(int health) {
-		setVar(CURRENT_HEALTH, health);
-	}
-	
-	public int getMaxHealth() {
-		return getStat(EntityStats.MAX_HEALTH);
+		return hasTag(DefaultTags.IN_PLAY);
 	}
 
 	@Override

@@ -31,11 +31,13 @@ import org.slf4j.LoggerFactory;
 import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.Tag;
+import com.wx3.cardbattle.game.DefaultTags;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
+import com.wx3.samplegame.SampleEntity;
+import com.wx3.samplegame.SampleGameRules;
 
 /**
  * Attempt to play a card, with an optional target. 
@@ -51,8 +53,8 @@ public class PlayCardCommand extends SampleGameCommand {
 	private int entityId;
 	private int targetId;
 	
-	private GameEntity cardEntity;
-	private GameEntity targetEntity;
+	private SampleEntity cardEntity;
+	private SampleEntity targetEntity;
 	
 	public PlayCardCommand() {}
 	
@@ -61,7 +63,7 @@ public class PlayCardCommand extends SampleGameCommand {
 		this.targetId = targetId;
 	}
 	
-	public GameEntity getCardEntity() {
+	public SampleEntity getCardEntity() {
 		return cardEntity;
 	}
 	
@@ -105,12 +107,12 @@ public class PlayCardCommand extends SampleGameCommand {
 			result.addError("Not your entity.");
 			return result;
 		}
-		if(!cardEntity.hasTag(Tag.IN_HAND)) {
+		if(!cardEntity.hasTag(SampleGameRules.IN_HAND)) {
 			result.addError("Entity not in hand.");
 			return result;
 		}
 		if(targetEntity != null) {
-			if(!targetEntity.hasTag(Tag.IN_PLAY)) {
+			if(!targetEntity.hasTag(DefaultTags.IN_PLAY)) {
 				result.addError("Target not in play.");
 			}
 		}

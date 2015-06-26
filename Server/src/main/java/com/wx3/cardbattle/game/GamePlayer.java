@@ -51,6 +51,7 @@ import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
+import com.wx3.samplegame.SampleGameRules;
 
 /**
  * A GamePlayer is a player in a particular game (as opposed to a 
@@ -247,7 +248,7 @@ public class GamePlayer {
 	 * @return
 	 */
 	public boolean canSee(GameEntity entity) {
-		if(entity.hasTag(Tag.IN_HAND) && entity.getOwner() != this) return false;
+		if(entity.hasTag(SampleGameRules.IN_HAND) && entity.getOwner() != this) return false;
 		return true;
 	}
 	

@@ -22,12 +22,11 @@
  * THE SOFTWARE.
  *******************************************************************************/
 
-package com.wx3.cardbattle;
+package com.wx3.samplegame;
 
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.game.GameServer;
-import com.wx3.cardbattle.samplegame.SampleGameFactory;
 import com.wx3.cardbattle.server.NettyWebSocketServer;
 
 
@@ -46,9 +45,9 @@ public class CardBattle
     	GameDatastore datastore = new HibernateDatastore();
     	bootstrap(datastore);
     	
-    	SampleGameFactory gameFactory = new SampleGameFactory(datastore);
+    	SampleGameCommandFactory gameFactory = new SampleGameCommandFactory(datastore);
     	
-    	GameServer gameserver = new GameServer(datastore, gameFactory);
+    	GameServer gameserver = new SampleGameServer(datastore, gameFactory);
     	gameserver.start();
     	
     	NettyWebSocketServer nettyServer = new NettyWebSocketServer(gameserver, PORT);

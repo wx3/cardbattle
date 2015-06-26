@@ -37,7 +37,9 @@ import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.GameServer;
-import com.wx3.cardbattle.samplegame.SampleGameFactory;
+import com.wx3.samplegame.Bootstrap;
+import com.wx3.samplegame.SampleGameCommandFactory;
+import com.wx3.samplegame.SampleGameServer;
 
 /**
  * @author Kevin
@@ -51,8 +53,8 @@ public class AITest {
 	public static void main(String[] args) {
 		GameDatastore datastore = new HibernateDatastore();
     	bootstrap(datastore);
-    	SampleGameFactory gameFactory = new SampleGameFactory(datastore);
-    	GameServer gameserver = new GameServer(datastore, gameFactory);
+    	SampleGameCommandFactory gameFactory = new SampleGameCommandFactory(datastore);
+    	GameServer gameserver = new SampleGameServer(datastore, gameFactory);
     	gameserver.start();
     	
     	AIManager aimanager = new AIManager(1);

@@ -25,13 +25,13 @@
 /**
  * 
  */
-package com.wx3.cardbattle.samplegame;
+package com.wx3.samplegame;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.wx3.cardbattle.datastore.GameDatastore;
-import com.wx3.cardbattle.game.GameFactory;
+import com.wx3.cardbattle.game.CommandFactory;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleSystem;
@@ -45,20 +45,12 @@ import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
  * @author Kevin
  *
  */
-public class SampleGameFactory implements GameFactory {
+public class SampleGameCommandFactory implements CommandFactory {
 
 	private GameDatastore datastore;
 	
-	public SampleGameFactory(GameDatastore datastore) {
+	public SampleGameCommandFactory(GameDatastore datastore) {
 		this.datastore = datastore;
-	}
-
-	@Override
-	public GameInstance<SampleEntity> createGame() {
-		GameInstance<SampleEntity> game = new GameInstance<SampleEntity>(datastore);
-		RuleSystem<SampleEntity> rules = new SampleGameRules(game);
-		game.setRuleSystem(rules);
-		return game;
 	}
 
 	@Override

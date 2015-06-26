@@ -25,8 +25,11 @@
 /**
  * 
  */
-package com.wx3.cardbattle.samplegame;
+package com.wx3.samplegame;
 
+import com.wx3.cardbattle.game.DefaultTags;
+import com.wx3.cardbattle.game.EntityPrototype;
+import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
 
 /**
@@ -34,5 +37,31 @@ import com.wx3.cardbattle.game.GameEntity;
  *
  */
 public class SampleEntity extends GameEntity {
-
+	
+	@Override
+	protected void copyFromCard(EntityPrototype card) {
+		super.copyFromCard(card);
+		setCurrentHealth(getMaxHealth());
+	}
+	
+	public int getCurrentHealth() {
+		return getVar(CURRENT_HEALTH);
+	}
+	
+	void setCurrentHealth(int health) {
+		setVar(CURRENT_HEALTH, health);
+	}
+	
+	public int getMaxHealth() {
+		return getStat(EntityStats.MAX_HEALTH);
+	}
+	
+	public boolean isInHand() {
+		return hasTag(SampleGameRules.IN_HAND);
+	}
+	
+	public boolean isMinion() {
+		return hasTag(SampleGameRules.MINION);
+	}
+	
 }
