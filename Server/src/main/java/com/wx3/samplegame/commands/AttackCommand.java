@@ -95,6 +95,9 @@ public class AttackCommand extends SampleGameCommand {
 			if(attacker.getStat(SampleGameRules.ATTACK) <= 0) {
 				result.addError("Attacker has no attack.");
 			}
+			if(attacker.getAttacksRemaining() <= 0) {
+				result.addError("No attacks remaining.");
+			}
 		}
 		if(target == null) {
 			result.addError("Target not found.");

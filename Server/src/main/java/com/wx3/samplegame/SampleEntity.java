@@ -46,6 +46,14 @@ public class SampleEntity extends GameEntity {
 		setCurrentHealth(getMaxHealth());
 	}
 	
+	/**
+	 * How much does this entity cost to play?
+	 * @return
+	 */
+	public int getCost() {
+		return getStat(SampleGameRules.COST);
+	}
+	
 	public int getCurrentHealth() {
 		return getVar(SampleGameRules.CURRENT_HEALTH);
 	}
@@ -68,6 +76,10 @@ public class SampleEntity extends GameEntity {
 	
 	public int getAttacksRemaining() {
 		return getVar(SampleGameRules.ATTACKS_REMAINING);
+	}
+	
+	public void setAttacksRemaining(int val) {
+		setVar(SampleGameRules.ATTACKS_REMAINING, val);
 	}
 	
 	public boolean isInHand() {

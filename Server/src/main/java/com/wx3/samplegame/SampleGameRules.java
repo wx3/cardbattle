@@ -231,6 +231,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		}
 		damageEntity(target, attackerAttack, attacker);
 		damageEntity(attacker, targetAttack, target);
+		attacker.setAttacksRemaining(attacker.getAttacksRemaining() - 1);
 	}
 	
 	/**
