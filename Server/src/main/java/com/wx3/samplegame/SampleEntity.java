@@ -54,6 +54,16 @@ public class SampleEntity extends GameEntity {
 		return getStat(SampleGameRules.COST);
 	}
 	
+	/**
+	 * How much energy does this entity have left (only applies to players' 
+	 * entities).
+	 * 
+	 * @return
+	 */
+	public int getEnergy() {
+		return getStat(SampleGameRules.ENERGY_PER_TURN) - getVar(SampleGameRules.ENERGY_SPENT);
+	}
+	
 	public int getCurrentHealth() {
 		return getVar(SampleGameRules.CURRENT_HEALTH);
 	}

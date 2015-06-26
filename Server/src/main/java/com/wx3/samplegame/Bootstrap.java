@@ -133,7 +133,7 @@ public class Bootstrap {
 			if(record.get(SampleGameRules.SPELL).equals("Y")) {
 				tags.add(SampleGameRules.SPELL);
 			}
-			int cost = parseIntOrZero(SampleGameRules.COST);
+			int cost = parseIntOrZero(record.get(SampleGameRules.COST));
 			if(cost > 0) {
 				stats.put(SampleGameRules.COST, cost);
 			}

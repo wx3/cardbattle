@@ -70,7 +70,11 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	private transient final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
 	
 	// Our stats:
+	
+	// How much does a card cost to play?
 	public static final String COST = "COST";
+	
+	public static final String ENERGY_PER_TURN = "ENERGY_PER_TURN";
 	public static final String MAX_HEALTH = "MAX_HEALTH";
 	public static final String ATTACK = "ATTACK";
 	public static final String ATTACKS_PER_TURN = "ATTACKS_PER_TURN";
@@ -83,6 +87,8 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	public static final String IN_HAND = "IN_HAND";
 	
 	// Our vars:
+	
+	public static final String ENERGY_SPENT = "ENERGY_SPENT";
 	public static final String CURRENT_HEALTH = "CURRENT_HEALTH";
 	public static final String ATTACKS_REMAINING = "ATTACKS_REMAINING";
 	
@@ -105,6 +111,12 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		for(SampleEntity entity : game.getEntities()) {
 			entity.resetAttacks();
 		}
+		// Reset the player's energy spent:
+		SampleEntity playerEntity = getPlayerEntity(getCurrentPlayer());
+		playerEntity.setVar(ENERGY_SPENT, 0);
+		// Each turn players get 1 more unit of energy:
+		int currentEnergy = playerEntity.getBaseStat(ENERGY_PER_TURN);
+		playerEntity.setBaseStat(ENERGY_PER_TURN, currentEnergy + 1);
 	}
 	
 	public List<SampleEntity> getPlayerHand(GamePlayer player) {

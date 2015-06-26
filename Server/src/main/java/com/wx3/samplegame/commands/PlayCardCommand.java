@@ -94,6 +94,14 @@ public class PlayCardCommand extends SampleGameCommand {
 	@Override
 	public ValidationResult validate() {
 		ValidationResult result = super.validate();
+		SampleEntity playerEntity = rules.getPlayerEntity(player);
+		if(playerEntity == null) {
+			result.addError("Player has no entity.");
+			return result;
+		}
+		if(playerEntity.getEnergy() < cardEntity.getCost()) {
+			result.addError("Insufficient energy.");
+		}
 		if(cardEntity == null) {
 			result.addError("Entity not found.");
 			return result;
