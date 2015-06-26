@@ -52,6 +52,7 @@ public class SampleGameServer extends GameServer {
 		GameInstance<SampleEntity> game = new GameInstance<SampleEntity>(datastore); 
 		SampleGameRules rules = new SampleGameRules(game);
 		game.setRuleSystem(rules);
+		rules.addGlobalRules();
 		return game;
 	}
 

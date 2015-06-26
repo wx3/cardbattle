@@ -33,7 +33,7 @@ import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameView;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
-import com.wx3.cardbattle.samplegame.commands.EndTurnCommand;
+import com.wx3.samplegame.commands.EndTurnCommand;
 
 /**
  * Very simple AI for testing

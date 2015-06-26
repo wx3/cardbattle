@@ -27,7 +27,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,9 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.EntityPrototype;
-import com.wx3.cardbattle.game.EntityStats;
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.DefaultTags;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
@@ -137,13 +133,15 @@ public class Bootstrap {
 			if(record.get(SampleGameRules.SPELL).equals("Y")) {
 				tags.add(SampleGameRules.SPELL);
 			}
-			int maxHealth = parseIntOrZero(record.get(EntityStats.MAX_HEALTH));
+			int maxHealth = parseIntOrZero(record.get(SampleGameRules.MAX_HEALTH));
 			if(maxHealth > 0) {
-				stats.put(EntityStats.MAX_HEALTH, maxHealth);
+				stats.put(SampleGameRules.MAX_HEALTH, maxHealth);
 			}
-			int attack = parseIntOrZero(record.get(EntityStats.ATTACK));
+			int attack = parseIntOrZero(record.get(SampleGameRules.ATTACK));
 			if(attack > 0) {
-				stats.put(EntityStats.ATTACK, attack);
+				stats.put(SampleGameRules.ATTACK, attack);
+				// Give all minions 1 attack per turn:
+				stats.put(SampleGameRules.ATTACKS_PER_TURN, 1);
 			}
 			List<EntityRule> rules = new ArrayList<EntityRule>();
 			String ruleField = record.get("rules");
@@ -166,7 +164,7 @@ public class Bootstrap {
 				validator = validatorCache.get(validatorName);
 			}
 			EntityPrototype card = EntityPrototype.createPrototype(name, description, tags, rules, validator, stats);
-			datastore.createCard(card);
+			datastore.createPrototype(card);
 			cardCache.put(card.getName(), card);
 		}
 		parser.close();

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.samplegame.commands;
+package com.wx3.samplegame.commands;
 
 import javax.persistence.Transient;
 
@@ -92,7 +92,7 @@ public class AttackCommand extends SampleGameCommand {
 			if(!attacker.isInPlay()) {
 				result.addError("Attacker not in play.");
 			}
-			if(attacker.getStat(EntityStats.ATTACK) <= 0) {
+			if(attacker.getStat(SampleGameRules.ATTACK) <= 0) {
 				result.addError("Attacker has no attack.");
 			}
 		}

@@ -38,10 +38,6 @@ import javax.persistence.Transient;
  *
  */
 public class EntityStats {
-	
-	public static final String COST = "COST";
-	public static final String MAX_HEALTH = "MAX_HEALTH";
-	public static final String ATTACK = "ATTACK";
 
 	private Map<String, Integer> baseValues = new HashMap<String,Integer>();
 	

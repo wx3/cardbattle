@@ -58,9 +58,9 @@ public interface GameDatastore {
 
 	public abstract Collection<EntityPrototype> getCards();
 
-	public abstract EntityPrototype getCard(String name);
+	public abstract EntityPrototype getPrototype(String name);
 
-	public abstract EntityPrototype getCard(int id);
+	public abstract EntityPrototype getPrototype(int id);
 
 	public abstract Collection<EntityRule> getRules();
 
@@ -80,7 +80,7 @@ public interface GameDatastore {
 
 	public abstract GameInstance<? extends GameEntity> getGame(long id);
 
-	public abstract void createCard(EntityPrototype card);
+	public abstract void createPrototype(EntityPrototype card);
 
 	/**
 	 * Find the GamePlayer with the corresponding authentication token

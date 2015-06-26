@@ -35,8 +35,8 @@ import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**
- * A PlayerAuthtoken is used to authenticate a client as a particular 
- * GamePlayer
+ * A PlayerAuthtoken is used to associate a GamePlayer with a particular
+ * GameInstance.
  * 
  * @author Kevin
  *

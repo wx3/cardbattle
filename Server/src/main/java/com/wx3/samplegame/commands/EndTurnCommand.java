@@ -21,30 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.samplegame.events;
+package com.wx3.samplegame.commands;
 
-import javax.persistence.Transient;
-
-import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.gameevents.GameEvent;
+import com.wx3.cardbattle.game.commands.GameCommand;
 
 /**
- * Fired whenever a minion is brought into play.
+ * Ends our turn.
  * 
  * @author Kevin
  *
  */
-public final class SummonMinionEvent extends GameEvent {
-	
-	public int entityId;
-	
-	@Transient
-	public GameEntity minion;
-	
-	public SummonMinionEvent(GameEntity minion) {
-		this.minion = minion;
-		this.entityId = minion.getId();
+public class EndTurnCommand extends SampleGameCommand {
+
+	@Override
+	public void execute() {
+		player.getGame().getRuleSystem().endTurn();
 	}
 
 }

@@ -59,14 +59,14 @@ import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
-import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
-import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
-import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
-import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
+import com.wx3.samplegame.commands.PlayCardCommand;
+import com.wx3.samplegame.events.DrawCardEvent;
+import com.wx3.samplegame.events.PlayCardEvent;
+import com.wx3.samplegame.events.SummonMinionEvent;
 
 /**
  * The game instance contains the game's state data: the current turn,
- * the entities, players, etc. Game logic is handled by the {@link RuleSystem}
+ * the entities, players, etc. Game logic is handled by the {@link RuleSystem}.
  * 
  * @author Kevin
  *
@@ -176,11 +176,11 @@ public class GameInstance<T extends GameEntity> {
 	}
 	
 	public EntityPrototype getCard(int cardId) {
-		return datastore.getCard(cardId);
+		return datastore.getPrototype(cardId);
 	}
 	
 	public EntityPrototype getCard(String cardName) {
-		return datastore.getCard(cardName);
+		return datastore.getPrototype(cardName);
 	}
 	
 	public EntityRule getRule(String ruleId) {

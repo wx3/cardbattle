@@ -46,7 +46,7 @@ import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
-import com.wx3.cardbattle.samplegame.events.KilledEvent;
+import com.wx3.samplegame.events.KilledEvent;
 
 /**
  * This implementation handles long-term storage via Hibernate, so 
@@ -126,7 +126,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#getCard(java.lang.String)
 	 */
 	@Override
-	public EntityPrototype getCard(String name) {
+	public EntityPrototype getPrototype(String name) {
 		if(!cardsByName.containsKey(name)) {
 			throw new RuntimeException("Could not find card named '" + name + "' in datastore cache.");
 		}
@@ -137,7 +137,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#getCard(int)
 	 */
 	@Override
-	public EntityPrototype getCard(int id) {
+	public EntityPrototype getPrototype(int id) {
 		if(!cardsById.containsKey(id)) {
 			throw new RuntimeException("Could not find card with id '" + id + "' in datastore cache");
 		}
@@ -241,7 +241,7 @@ public class HibernateDatastore implements GameDatastore {
 	 * @see com.wx3.cardbattle.datastore.Datastore#createCard(com.wx3.cardbattle.game.Card)
 	 */
 	@Override
-	public void createCard(EntityPrototype card) {
+	public void createPrototype(EntityPrototype card) {
 		Session session = sessionFactory.openSession();
     	session.beginTransaction();
     	session.save(card);

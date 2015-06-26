@@ -54,9 +54,9 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.RemoveRulesEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
-import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
-import com.wx3.cardbattle.samplegame.events.GameOverEvent;
-import com.wx3.cardbattle.samplegame.events.KilledEvent;
+import com.wx3.samplegame.events.DrawCardEvent;
+import com.wx3.samplegame.events.GameOverEvent;
+import com.wx3.samplegame.events.KilledEvent;
 
 /**
  * The GameRuleEngine uses the Nashorn javascript engine to process
@@ -74,6 +74,13 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	
 	private transient final Logger logger = LoggerFactory.getLogger(RuleSystem.class);
 	
+	// This is the general rules entity:
+	public static final String RULES = "RULES";
+	// This entity is in play:
+	public static final String IN_PLAY = "IN_PLAY";
+	// Represents a player's character:
+	public static final String PLAYER = "PLAYER";
+
 	private static final int MAX_EVENTS = 1000;
 	
 	// We use a singleton of the script engine for performance (Nashorn seems to take up
@@ -123,6 +130,13 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
+	/**
+	 * Because of type erasure with Java generics, we don't have a way to create
+	 * a new instance of the correct GameEntity type. So game rule implementations need
+	 * to explicitly instantiate entities of the correct type.
+	 *  
+	 * @return A new GameEntity instance of type T.
+	 */
 	protected abstract T createEntityInstance();
 	
 	public T spawnEntity() {
@@ -143,8 +157,8 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 		GameEntity ruleEntity = spawnEntity();
 		ruleEntity.setRules(rules);
 		ruleEntity.name = "Rule Entity";
-		ruleEntity.setTag(DefaultTags.RULES);
-		ruleEntity.setTag(DefaultTags.IN_PLAY);
+		ruleEntity.setTag(RULES);
+		ruleEntity.setTag(IN_PLAY);
 	}
 	
 	/**
@@ -198,6 +212,12 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 		return getCurrentPlayer(game.getTurn());
 	}
 	
+	/**
+	 * Get an entity by id.
+	 * 
+	 * @param id 	The integer id
+	 * @return 		The entity corresponding to that id.
+	 */
 	public T getEntity(int id) {
 		return game.getEntity(id);
 	}
@@ -276,10 +296,10 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	 * Mark an entity for removal and fire a {@link KilledEvent}
 	 * @param entity
 	 */
-	protected void killEntity(GameEntity entity) {
+	protected void killEntity(T entity) {
 		KilledEvent event = new KilledEvent(entity);
 		addEvent(event);
-		game.removeEntity(entity);
+		removeEntity(entity);
 	}
 	
 	/**
@@ -291,7 +311,7 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	 */
 	public T instantiatePrototype(EntityPrototype card) {
 		T entity = spawnEntity();
-		entity.copyFromCard(card);
+		entity.copyFromPrototype(card);
 		return entity;
 	}
 	
@@ -305,10 +325,11 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 		markedForRemoval.add(entity);
 	}
 	
-	public void gameOver(GamePlayer winner) {
-		logger.info("Game over, man");
+	/**
+	 * Declare the game over.
+	 */
+	public void gameOver() {
 		game.setGameOver(true);
-		addEvent(new GameOverEvent(winner));
 	}
 	
 	public void trace(String message) {
@@ -335,7 +356,7 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 			if(!markedForRemoval.isEmpty()) {
 				for(GameEntity entity : markedForRemoval) {
 					logger.info("Removing " + entity);
-					entity.clearTag(DefaultTags.IN_PLAY);
+					entity.clearTag(IN_PLAY);
 					if(!game.removeEntity(entity)) {
 						logger.warn("Failed to find " + entity + " for removal");
 					}
@@ -352,8 +373,8 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	}
 	
 	/**
-	 * Evaluate the {@link EntityRule} in the context of a particular event for the entity that
-	 * this rule is attached to.
+	 * Evaluate the {@link EntityRule} attached to an entity, in the context of a 
+	 * triggering event.
 	 * 
 	 * @param event
 	 * @param rule
@@ -362,11 +383,10 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	private void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
 		try {
 			if(rule.isTriggered(event)) {
-				// Let the rule access the event, game and entity objects
+				// Let the rule access the event, game and entity objects:
 				scriptScope.put("event", event);
 				scriptScope.put("rules", this);
 				scriptScope.put("entity", entity);
-				GamePlayer current = getCurrentPlayer();
 				logger.debug("Executing " + rule + " for " + event + " on " + entity);
 				getScriptEngine().eval(rule.getScript(),scriptContext);
 			}

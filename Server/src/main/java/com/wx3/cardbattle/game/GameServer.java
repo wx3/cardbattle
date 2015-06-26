@@ -97,7 +97,7 @@ public abstract class GameServer {
 		List<EntityPrototype> deck = new ArrayList<EntityPrototype>();
 		String cardNames[] = new String[]{"Measley Minion","Zaptastic","Sympathy Collector","Health Buff +3","Strong Minion","Disenchant","Death Ray"};
 		for(String cardName : cardNames) {
-			EntityPrototype card = datastore.getCard(cardName);
+			EntityPrototype card = datastore.getPrototype(cardName);
 			deck.add(card);
 		}
 		

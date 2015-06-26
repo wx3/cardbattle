@@ -36,15 +36,17 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 
 /**
- * Almost everything in the game is an entity: cards on the board, cards in a player's hand, the
- * player's character, etc. 
+ * All game objects in a particular game implementations will be a GameEntity of the 
+ * subtype for that game. Subtypes may implement convenience methods to that game. For
+ * example, if the your game entities have a "MAX_HEALTH" stat, your entities may 
+ * have a getMaxHealth() method that wraps getStat("MAX_HEALTH").
  * <p>
  * Entities are composed of:
  * <ul>
  * <li>Tags, which are like boolean flags that can be selected against. E.g., "MINION"</li>
  * <li>{@link EntityStats}: Named integers like MAX_HEALTH and can be buffed by rules.</li>
- * <li>Vars, which are named integers like damage taken. Unlike Stats, Vars are not automatically
- * recalculated.</li>
+ * <li>Vars, which are named integers like current health. Unlike Stats, Vars are not automatically
+ * recalculated for buff effects.</li>
  * <li>A collection of {@link EntityRule}s, which are triggered by {@link GameEvent}s.</li>
  * </ul>
  * @author Kevin
@@ -53,13 +55,12 @@ import com.wx3.cardbattle.game.rules.EntityRule;
 public class GameEntity {
 	
 	public static final String DAMAGE_TAKEN = "DAMAGE_TAKEN";
-	public static final String CURRENT_HEALTH = "CURRENT_HEALTH";
 	
 	public String name;
 
 	private int id;
 
-	private EntityPrototype card;
+	private EntityPrototype prototype;
 	
 	private GamePlayer owner;
 	
@@ -68,22 +69,7 @@ public class GameEntity {
 	private Map<String, Integer> vars = new HashMap<String,Integer>();
 	private List<EntityRule> rules = new ArrayList<EntityRule>();
 	
-	private GameInstance game;
-	
 	public GameEntity(){}
-	
-	public GameEntity(GameInstance game, int id) {
-		this.game = game;
-		this.id = id;
-	}
-	
-	GameInstance getGame() {
-		return game;
-	}
-
-	void setGame(GameInstance game) {
-		this.game = game;
-	}
 	
 	void setId(int id) {
 		if(this.id > 0) {
@@ -100,31 +86,33 @@ public class GameEntity {
 	}
 	
 	/**
-	 * What card, if any, is assocated with this entity? May or may not be the card that created the entity.
+	 * Get the prototype that was copied to create this entity.
+	 * 
+	 * @return The EntityPrototype or null
 	 */
 	public EntityPrototype getCreatingCard() {
-		return card;
+		return prototype;
 	}
 
 	/**
-	 * Initialize the entity from a card, copying its tags, stats and rules.
+	 * Initialize the entity from a prototype, copying its tags, stats and rules.
 	 * 
-	 * @param card
+	 * @param prototype
 	 */
-	protected void copyFromCard(EntityPrototype card) {
-		this.card = card;
-		this.name = card.getName();
-		for(String tag : card.getTags()) {
+	protected void copyFromPrototype(EntityPrototype prototype) {
+		this.prototype = prototype;
+		this.name = prototype.getName();
+		for(String tag : prototype.getTags()) {
 			setTag(tag);
 		}
-		Map<String, Integer> cardStats = card.getStats();
+		Map<String, Integer> cardStats = prototype.getStats();
 		for(String stat: cardStats.keySet()) {
 			stats.setBase(stat, cardStats.get(stat));
 		}
-		for(EntityRule rule : card.getRules()) {
+		for(EntityRule rule : prototype.getRules()) {
 			rules.add(new EntityRule(rule));
 		}
-		rules = new ArrayList<EntityRule>(card.getRules());
+		rules = new ArrayList<EntityRule>(prototype.getRules());
 		stats.reset();
 	}
 	
@@ -203,7 +191,7 @@ public class GameEntity {
 	}
 	
 	public boolean isInPlay() {
-		return hasTag(DefaultTags.IN_PLAY);
+		return hasTag(RuleSystem.IN_PLAY);
 	}
 
 	@Override

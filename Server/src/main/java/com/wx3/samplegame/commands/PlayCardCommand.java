@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.samplegame.commands;
+package com.wx3.samplegame.commands;
 
 import javax.persistence.Transient;
 
@@ -30,12 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.DefaultTags;
-import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
-import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
 import com.wx3.samplegame.SampleEntity;
 import com.wx3.samplegame.SampleGameRules;
 
@@ -112,11 +107,11 @@ public class PlayCardCommand extends SampleGameCommand {
 			return result;
 		}
 		if(targetEntity != null) {
-			if(!targetEntity.hasTag(DefaultTags.IN_PLAY)) {
+			if(!targetEntity.hasTag(SampleGameRules.IN_PLAY)) {
 				result.addError("Target not in play.");
 			}
 		}
-		rules.validatePlay(result, this);
+		rules.validatePlayCard(result, this);
 		return result;
 	};
 

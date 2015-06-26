@@ -37,24 +37,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.EntityPrototype;
-import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleException;
 import com.wx3.cardbattle.game.RuleSystem;
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.DefaultTags;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
-import com.wx3.cardbattle.samplegame.commands.PlayCardCommand;
-import com.wx3.cardbattle.samplegame.events.DamageEvent;
-import com.wx3.cardbattle.samplegame.events.DrawCardEvent;
-import com.wx3.cardbattle.samplegame.events.GameOverEvent;
-import com.wx3.cardbattle.samplegame.events.KilledEvent;
-import com.wx3.cardbattle.samplegame.events.PlayCardEvent;
-import com.wx3.cardbattle.samplegame.events.SummonMinionEvent;
+import com.wx3.samplegame.commands.PlayCardCommand;
+import com.wx3.samplegame.events.DamageEvent;
+import com.wx3.samplegame.events.DrawCardEvent;
+import com.wx3.samplegame.events.GameOverEvent;
+import com.wx3.samplegame.events.KilledEvent;
+import com.wx3.samplegame.events.PlayCardEvent;
+import com.wx3.samplegame.events.SummonMinionEvent;
 
 /**
  * @author Kevin
@@ -71,12 +69,22 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 
 	private transient final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
 	
+	// Our stats:
+	public static final String COST = "COST";
+	public static final String MAX_HEALTH = "MAX_HEALTH";
+	public static final String ATTACK = "ATTACK";
+	public static final String ATTACKS_PER_TURN = "ATTACKS_PER_TURN";
+	
 	// Applied to Minions:
 	public static final String MINION = "MINION";
 	// Applied to Spells:
 	public static final String SPELL = "SPELL";
 	// This entity is a card in hand:
 	public static final String IN_HAND = "IN_HAND";
+	
+	// Our vars:
+	public static final String CURRENT_HEALTH = "CURRENT_HEALTH";
+	public static final String ATTACKS_REMAINING = "ATTACKS_REMAINING";
 	
 	void addGlobalRules() {
 		List<EntityRule> rules = new ArrayList<EntityRule>();
@@ -90,6 +98,15 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		return new SampleEntity();
 	}
 	
+	@Override
+	protected void startTurn() {
+		super.startTurn();
+		// At the start of every turn, set an entity's attacks remaining = max attacks.
+		for(SampleEntity entity : game.getEntities()) {
+			entity.resetAttacks();
+		}
+	}
+	
 	public List<SampleEntity> getPlayerHand(GamePlayer player) {
 		List<SampleEntity> hand = game.getEntities().stream().filter(
 				e -> e.getOwner() == player && e.hasTag(IN_HAND)
@@ -97,16 +114,28 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		return hand;
 	}
 	
+	/**
+	 * Find the player's entity.
+	 * 
+	 * @param player
+	 * @return
+	 */
+	public SampleEntity getPlayerEntity(GamePlayer player) {
+		// There should be at most one:
+		return game.getEntities().stream().filter(
+				e -> e.getOwner() == player && e.hasTag(SampleGameRules.PLAYER)).findFirst().orElse(null);
+	}
+	
 	
 	@Override
 	public void addPlayer(GamePlayer player) {
 		GameEntity playerEntity = spawnEntity();
 		playerEntity.name = player.getUsername();
-		playerEntity.setTag(DefaultTags.PLAYER);
-		playerEntity.setTag(DefaultTags.IN_PLAY);
+		playerEntity.setTag(SampleGameRules.PLAYER);
+		playerEntity.setTag(SampleGameRules.IN_PLAY);
 		
-		playerEntity.setBaseStat(EntityStats.MAX_HEALTH, 100);
-		playerEntity.setVar(GameEntity.CURRENT_HEALTH, playerEntity.getStat(EntityStats.MAX_HEALTH));
+		playerEntity.setBaseStat(MAX_HEALTH, 100);
+		playerEntity.setVar(CURRENT_HEALTH, playerEntity.getStat(MAX_HEALTH));
 		playerEntity.setOwner(player);
 		// Eventually player rules should move out of here into the database/bootstrap:
 		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
@@ -162,7 +191,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		String msg = "Playing " + cardEntity;
 		if(targetEntity != null) msg += " on " + targetEntity;
 		logger.info(msg);
-		cardEntity.setTag(DefaultTags.IN_PLAY);
+		cardEntity.setTag(SampleGameRules.IN_PLAY);
 		cardEntity.clearTag(IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
 		addEvent(event);
@@ -195,8 +224,8 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		if(!target.isInPlay()) {
 			throw new RuleException("Target is not in play");
 		}
-		int attackerAttack = attacker.getStat(EntityStats.ATTACK);
-		int targetAttack = target.getStat(EntityStats.ATTACK);
+		int attackerAttack = attacker.getStat(ATTACK);
+		int targetAttack = target.getStat(ATTACK);
 		if(attackerAttack <= 0) {
 			throw new RuleException("Attacker has no attack value");
 		}
@@ -254,13 +283,27 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		}
 	}
 	
+	@Override
+	public void gameOver() {
+		super.gameOver();
+		GamePlayer winner = null;
+		for(GamePlayer player : game.getPlayers()) {
+			SampleEntity entity = getPlayerEntity(player);
+			if(entity != null && entity.getCurrentHealth() > 0) {
+				winner = player;
+			}
+		}
+		GameOverEvent event = new GameOverEvent(winner);
+		addEvent(event);
+	}
+	
 	/**
 	 * Test whether the PlayCardCommand is valid. 
 	 * 
 	 * @param result
 	 * @param command
 	 */
-	public void validatePlay(ValidationResult result, PlayCardCommand command) {
+	public void validatePlayCard(ValidationResult result, PlayCardCommand command) {
 		// If the command's card has no validator, we don't need to do anything
 		if(command.getCard().getValidator() == null) return;
 		try {

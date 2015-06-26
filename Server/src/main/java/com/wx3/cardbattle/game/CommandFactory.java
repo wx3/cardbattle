@@ -31,11 +31,7 @@ import com.google.gson.JsonObject;
 import com.wx3.cardbattle.game.commands.GameCommand;
 
 /**
- * A GameFactory creates game instances, supplying them with the appropriate 
- * {@link RuleSystem} for the game.
- * 
- * It also provides a factory method for creating commands from JSON, included
- * in the same class for the convenience of implementors.
+ * A CommandFactory translates {@link JsonObject}s into {@link GameCommand}s.
  * 
  * @author Kevin
  *

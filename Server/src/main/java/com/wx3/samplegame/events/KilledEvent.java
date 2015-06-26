@@ -21,40 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.samplegame.events;
+package com.wx3.samplegame.events;
 
 import javax.persistence.Transient;
 
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
-import com.wx3.cardbattle.game.messages.GameEntityView;
 
-public final class PlayCardEvent extends GameEvent {
-
-	private transient GameEntity entity;
+public class KilledEvent extends GameEvent {
 	
-	private transient GameEntity target;
+	private int entityId;
 	
-	public int entityId;
-	public int targetId;
+	public transient GameEntity entity;
 	
-	public PlayCardEvent(GameEntity entity, GameEntity target) {
-		this.entity = entity;
-		this.target = target;
-		
+	public KilledEvent(GameEntity entity) {
 		this.entityId = entity.getId();
-		if(target != null) {
-			this.targetId = target.getId();
-		}
+		this.entity = entity;
+	}
+	
+	public int getEntityId() {
+		return entityId;
 	}
 	
 	public GameEntity getEntity() {
 		return entity;
 	}
-	
-	public GameEntity getTarget() {
-		return target;
-	}
-	
+
 }

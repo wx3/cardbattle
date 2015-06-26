@@ -21,21 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.samplegame.commands;
+package com.wx3.samplegame.events;
 
-import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 
 /**
- * Ends our turn.
- * 
+ * Fired whenever an entity takes damage
  * @author Kevin
  *
  */
-public class EndTurnCommand extends SampleGameCommand {
+public final class DamageEvent extends GameEvent {
 
-	@Override
-	public void execute() {
-		player.getGame().getRuleSystem().endTurn();
+	@SuppressWarnings("unused")
+	private int entityId;
+	@SuppressWarnings("unused")
+	private int damage;
+	
+	public transient GameEntity entity;
+	
+	public DamageEvent(GameEntity entity, int damage, GameEntity cause) {
+		this.entity = entity;
+		this.entityId = entity.getId();
+		this.damage = damage;
+		if(cause != null) {
+			this.cause = cause;
+			this.causeId = cause.getId();
+		}
 	}
-
+	
 }

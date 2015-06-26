@@ -27,9 +27,7 @@
  */
 package com.wx3.samplegame;
 
-import com.wx3.cardbattle.game.DefaultTags;
 import com.wx3.cardbattle.game.EntityPrototype;
-import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
 
 /**
@@ -38,22 +36,38 @@ import com.wx3.cardbattle.game.GameEntity;
  */
 public class SampleEntity extends GameEntity {
 	
+	/**
+	 * In addition to the default copy, we want our current health 
+	 * to be equal to max health.
+	 */
 	@Override
-	protected void copyFromCard(EntityPrototype card) {
-		super.copyFromCard(card);
+	protected void copyFromPrototype(EntityPrototype card) {
+		super.copyFromPrototype(card);
 		setCurrentHealth(getMaxHealth());
 	}
 	
 	public int getCurrentHealth() {
-		return getVar(CURRENT_HEALTH);
+		return getVar(SampleGameRules.CURRENT_HEALTH);
 	}
 	
 	void setCurrentHealth(int health) {
-		setVar(CURRENT_HEALTH, health);
+		setVar(SampleGameRules.CURRENT_HEALTH, health);
 	}
 	
 	public int getMaxHealth() {
-		return getStat(EntityStats.MAX_HEALTH);
+		return getStat(SampleGameRules.MAX_HEALTH);
+	}
+	
+	public void resetAttacks() {
+		setVar(SampleGameRules.ATTACKS_REMAINING, getAttacksPerTurn());
+	}
+	
+	public int getAttacksPerTurn() {
+		return getStat(SampleGameRules.ATTACKS_PER_TURN);
+	}
+	
+	public int getAttacksRemaining() {
+		return getVar(SampleGameRules.ATTACKS_REMAINING);
 	}
 	
 	public boolean isInHand() {

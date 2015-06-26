@@ -37,7 +37,7 @@ import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameEntityJsonSerializer;
 import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.IMessageHandler;
-import com.wx3.cardbattle.samplegame.events.GameOverEvent;
+import com.wx3.samplegame.events.GameOverEvent;
 
 /**
  * Sends messages to the channel in the form of JSON, for example:
