@@ -27,6 +27,8 @@
  */
 package com.wx3.cardbattle.ai;
 
+import java.util.Collection;
+
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.messages.GameMessage;
@@ -36,19 +38,32 @@ import com.wx3.cardbattle.game.messages.IMessageHandler;
 import com.wx3.samplegame.commands.EndTurnCommand;
 
 /**
- * 
+ * Abstract base class for game AIs.
  * 
  * @author Kevin
  *
  */
-public class GameAI {
+public abstract class GameAI {
 	
 	protected GamePlayer player;
-	private AIEvaluator evaluator;
 	
-	public GameAI(GamePlayer player, AIEvaluator evaluator) {
+	protected class CommandSelection {
+		
+		protected GameCommand command;
+		public int value;
+		
+		public CommandSelection(GameCommand command, int value) {
+			this.command = command;
+			this.value = value;
+		}
+		
+		public GameCommand getCommand() {
+			return command;
+		}
+	}
+	
+	public GameAI(GamePlayer player) {
 		this.player = player;
-		this.evaluator = evaluator;
 	}
 	
 	boolean gameOver() {
@@ -60,7 +75,10 @@ public class GameAI {
 	
 	protected boolean isPlayerTurn() {
 		if(player.getGame() != null) {
-			
+			if(player.getGame().getRuleSystem().getCurrentPlayer() == player) {
+				return true;
+			}
+			return false;
 		}
 		return false;
 	}
@@ -72,8 +90,14 @@ public class GameAI {
 		}
 	}
 	
-	protected GameCommand getBestCommand() {
-		return new EndTurnCommand();
-	}
+	/**
+	 * Concrete implementations should return a list of possible choices
+	 * that the AI can choose from.
+	 * 
+	 * @return
+	 */
+	protected abstract Collection<CommandSelection> getCommandChoices();
+	
+	protected abstract GameCommand getBestCommand();
 
 }

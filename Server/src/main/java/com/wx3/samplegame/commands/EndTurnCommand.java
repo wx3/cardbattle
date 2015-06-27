@@ -23,7 +23,6 @@
  *******************************************************************************/
 package com.wx3.samplegame.commands;
 
-import com.wx3.cardbattle.game.commands.GameCommand;
 
 /**
  * Ends our turn.

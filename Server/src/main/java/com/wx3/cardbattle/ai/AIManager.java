@@ -39,11 +39,13 @@ import org.slf4j.LoggerFactory;
 import com.wx3.cardbattle.game.GameInstance;
 
 /**
- * Updates all of the AIs in a single thread.
+ * Updates all of the game AIs. 
+ * 
+ * TODO: Add worker threads to prevent one game from blocking all updates.
  * 
  * @author Kevin
  */
-public class AIManager {
+public final class AIManager {
 	
 	final static Logger logger = LoggerFactory.getLogger(AIManager.class);
 

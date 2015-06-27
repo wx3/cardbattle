@@ -25,16 +25,62 @@
 /**
  * 
  */
-package com.wx3.cardbattle.ai;
+package com.wx3.samplegame;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import com.wx3.cardbattle.ai.GameAI;
+import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.samplegame.commands.EndTurnCommand;
 
 /**
  * @author Kevin
  *
  */
-public interface AIEvaluator {
-
-	public abstract GameCommand chooseBestCommand();
+public class SampleGameAI extends GameAI {
 	
+	SampleGameRules rules;
+
+	/**
+	 * @param player
+	 */
+	public SampleGameAI(GamePlayer player) {
+		super(player);
+		if(player.getGame().getRuleSystem() instanceof SampleGameRules) {
+			rules = (SampleGameRules) player.getGame().getRuleSystem();
+		} else {
+			throw new RuntimeException("Wrong rule system");
+		}
+	}
+
+	@Override
+	protected Collection<CommandSelection> getCommandChoices() {
+		Collection<CommandSelection> choices = new ArrayList<CommandSelection>();
+		return choices;
+	}
+
+	@Override
+	protected GameCommand getBestCommand() {
+		GameCommand choice;
+		int bestVal = -1;
+		CommandSelection best = null;
+		for(CommandSelection selection : getCommandChoices()) {
+			if(selection.value > bestVal) {
+				best = selection;
+				bestVal = selection.value;
+			}
+		}
+		if(best != null) {
+			choice = best.getCommand();
+		}
+		// If we didn't find anything with positive value, the best choice is to end turn
+		else {
+			choice = new EndTurnCommand();
+		}
+		
+		return choice;
+	}
+
 }
