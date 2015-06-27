@@ -65,7 +65,7 @@ public class GameView {
 			view.players.put(p.getUsername(), pv);
 		}
 		for(GameEntity entity : game.getEntities()) {
-			view.entities.add(GameEntityView.createViewForPlayer(entity, player));
+			view.entities.add(entity.getView(player));
 		}
 		return view;
 	}

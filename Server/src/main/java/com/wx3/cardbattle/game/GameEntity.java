@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.wx3.cardbattle.game.gameevents.GameEvent;
+import com.wx3.cardbattle.game.messages.GameEntityView;
 import com.wx3.cardbattle.game.rules.EntityRule;
 
 /**
@@ -192,6 +193,31 @@ public class GameEntity {
 	
 	public boolean isInPlay() {
 		return hasTag(RuleSystem.IN_PLAY);
+	}
+	
+	/**
+	 * Subclasses can override this if there are entity details that 
+	 * should be hidden from a player. 
+	 * 
+	 * @param player
+	 * @return
+	 */
+	public GameEntityView getView(GamePlayer player) {
+		GameEntityView view = new GameEntityView();
+		view.id = id;
+		if(getOwner() != null) {
+			view.ownerName = getOwner().getUsername();
+		}
+		view.visible = true;
+		view.name = name;
+		if(getCreatingCard() != null) {
+			view.cardId = getCreatingCard().getId();
+		}
+		view.tags = new HashSet<String>(getTags());
+		view.stats = getCurrentStats();
+		view.vars = getCurrentVars();
+		
+		return view;
 	}
 
 	@Override

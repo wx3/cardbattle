@@ -217,39 +217,5 @@ public final class GamePlayer {
 		this.playerDeck = playerDeck;
 	}
 	
-	/**
-	 * Returns the list of entities that makes up the player's hand.
-	 * @return
-
-	public List<GameEntity> getPlayerHand() {
-		List<GameEntity> hand = game.getEntities().stream().filter(
-				e -> e.getOwner() == this && e.hasTag(Tag.IN_HAND)
-				).collect(Collectors.toList());
-		return hand;
-	}
-	
-	/**
-	 * Returns a list of entities that a player has in play.
-	 * @return
-
-	public List<GameEntity> getEntitiesInPlay() {
-		List<GameEntity> inPlay = game.getEntities().stream().filter(
-				e -> e.getOwner() == this && e.hasTag(Tag.IN_PLAY)
-				).collect(Collectors.toList());
-		return inPlay;
-	}
-	*/
-	
-	/**
-	 * Can the player see the details of this entity (i.e., is the entity in the
-	 * other player's hand)?
-	 * 
-	 * @param entity
-	 * @return
-	 */
-	public boolean canSee(GameEntity entity) {
-		if(entity.hasTag(SampleGameRules.IN_HAND) && entity.getOwner() != this) return false;
-		return true;
-	}
 	
 }

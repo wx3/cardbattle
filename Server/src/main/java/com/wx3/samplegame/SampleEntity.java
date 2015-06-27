@@ -29,6 +29,8 @@ package com.wx3.samplegame;
 
 import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.messages.GameEntityView;
 
 /**
  * @author Kevin
@@ -98,6 +100,23 @@ public class SampleEntity extends GameEntity {
 	
 	public boolean isMinion() {
 		return hasTag(SampleGameRules.MINION);
+	}
+	
+	/**
+	 * Override the default entity view to hide info about cards in the opponent's
+	 * hand (besides the fact that the card is in hand).
+	 * 
+	 */
+	@Override
+	public GameEntityView getView(GamePlayer player) {
+		GameEntityView view = super.getView(player);
+		if(this.isInHand() && getOwner() != player) {
+			view.stats.clear();
+			view.vars.clear();
+			view.tags.clear();
+			view.tags.add(SampleGameRules.IN_HAND);
+		}
+		return super.getView(player);
 	}
 	
 }

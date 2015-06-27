@@ -23,12 +23,8 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.messages;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GamePlayer;
 
 /**
  * Like the GameView, creates a serializable representation of an entity relative
@@ -53,25 +49,4 @@ public final class GameEntityView {
 	public Map<String, Integer> stats;
 	public Map<String, Integer> vars;
 	
-	public static GameEntityView createViewForPlayer(GameEntity entity, GamePlayer player) {
-		GameEntityView view = new GameEntityView();
-		view.id = entity.getId();
-		if(entity.getOwner() != null) {
-			view.ownerName = entity.getOwner().getUsername();
-		}
-		if(player.canSee(entity)) {
-			view.visible = true;
-			view.name = entity.name;
-			if(entity.getCreatingCard() != null) {
-				view.cardId = entity.getCreatingCard().getId();
-			}
-			view.tags = new HashSet<String>(entity.getTags());
-			view.stats = entity.getCurrentStats();
-			view.vars = entity.getCurrentVars();
-		} else {
-			view.visible = false;
-			view.tags = new HashSet<String>();
-		}
-		return view;
-	}
 }

@@ -24,6 +24,7 @@
 package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -108,7 +109,6 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 		public boolean exposeToScripts(String s) {
 			return false;
 		}
-		
 	}
 	
 	protected static ScriptEngine getScriptEngine() {
@@ -138,6 +138,8 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	 * @return A new GameEntity instance of type T.
 	 */
 	protected abstract T createEntityInstance();
+	
+	//public abstract Collection<GameCommand> getValidCommands(GamePlayer player);
 	
 	public T spawnEntity() {
 		T entity = createEntityInstance();
