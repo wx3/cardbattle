@@ -27,6 +27,9 @@
  */
 package com.wx3.samplegame;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
@@ -57,7 +60,7 @@ public class SampleEntity extends GameEntity {
 	}
 	
 	/**
-	 * How much energy does this entity have left (only applies to players' 
+	 * How much energy does this entity have left (only applies to player
 	 * entities).
 	 * 
 	 * @return
@@ -109,14 +112,29 @@ public class SampleEntity extends GameEntity {
 	 */
 	@Override
 	public GameEntityView getView(GamePlayer player) {
-		GameEntityView view = super.getView(player);
-		if(this.isInHand() && getOwner() != player) {
-			view.stats.clear();
-			view.vars.clear();
-			view.tags.clear();
-			view.tags.add(SampleGameRules.IN_HAND);
+		GameEntityView view = new GameEntityView();
+		view.id = getId();
+		if(getOwner() != null) {
+			view.ownerName = getOwner().getUsername();
 		}
-		return super.getView(player);
+		view.visible = true;
+		view.name = name;
+		if(getCreatingCard() != null) {
+			view.cardId = getCreatingCard().getId();
+		}
+		// If the entity is in the opponent's hand, hide all stats 
+		// and tags except IN_HAND:
+		if(this.isInHand() && (getOwner() != player)) {
+			view.stats = new HashMap<String, Integer>();
+			view.vars = new HashMap<String, Integer>();
+			view.tags = new HashSet<String>();
+			view.tags.add(SampleGameRules.IN_HAND);
+		} else {
+			view.tags = new HashSet<String>(getTags());
+			view.stats = getCurrentStats();
+			view.vars = getCurrentVars();
+		}
+		return view;
 	}
 	
 }
