@@ -31,10 +31,10 @@ import java.util.Collection;
 
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
-import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameView;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
-import com.wx3.cardbattle.game.messages.IMessageHandler;
+import com.wx3.cardbattle.game.messages.MessageHandler;
+import com.wx3.cardbattle.server.OutboundMessage;
 import com.wx3.samplegame.commands.EndTurnCommand;
 
 /**

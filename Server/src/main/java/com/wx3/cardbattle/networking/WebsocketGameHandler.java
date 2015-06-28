@@ -36,10 +36,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.GameServer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
+import com.wx3.cardbattle.server.GameServer;
 
 /**
  * Parses incoming messages as {@link GameCommand}s and sends them to the player 

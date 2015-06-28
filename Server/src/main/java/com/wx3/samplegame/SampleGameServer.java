@@ -31,7 +31,7 @@ import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.CommandFactory;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.GameServer;
+import com.wx3.cardbattle.server.GameServer;
 
 /**
  * @author Kevin

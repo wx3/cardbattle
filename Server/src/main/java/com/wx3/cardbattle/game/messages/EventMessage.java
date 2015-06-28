@@ -25,8 +25,9 @@ package com.wx3.cardbattle.game.messages;
 
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
+import com.wx3.cardbattle.server.OutboundMessage;
 
-public final class EventMessage extends GameMessage {
+public final class EventMessage extends OutboundMessage {
 
 	private String eventClass;
 	private Object event;

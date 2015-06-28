@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.messages;
+package com.wx3.cardbattle.server;
 
 
-public abstract class GameMessage {
+public abstract class OutboundMessage {
 
 	protected String messageClass;
 	

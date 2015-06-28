@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game;
+package com.wx3.cardbattle.server;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,9 +34,17 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
 import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
+import com.wx3.cardbattle.game.CommandFactory;
+import com.wx3.cardbattle.game.EntityPrototype;
+import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.UpdateGamesTask;
+import com.wx3.cardbattle.game.User;
 
 /**
  * The gameserver handles the creation of games and connecting players to
@@ -111,6 +119,10 @@ public abstract class GameServer {
 	
 	public GamePlayer authenticate(String token) throws AuthenticationException {
 		return datastore.authenticate(token);
+	}
+	
+	public void handleJsonCommand(JsonObject json) {
+		
 	}
 	
 }

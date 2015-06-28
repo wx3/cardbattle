@@ -23,19 +23,21 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.messages;
 
+import com.wx3.cardbattle.server.OutboundMessage;
+
 
 /**
- * A MessageHandler provides some mechanism to communicate events to the players, 
+ * A MessageHandler provides some mechanism to communicate information to clients 
  * e.g., sending a message over a socket or batching them up for return in the
  * next long poll. This abstracts the message transport mechanism away from the
- * game logic. 
+ * game/server logic. 
  * 
  * @author Kevin
  *
  */
-public interface IMessageHandler {
+public interface MessageHandler {
 
 	public void disconnect();
-	public void handleMessage(GameMessage message);
+	public void handleMessage(OutboundMessage message);
 	
 }

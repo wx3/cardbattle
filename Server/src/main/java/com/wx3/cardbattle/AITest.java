@@ -36,7 +36,7 @@ import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.GameServer;
+import com.wx3.cardbattle.server.GameServer;
 import com.wx3.samplegame.Bootstrap;
 import com.wx3.samplegame.SampleGameCommandFactory;
 import com.wx3.samplegame.SampleGameServer;

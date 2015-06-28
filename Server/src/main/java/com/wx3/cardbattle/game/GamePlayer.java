@@ -48,9 +48,9 @@ import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
-import com.wx3.cardbattle.game.messages.GameMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
-import com.wx3.cardbattle.game.messages.IMessageHandler;
+import com.wx3.cardbattle.game.messages.MessageHandler;
+import com.wx3.cardbattle.server.OutboundMessage;
 import com.wx3.samplegame.SampleGameRules;
 
 /**
@@ -98,7 +98,7 @@ public final class GamePlayer {
 	 * How events get back to the player
 	 */
 	@Transient
-	private IMessageHandler messageHandler;
+	private MessageHandler messageHandler;
 	
 	public GamePlayer() {}
 	
@@ -159,7 +159,7 @@ public final class GamePlayer {
 		return result;
 	}
 	
-	public void sendMessage(GameMessage message) {
+	public void sendMessage(OutboundMessage message) {
 		if(messageHandler != null) {
 			messageHandler.handleMessage(message);	
 		} 
@@ -169,7 +169,7 @@ public final class GamePlayer {
 		sendMessage(new EventMessage(event, this));
 	}
 
-	public synchronized void connect(IMessageHandler messageHandler) {
+	public synchronized void connect(MessageHandler messageHandler) {
 		if(this.game == null) {
 			throw new RuntimeException("Player has no game.");
 		}

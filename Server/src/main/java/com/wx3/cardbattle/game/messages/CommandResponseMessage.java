@@ -26,6 +26,7 @@ package com.wx3.cardbattle.game.messages;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.cardbattle.server.OutboundMessage;
 
 /**
  * Tells the player whether the command was accepted. If not,
@@ -36,7 +37,7 @@ import com.wx3.cardbattle.game.commands.ValidationResult;
  * @author Kevin
  *
  */
-public class CommandResponseMessage extends GameMessage {
+public class CommandResponseMessage extends OutboundMessage {
 
 	private int commandId;
 	private boolean isSuccess;

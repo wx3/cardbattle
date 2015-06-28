@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.wx3.cardbattle.game.EntityPrototype;
+import com.wx3.cardbattle.server.OutboundMessage;
 
 /**
  * Message sent to the client on join, containing initial game
@@ -36,7 +37,7 @@ import com.wx3.cardbattle.game.EntityPrototype;
  * @author Kevin
  *
  */
-public final class JoinMessage extends GameMessage {
+public final class JoinMessage extends OutboundMessage {
 
 	private Map<Integer, EntityPrototype> cards;
 	

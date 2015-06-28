@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.wx3.cardbattle.game.messages.GameMessage;
-import com.wx3.cardbattle.game.messages.IMessageHandler;
+import com.wx3.cardbattle.game.messages.MessageHandler;
+import com.wx3.cardbattle.server.OutboundMessage;
 
 /**
  * For unit tests, there is no websocket to send messages out, so we 
@@ -15,14 +15,14 @@ import com.wx3.cardbattle.game.messages.IMessageHandler;
  * @author Kevin
  *
  */
-public class TestMessageHandler implements IMessageHandler {
+public class TestMessageHandler implements MessageHandler {
 	
-	private List<GameMessage> messageHistory = new ArrayList<GameMessage>();
+	private List<OutboundMessage> messageHistory = new ArrayList<OutboundMessage>();
 	
 	public void disconnect() {}
 
 	@Override
-	public void handleMessage(GameMessage message) {
+	public void handleMessage(OutboundMessage message) {
 		this.messageHistory.add(message);
 	}
 	
@@ -30,7 +30,7 @@ public class TestMessageHandler implements IMessageHandler {
 	 * Get the last message the test handler received
 	 * @return
 	 */
-	public GameMessage getLastMessage() {
+	public OutboundMessage getLastMessage() {
 		return messageHistory.get(messageHistory.size() - 1);
 	}
 	
@@ -39,10 +39,10 @@ public class TestMessageHandler implements IMessageHandler {
 	 * @param clazz
 	 * @return
 	 */
-	public GameMessage getLastMessage(Class<? extends GameMessage> clazz) {
-		ListIterator<GameMessage> li = messageHistory.listIterator(messageHistory.size());
+	public OutboundMessage getLastMessage(Class<? extends OutboundMessage> clazz) {
+		ListIterator<OutboundMessage> li = messageHistory.listIterator(messageHistory.size());
 		while(li.hasPrevious()) {
-			GameMessage msg = li.previous();
+			OutboundMessage msg = li.previous();
 			if(msg.getClass() == clazz) return msg;
 		}
 		return null;
@@ -53,7 +53,7 @@ public class TestMessageHandler implements IMessageHandler {
 	 * 
 	 * @return
 	 */
-	public List<GameMessage> getMessages() {
+	public List<OutboundMessage> getMessages() {
 		return messageHistory;
 	}
 }

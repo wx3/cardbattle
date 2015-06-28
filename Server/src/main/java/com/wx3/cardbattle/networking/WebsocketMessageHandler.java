@@ -35,8 +35,8 @@ import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameEntityJsonSerializer;
-import com.wx3.cardbattle.game.messages.GameMessage;
-import com.wx3.cardbattle.game.messages.IMessageHandler;
+import com.wx3.cardbattle.game.messages.MessageHandler;
+import com.wx3.cardbattle.server.OutboundMessage;
 import com.wx3.samplegame.events.GameOverEvent;
 
 /**
@@ -51,7 +51,7 @@ import com.wx3.samplegame.events.GameOverEvent;
  * @author Kevin
  *
  */
-public class WebsocketMessageHandler implements IMessageHandler {
+public class WebsocketMessageHandler implements MessageHandler {
 	
 	private Channel channel;
 	
@@ -63,7 +63,7 @@ public class WebsocketMessageHandler implements IMessageHandler {
 		channel.disconnect();
 	}
 	
-	public void handleMessage(GameMessage message) {
+	public void handleMessage(OutboundMessage message) {
 		GsonBuilder builder = new GsonBuilder();
 		builder.registerTypeAdapter(GameEntity.class, new GameEntityJsonSerializer());
 		Gson gson = builder.create();
