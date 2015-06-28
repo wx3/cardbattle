@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.wx3.cardbattle.server;
+package com.wx3.cardbattle.networking;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
