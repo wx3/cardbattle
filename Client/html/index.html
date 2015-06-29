@@ -170,6 +170,13 @@ $(document).ready(function(){
             return null;
         }
 
+        self.getEntityById = function(id) {
+            if(self.entityLookup[id]) {
+                return self.entityLookup[id];
+            }
+            return null;
+        }
+
         var onMessage = function (event) {
             console.log("Received message: ");
             console.log(event.data);
@@ -216,10 +223,12 @@ $(document).ready(function(){
                     consoleMessage("Player " + player.username + " drew a card.");
                     break;
                 case 'PlayCardEvent' :
+                    var cardEntity = self.getEntityById(event.entityId);
                     if (event.targetId > 0) {
-                        consoleMessage("Player " + currentGameState.currentPlayer + " played card with id #" + event.entityId + " on " + event.targetId);
+                        var targetEntity =self.getEntityById(event.targetId);
+                        consoleMessage("Player " + currentGameState.currentPlayer + " played card " + cardEntity.name + " on " + targetEntity.name);
                     } else {
-                        consoleMessage("Player " + currentGameState.currentPlayer + " played card with id #" + event.entityId);
+                        consoleMessage("Player " + currentGameState.currentPlayer + " played card " + cardEntity.name);
                     }
                     break;
                 case 'SummonMinionEvent':
@@ -268,9 +277,11 @@ $(document).ready(function(){
             self.myHand.removeAll();
             self.myBoard.removeAll();
             self.opponentBoard.removeAll();
+            self.entityLookup = {};
             for(var i = 0; i < currentGameState.entities.length; i++) {
                 var e = currentGameState.entities[i];
                 var entity = new Entity(e);
+                self.entityLookup[e.id] = e;
                 if(e.cardId > 0) {
                     card = self.getCardById(e.cardId);
                     if(!card) {
