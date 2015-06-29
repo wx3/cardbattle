@@ -29,6 +29,7 @@ package com.wx3.cardbattle.ai;
 
 import java.util.Collection;
 
+import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
@@ -47,6 +48,7 @@ import com.wx3.samplegame.commands.EndTurnCommand;
 public abstract class GameAI implements MessageHandler {
 	
 	protected GamePlayer player;
+	protected GameInstance<? extends GameEntity> game;
 	
 	protected class CommandSelection {
 		
@@ -65,6 +67,7 @@ public abstract class GameAI implements MessageHandler {
 	
 	public GameAI(GamePlayer player) {
 		this.player = player;
+		this.game = player.getGame();
 	}
 	
 	boolean gameOver() {

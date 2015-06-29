@@ -153,7 +153,7 @@ public final class GamePlayer {
 		command.parse();
 		result = command.validate();
 		if(result.isValid()) {
-			game.handleCommand(command);
+			game.getRuleSystem().handleCommand(command);
 		}
 		return result;
 	}
@@ -162,10 +162,6 @@ public final class GamePlayer {
 		if(messageHandler != null) {
 			messageHandler.handleMessage(message);	
 		} 
-	}
-
-	void handleEvent(GameEvent event) {
-		sendMessage(new EventMessage(event, this));
 	}
 
 	public synchronized void connect(MessageHandler messageHandler) {

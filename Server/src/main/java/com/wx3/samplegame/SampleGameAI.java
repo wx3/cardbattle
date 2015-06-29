@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.wx3.cardbattle.ai.GameAI;
+import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
@@ -77,12 +79,21 @@ public class SampleGameAI extends GameAI {
 				cmd.parse();
 				ValidationResult r2 = cmd.validate();
 				if(r2.isValid()) {
-					CommandSelection selection = new CommandSelection(cmd, Math.random());
+					double value = simulateCommand(cmd);
+					CommandSelection selection = new CommandSelection(cmd, value);
 					choices.add(selection);
 				}
 			}
 		}
 		return choices;
+	}
+	
+	protected double simulateCommand(GameCommand command) {
+		@SuppressWarnings("unchecked")
+		GameInstance<?> gameCopy = new GameInstance(game);
+		SampleGameRules ruleCopy = new SampleGameRules((GameInstance<SampleEntity>) gameCopy);
+		ruleCopy.handleCommand(command, true);
+		return Math.random();
 	}
 
 	@Override

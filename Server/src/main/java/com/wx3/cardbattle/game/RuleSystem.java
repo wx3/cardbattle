@@ -54,6 +54,7 @@ import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.RemoveRulesEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
+import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.samplegame.events.DrawCardEvent;
 import com.wx3.samplegame.events.GameOverEvent;
@@ -346,7 +347,26 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 		logger.info(message);
 	}
 	
-	void processEvents() {
+	public synchronized void handleCommand(GameCommand command) {
+		handleCommand(command, false);
+	}
+	
+	public synchronized void handleCommand(GameCommand command, boolean silent) {
+		command.execute();
+		List<GameEvent> events = processEvents();
+		// If we're doing an AI emulation, we don't want to broadcast the events:
+		if(!silent) {
+			for(GameEvent event : events) {
+				game.broadcastEvent(event);
+			}
+			for(GamePlayer player : game.getPlayers()) {
+				player.sendMessage(GameViewMessage.createMessage(game, player));
+			}
+		}
+	}
+	
+	List<GameEvent> processEvents() {
+		ArrayList<GameEvent> events = new ArrayList<GameEvent>();
 		int i = 0;
 		while(!eventQueue.isEmpty()) {
 			GameEvent event = eventQueue.poll();
@@ -374,12 +394,13 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 				markedForRemoval.clear();
 			}
 			recalculateStats();
-			game.broadcastEvent(event);
+			events.add(event);
 			++i;
 			if(i > MAX_EVENTS) {
 				throw new RuntimeException("Exceeded max events: " + MAX_EVENTS);
 			}
 		}
+		return events;
 	}
 	
 	/**

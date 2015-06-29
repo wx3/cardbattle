@@ -56,6 +56,7 @@ import com.wx3.cardbattle.game.gameevents.EndTurnEvent;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
+import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.game.messages.JoinMessage;
 import com.wx3.cardbattle.game.rules.EntityRule;
@@ -208,7 +209,7 @@ public final class GameInstance<T extends GameEntity> {
 	public void broadcastEvent(GameEvent event) {
 		for(GamePlayer player : players) {
 			if(player != null) {
-				player.handleEvent(event);
+				player.sendMessage(new EventMessage(event, player));
 			}
 		}
 	}
@@ -276,17 +277,6 @@ public final class GameInstance<T extends GameEntity> {
 	
 	boolean removeEntity(GameEntity entity) {
 		return entities.remove(entity);
-	}
-	
-	synchronized void handleCommand(GameCommand command) {
-		if(!this.started) {
-			throw new RuntimeException("Cannot handle command before game is started.");
-		}
-		command.execute();
-		ruleSystem.processEvents();
-		for(GamePlayer player : getPlayers()) {
-			player.sendMessage(GameViewMessage.createMessage(this, player));
-		}
 	}
 	
 }
