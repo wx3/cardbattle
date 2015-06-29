@@ -59,6 +59,7 @@ public abstract class GameServer {
 
 	protected GameDatastore datastore;
 	private Timer taskTimer;
+	
 	private UpdateGamesTask updateTask;
 	private CommandFactory gameFactory;
 	
@@ -92,29 +93,6 @@ public abstract class GameServer {
 	
 	public GameInstance<? extends GameEntity> getGame(long id) {
 		return datastore.getGame(id);
-	}
-	
-	public List<PlayerAuthtoken> createTestGame() {
-		User user1 = datastore.getUser("goodguy");
-		User user2 = datastore.getUser("badguy");
-		
-		if(user1 == null || user2 == null) {
-			throw new RuntimeException("The test users 'goodguy' and 'badguy' don't exist");
-		}
-		
-		List<EntityPrototype> deck = new ArrayList<EntityPrototype>();
-		String cardNames[] = new String[]{"Measley Minion","Zaptastic","Sympathy Collector","Health Buff +3","Strong Minion","Disenchant","Death Ray"};
-		for(String cardName : cardNames) {
-			EntityPrototype card = datastore.getPrototype(cardName);
-			deck.add(card);
-		}
-		
-		GameInstance<? extends GameEntity>  game = newGame(user1,user2);	
-		for(GamePlayer player : game.getPlayers()) {
-			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
-		}
-		game.start();
-		return datastore.getAuthtokens(game.getId());
 	}
 	
 	public GamePlayer authenticate(String token) throws AuthenticationException {

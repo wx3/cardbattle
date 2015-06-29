@@ -117,6 +117,15 @@ public class GameEntity {
 		stats.reset();
 	}
 	
+	protected void copyFromEntity(GameEntity original) {
+		this.prototype = original.prototype;
+		this.id = original.id;
+		this.name = original.name;
+		this.tags = new HashSet<String>(original.tags);
+		this.stats = new EntityStats(original.stats);
+		this.rules = new ArrayList<EntityRule>(original.rules);
+	}
+	
 	/**
 	 * Which player, if any, does this entity below to?
 	 */

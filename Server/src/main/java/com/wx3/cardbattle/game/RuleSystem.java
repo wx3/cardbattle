@@ -225,6 +225,14 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	}
 	
 	/**
+	 * Get all entities in the game.
+	 * @return
+	 */
+	public Collection<T> getEntities() {
+		return game.getEntities();
+	}
+	
+	/**
 	 * Add a rule to an entity by rule name. 
 	 * 
 	 * @param entity	The entity to add the rule to.

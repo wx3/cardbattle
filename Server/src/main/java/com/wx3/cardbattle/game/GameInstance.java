@@ -109,9 +109,27 @@ public final class GameInstance<T extends GameEntity> {
 	private boolean started = false;
 	private boolean stopped = false;
 	private boolean gameOver = false;
-	
+
 	public GameInstance(GameDatastore datastore) {
 		this.datastore = datastore;
+	}
+	
+	public GameInstance(GameInstance<T> original) {
+		this.id = original.id;
+		this.datastore = original.datastore;
+		this.ruleSystem = original.ruleSystem;
+		this.created = original.created;
+		this.entityIdCounter = original.entityIdCounter;
+		this.players = new ArrayList<GamePlayer>(original.players);
+		for(T e : entities) {
+			T newEntity = ruleSystem.createEntityInstance();
+			newEntity.copyFromEntity(e);
+			entities.add(newEntity);
+		}
+		this.eventHistory = new ArrayList<GameEvent>(original.eventHistory);
+		this.started = original.started;
+		this.stopped = original.stopped;
+		this.gameOver = original.gameOver;
 	}
 	
 	public long getId() {

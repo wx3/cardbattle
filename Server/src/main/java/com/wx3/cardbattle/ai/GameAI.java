@@ -29,6 +29,7 @@ package com.wx3.cardbattle.ai;
 
 import java.util.Collection;
 
+import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.messages.GameView;
@@ -43,16 +44,16 @@ import com.wx3.samplegame.commands.EndTurnCommand;
  * @author Kevin
  *
  */
-public abstract class GameAI {
+public abstract class GameAI implements MessageHandler {
 	
 	protected GamePlayer player;
 	
 	protected class CommandSelection {
 		
 		protected GameCommand command;
-		public int value;
+		public double value;
 		
-		public CommandSelection(GameCommand command, int value) {
+		public CommandSelection(GameCommand command, double value) {
 			this.command = command;
 			this.value = value;
 		}
@@ -99,5 +100,11 @@ public abstract class GameAI {
 	protected abstract Collection<CommandSelection> getCommandChoices();
 	
 	protected abstract GameCommand getBestCommand();
+	
+	@Override
+	public void disconnect() {}
+
+	@Override
+	public void handleMessage(OutboundMessage message) {}
 
 }

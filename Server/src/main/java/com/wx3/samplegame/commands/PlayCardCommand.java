@@ -99,12 +99,12 @@ public class PlayCardCommand extends SampleGameCommand {
 			result.addError("Player has no entity.");
 			return result;
 		}
+		if(cardEntity == null) {
+			result.addError("Card entity not found.");
+			return result;
+		}
 		if(playerEntity.getEnergy() < cardEntity.getCost()) {
 			result.addError("Insufficient energy.");
-		}
-		if(cardEntity == null) {
-			result.addError("Entity not found.");
-			return result;
 		}
 		if(cardEntity.getOwner() != getPlayer()) {
 			result.addError("Not your entity.");

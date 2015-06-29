@@ -33,7 +33,10 @@ import java.util.Collection;
 import com.wx3.cardbattle.ai.GameAI;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
+import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.cardbattle.server.OutboundMessage;
 import com.wx3.samplegame.commands.EndTurnCommand;
+import com.wx3.samplegame.commands.PlayCardCommand;
 
 /**
  * @author Kevin
@@ -58,13 +61,34 @@ public class SampleGameAI extends GameAI {
 	@Override
 	protected Collection<CommandSelection> getCommandChoices() {
 		Collection<CommandSelection> choices = new ArrayList<CommandSelection>();
+		Collection<SampleEntity> hand = rules.getPlayerHand(player);
+		Collection<SampleEntity> entities = rules.getEntities();
+		for(SampleEntity card : hand) {
+			PlayCardCommand cmdNull = new PlayCardCommand(card.getId(), 0);
+			cmdNull.setPlayer(player);
+			ValidationResult r1 = cmdNull.validate();
+			if(r1.isValid()) {
+				CommandSelection selection = new CommandSelection(cmdNull, Math.random());
+				choices.add(selection);
+			}
+			for(SampleEntity e : entities) {
+				PlayCardCommand cmd = new PlayCardCommand(card.getId(), e.getId());
+				cmd.setPlayer(player);
+				cmd.parse();
+				ValidationResult r2 = cmd.validate();
+				if(r2.isValid()) {
+					CommandSelection selection = new CommandSelection(cmd, Math.random());
+					choices.add(selection);
+				}
+			}
+		}
 		return choices;
 	}
 
 	@Override
 	protected GameCommand getBestCommand() {
 		GameCommand choice;
-		int bestVal = -1;
+		double bestVal = -1;
 		CommandSelection best = null;
 		for(CommandSelection selection : getCommandChoices()) {
 			if(selection.value > bestVal) {

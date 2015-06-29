@@ -103,17 +103,19 @@ public final class AIManager {
 			if(ai.gameOver()) {
 				iter.remove();
 			} else {
+				ai.update();
+				/*
 				try {
-					ai.update();	
+						
 				} catch (Exception ex) {
 					logger.error("AI threw exception, removing: " + ex.getCause());
 					iter.remove();
-				}
+				}*/
 				++i;
 			}
 		}
 		long finish = System.nanoTime();
 		double duration = (finish - start) / 1e9;
-		logger.info("Updated " + i + " ais in " + duration + " seconds");
+		//logger.info("Updated " + i + " ais in " + duration + " seconds");
 	}
 }

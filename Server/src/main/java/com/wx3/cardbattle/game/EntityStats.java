@@ -44,6 +44,14 @@ public final class EntityStats {
 	@Transient
 	private Map<String, Integer> currentValues = new HashMap<String,Integer>();
 	
+	public EntityStats(){}
+	
+	// Copy constructor:
+	public EntityStats(EntityStats original) {
+		this.baseValues = new HashMap<String,Integer>(original.baseValues);
+		reset();
+	}
+	
 	public int getValue(String stat) {
 		if(currentValues.containsKey(stat)) {
 			return currentValues.get(stat);

@@ -27,19 +27,22 @@
  */
 package com.wx3.samplegame;
 
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.wx3.cardbattle.ai.AIManager;
+import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.CommandFactory;
+import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
+import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.server.GameServer;
 import com.wx3.cardbattle.server.MessageHandler;
 
@@ -48,13 +51,23 @@ import com.wx3.cardbattle.server.MessageHandler;
  *
  */
 public class SampleGameServer extends GameServer {
-
+	
+	private AIManager aimanager;
+	
 	/**
 	 * @param datastore
 	 * @param gameFactory
 	 */
 	public SampleGameServer(GameDatastore datastore, CommandFactory gameFactory) {
 		super(datastore, gameFactory);
+	}
+	
+	@Override
+	public void start() {
+		super.start();
+		// Create a new AI manager that updates every 1 second:
+		aimanager = new AIManager(1);
+		aimanager.start();
 	}
 
 	@Override
@@ -84,10 +97,42 @@ public class SampleGameServer extends GameServer {
     	for(PlayerAuthtoken token : authtokens) {
     		playerTokens.put(token.getPlayer().getUsername(), token.getAuthtoken());
     	}
+    	String p2Token = playerTokens.get("badguy");
+    	try {
+			GamePlayer p2 = datastore.authenticate(p2Token);
+			SampleGameAI ai = new SampleGameAI(p2);
+			p2.connect(ai);
+			aimanager.registerAI(ai);
+		} catch (AuthenticationException e) {
+			e.printStackTrace();
+		}
+    	
     	CreateTestGameResultMessage message = new CreateTestGameResultMessage(playerTokens);
     	messageHandler.handleMessage(message);
 	}
 	
+	public List<PlayerAuthtoken> createTestGame() {
+		User user1 = datastore.getUser("goodguy");
+		User user2 = datastore.getUser("badguy");
+		
+		if(user1 == null || user2 == null) {
+			throw new RuntimeException("The test users 'goodguy' and 'badguy' don't exist");
+		}
+		
+		List<EntityPrototype> deck = new ArrayList<EntityPrototype>();
+		String cardNames[] = new String[]{"Measley Minion","Zaptastic","Sympathy Collector","Health Buff +3","Strong Minion","Disenchant","Death Ray"};
+		for(String cardName : cardNames) {
+			EntityPrototype card = datastore.getPrototype(cardName);
+			deck.add(card);
+		}
+		
+		GameInstance<? extends GameEntity>  game = newGame(user1,user2);	
+		for(GamePlayer player : game.getPlayers()) {
+			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
+		}
+		game.start();
+		return datastore.getAuthtokens(game.getId());
+	}
 	
-
+	
 }

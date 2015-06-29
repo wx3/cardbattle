@@ -89,7 +89,7 @@ public final class GamePlayer {
 	private List<EntityPrototype> playerDeck = new ArrayList<EntityPrototype>();
 	
 	@Transient
-	private GameInstance game;
+	private GameInstance<? extends GameEntity> game;
 	
 	@Transient
 	private GameEntity playerEntity;
@@ -130,11 +130,11 @@ public final class GamePlayer {
 		this.position = position;
 	}
 	
-	public GameInstance getGame() {
+	public GameInstance<? extends GameEntity> getGame() {
 		return game;
 	}
 
-	void setGame(GameInstance game) {
+	void setGame(GameInstance<? extends GameEntity> game) {
 		this.game = game;
 		this.gameId = game.getId();
 	}
@@ -149,7 +149,6 @@ public final class GamePlayer {
 	
 	public ValidationResult handleCommand(GameCommand command) {
 		command.setPlayer(this);
-		CommandResponseMessage resp;
 		ValidationResult result;
 		command.parse();
 		result = command.validate();
