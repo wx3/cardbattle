@@ -413,9 +413,10 @@ $(document).ready(function(){
 
     var handleTestGame = function(msg) {
         console.log("Test game created, authenticating...");
-        var json = JSON.parse(msg.data)
-        var goodguytoken = json.goodguy;
-        var badguytoken = json.badguy;
+        var json = JSON.parse(msg.data);
+        console.log(json);
+        var goodguytoken = json.playerTokens.goodguy;
+        var badguytoken = json.playerTokens.badguy;
         client1.authenticate(goodguytoken);
         client2.authenticate(badguytoken);
     }

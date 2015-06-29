@@ -27,11 +27,21 @@
  */
 package com.wx3.samplegame;
 
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.wx3.cardbattle.datastore.GameDatastore;
+import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.CommandFactory;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.server.GameServer;
+import com.wx3.cardbattle.server.MessageHandler;
 
 /**
  * @author Kevin
@@ -55,5 +65,29 @@ public class SampleGameServer extends GameServer {
 		rules.addGlobalRules();
 		return game;
 	}
+	
+	@Override
+	public void handleJsonCommand(JsonObject json, MessageHandler messageHandler) {
+		String commandName = json.get("command").getAsString();
+		switch(commandName) {
+	    	case "testgame":
+	    		handleTestGame(json, messageHandler);
+	    		break;
+	    	default:
+	    		throw new RuntimeException("Unknown command '" + commandName + "'");
+		}
+	}
+
+	private void handleTestGame(JsonObject json, MessageHandler messageHandler) {
+		List<PlayerAuthtoken> authtokens = createTestGame();
+    	Map<String, String> playerTokens = new HashMap<String,String>();
+    	for(PlayerAuthtoken token : authtokens) {
+    		playerTokens.put(token.getPlayer().getUsername(), token.getAuthtoken());
+    	}
+    	CreateTestGameResultMessage message = new CreateTestGameResultMessage(playerTokens);
+    	messageHandler.handleMessage(message);
+	}
+	
+	
 
 }

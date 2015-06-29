@@ -121,8 +121,6 @@ public abstract class GameServer {
 		return datastore.authenticate(token);
 	}
 	
-	public void handleJsonCommand(JsonObject json) {
-		
-	}
+	public void handleJsonCommand(JsonObject json, MessageHandler messageHandler) {}
 	
 }

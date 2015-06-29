@@ -70,6 +70,7 @@ import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
+import com.wx3.cardbattle.server.GameServer;
 
 /**
  * A simple webserver that listens for websocket upgrade requests, sending
@@ -172,7 +173,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<Object> {
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
             } else {
                 handshaker.handshake(ctx.channel(), req);
-                ctx.channel().pipeline().replace(HttpHandler.class, "MessageHandler", new WebsocketInitialHandler(server, handshaker));
+                ctx.channel().pipeline().replace(HttpHandler.class, "MessageHandler", new WebsocketHandler(ctx.channel(), server.getGameServer()));
             }
         } else {
         	sendHttpResponse(ctx, req, webpage);

@@ -49,7 +49,7 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 import com.wx3.cardbattle.game.messages.EventMessage;
 import com.wx3.cardbattle.game.messages.GameViewMessage;
-import com.wx3.cardbattle.game.messages.MessageHandler;
+import com.wx3.cardbattle.server.MessageHandler;
 import com.wx3.cardbattle.server.OutboundMessage;
 import com.wx3.samplegame.SampleGameRules;
 

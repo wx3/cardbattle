@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.wx3.cardbattle.game.messages.MessageHandler;
+import com.wx3.cardbattle.server.MessageHandler;
 import com.wx3.cardbattle.server.OutboundMessage;
 
 /**
