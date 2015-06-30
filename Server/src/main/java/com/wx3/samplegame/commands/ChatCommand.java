@@ -21,7 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.commands;
+package com.wx3.samplegame.commands;
+
 
 /**
  * Tells the game that we want to say something to the 
@@ -30,7 +31,7 @@ package com.wx3.cardbattle.game.commands;
  * @author Kevin
  *
  */
-public final class ChatCommand extends GameCommand {
+public final class ChatCommand extends SampleGameCommand {
 	
 	private String message;
 	
