@@ -122,7 +122,7 @@ public final class GameInstance<T extends GameEntity> {
 		this.created = original.created;
 		this.entityIdCounter = original.entityIdCounter;
 		this.players = new ArrayList<GamePlayer>(original.players);
-		for(T e : entities) {
+		for(T e : original.entities) {
 			T newEntity = ruleSystem.createEntityInstance();
 			newEntity.copyFromEntity(e);
 			entities.add(newEntity);
