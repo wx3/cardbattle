@@ -206,11 +206,15 @@ public class GameEntity {
 		return hasTag(RuleSystem.IN_PLAY);
 	}
 	
-	public void remove() {
+	/**
+	 * Entities marked for removal are removed <b>after</b> the current event has finished
+	 * being processed.
+	 */
+	void remove() {
 		removed = true;
 	}
 	
-	public boolean isRemoved() {
+	boolean isRemoved() {
 		return removed;
 	}
 	
