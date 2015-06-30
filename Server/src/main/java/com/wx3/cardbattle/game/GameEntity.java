@@ -63,7 +63,7 @@ public class GameEntity {
 
 	private EntityPrototype prototype;
 	
-	private GamePlayer owner;
+	private String owner;
 	
 	private Set<String> tags = new HashSet<String>();
 	EntityStats stats = new EntityStats();
@@ -123,6 +123,7 @@ public class GameEntity {
 		this.prototype = original.prototype;
 		this.id = original.id;
 		this.name = original.name;
+		this.owner = original.owner;
 		this.tags = new HashSet<String>(original.tags);
 		this.stats = new EntityStats(original.stats);
 		this.rules = new ArrayList<EntityRule>(original.rules);
@@ -131,12 +132,12 @@ public class GameEntity {
 	/**
 	 * Which player, if any, does this entity below to?
 	 */
-	public GamePlayer getOwner() {
+	public String getOwner() {
 		return owner;
 	}
 
 	public void setOwner(GamePlayer owner) {
-		this.owner = owner;
+		this.owner = owner.getUsername();
 	}
 	
 	public Collection<String> getTags() {
@@ -229,7 +230,7 @@ public class GameEntity {
 		GameEntityView view = new GameEntityView();
 		view.id = id;
 		if(getOwner() != null) {
-			view.ownerName = getOwner().getUsername();
+			view.ownerName = getOwner();
 		}
 		view.visible = true;
 		view.name = name;

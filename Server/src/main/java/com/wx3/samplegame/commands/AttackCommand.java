@@ -86,7 +86,7 @@ public class AttackCommand extends SampleGameCommand {
 		if(attacker == null) {
 			result.addError("Attacker not found.");
 		} else {
-			if(attacker.getOwner() != getPlayer()) {
+			if(attacker.getOwner() != getPlayer().getUsername()) {
 				result.addError("Not your entity to attack with.");
 			}
 			if(!attacker.isInPlay()) {

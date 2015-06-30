@@ -121,7 +121,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	
 	public List<SampleEntity> getPlayerHand(GamePlayer player) {
 		List<SampleEntity> hand = game.getEntities().stream().filter(
-				e -> e.getOwner() == player && e.hasTag(IN_HAND)
+				e -> e.getOwner() == player.getUsername() && e.hasTag(IN_HAND)
 				).collect(Collectors.toList());
 		return hand;
 	}
@@ -135,7 +135,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	public SampleEntity getPlayerEntity(GamePlayer player) {
 		// There should be at most one:
 		return game.getEntities().stream().filter(
-				e -> e.getOwner() == player && e.hasTag(SampleGameRules.PLAYER)).findFirst().orElse(null);
+				e -> e.getOwner() == player.getUsername() && e.hasTag(SampleGameRules.PLAYER)).findFirst().orElse(null);
 	}
 	
 	

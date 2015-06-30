@@ -115,7 +115,7 @@ public class SampleEntity extends GameEntity {
 		GameEntityView view = new GameEntityView();
 		view.id = getId();
 		if(getOwner() != null) {
-			view.ownerName = getOwner().getUsername();
+			view.ownerName = getOwner();
 		}
 		view.visible = true;
 		view.name = name;
@@ -124,7 +124,7 @@ public class SampleEntity extends GameEntity {
 		}
 		// If the entity is in the opponent's hand, hide all stats 
 		// and tags except IN_HAND:
-		if(this.isInHand() && (getOwner() != player)) {
+		if(this.isInHand() && (getOwner() != player.getUsername())) {
 			view.stats = new HashMap<String, Integer>();
 			view.vars = new HashMap<String, Integer>();
 			view.tags = new HashSet<String>();
