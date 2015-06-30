@@ -70,6 +70,8 @@ public class GameEntity {
 	private Map<String, Integer> vars = new HashMap<String,Integer>();
 	private List<EntityRule> rules = new ArrayList<EntityRule>();
 	
+	private boolean removed;
+	
 	public GameEntity(){}
 	
 	void setId(int id) {
@@ -202,6 +204,14 @@ public class GameEntity {
 	
 	public boolean isInPlay() {
 		return hasTag(RuleSystem.IN_PLAY);
+	}
+	
+	public void remove() {
+		removed = true;
+	}
+	
+	public boolean isRemoved() {
+		return removed;
 	}
 	
 	/**

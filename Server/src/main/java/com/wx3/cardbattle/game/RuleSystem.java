@@ -96,7 +96,6 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	
 	private CommandFactory commandFactory;
 	private Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
-	private Set<GameEntity> markedForRemoval = new HashSet<GameEntity>();
 
 	/**
 	 * Don't allow scripts to access general Java classes.
@@ -333,7 +332,7 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	 */
 
 	public void removeEntity(T entity) {
-		markedForRemoval.add(entity);
+		entity.remove();
 	}
 	
 	/**
@@ -383,15 +382,12 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 			}
 			// Try to remove any entities marked for removal after 
 			// each event is processed:
-			if(!markedForRemoval.isEmpty()) {
-				for(GameEntity entity : markedForRemoval) {
-					logger.info("Removing " + entity);
-					entity.clearTag(IN_PLAY);
+			for(GameEntity entity : entityList) {
+				if(entity.isRemoved()) {
 					if(!game.removeEntity(entity)) {
 						logger.warn("Failed to find " + entity + " for removal");
 					}
 				}
-				markedForRemoval.clear();
 			}
 			recalculateStats();
 			events.add(event);
