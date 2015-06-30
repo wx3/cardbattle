@@ -347,21 +347,15 @@ public abstract class RuleSystem<T extends GameEntity> implements CommandFactory
 	}
 	
 	public synchronized void handleCommand(GameCommand command) {
-		handleCommand(command, false);
-	}
-	
-	public synchronized void handleCommand(GameCommand command, boolean silent) {
 		command.execute();
 		List<GameEvent> events = processEvents();
-		// If we're doing an AI emulation, we don't want to broadcast the events:
-		if(!silent) {
-			for(GameEvent event : events) {
-				game.broadcastEvent(event);
-			}
-			for(GamePlayer player : game.getPlayers()) {
-				player.sendMessage(GameViewMessage.createMessage(game, player));
-			}
+		for(GameEvent event : events) {
+			game.broadcastEvent(event);
 		}
+		for(GamePlayer player : game.getPlayers()) {
+			player.sendMessage(GameViewMessage.createMessage(game, player));
+		}
+		
 	}
 	
 	List<GameEvent> processEvents() {

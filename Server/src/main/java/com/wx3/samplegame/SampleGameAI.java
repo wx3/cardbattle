@@ -92,7 +92,7 @@ public class SampleGameAI extends GameAI {
 		@SuppressWarnings("unchecked")
 		GameInstance<?> gameCopy = new GameInstance(game);
 		SampleGameRules ruleCopy = new SampleGameRules((GameInstance<SampleEntity>) gameCopy);
-		ruleCopy.handleCommand(command, true);
+		ruleCopy.handleCommand(command);
 		return Math.random();
 	}
 
