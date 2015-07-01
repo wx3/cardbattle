@@ -66,16 +66,14 @@ public class SampleGameServer extends GameServer {
 	public void start() {
 		super.start();
 		// Create a new AI manager that updates every 1 second:
-		aimanager = new AIManager(1);
-		aimanager.start();
+		//aimanager = new AIManager(1);
+		//aimanager.start();
 	}
 
 	@Override
-	public GameInstance<? extends GameEntity> createGame() {
-		GameInstance<SampleEntity> game = new GameInstance<SampleEntity>(datastore); 
-		SampleGameRules rules = new SampleGameRules(game);
-		game.setRuleSystem(rules);
-		rules.addGlobalRules();
+	protected GameInstance<? extends GameEntity> createGame(long id) {
+		SampleGameInstance game = new SampleGameInstance(datastore, id); 
+		game.addGlobalRules();
 		return game;
 	}
 	
@@ -95,14 +93,14 @@ public class SampleGameServer extends GameServer {
 		List<PlayerAuthtoken> authtokens = createTestGame();
     	Map<String, String> playerTokens = new HashMap<String,String>();
     	for(PlayerAuthtoken token : authtokens) {
-    		playerTokens.put(token.getPlayer().getUsername(), token.getAuthtoken());
+    		playerTokens.put(token.getPlayerName(), token.getAuthtoken());
     	}
     	String p2Token = playerTokens.get("badguy");
     	try {
-			GamePlayer p2 = datastore.authenticate(p2Token);
+			GamePlayer p2 = authenticate(p2Token);
 			SampleGameAI ai = new SampleGameAI(p2);
 			p2.connect(ai);
-			aimanager.registerAI(ai);
+			//aimanager.registerAI(ai);
 		} catch (AuthenticationException e) {
 			e.printStackTrace();
 		}

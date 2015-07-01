@@ -46,23 +46,19 @@ import com.wx3.samplegame.commands.PlayCardCommand;
  */
 public class SampleGameAI extends GameAI {
 	
-	SampleGameRules rules;
 
 	/**
 	 * @param player
 	 */
 	public SampleGameAI(GamePlayer player) {
 		super(player);
-		if(player.getGame().getRuleSystem() instanceof SampleGameRules) {
-			rules = (SampleGameRules) player.getGame().getRuleSystem();
-		} else {
-			throw new RuntimeException("Wrong rule system");
-		}
+		
 	}
 
 	@Override
 	protected Collection<CommandSelection> getCommandChoices() {
 		Collection<CommandSelection> choices = new ArrayList<CommandSelection>();
+		/*
 		Collection<SampleEntity> hand = rules.getPlayerHand(player);
 		Collection<SampleEntity> entities = rules.getEntities();
 		for(SampleEntity card : hand) {
@@ -85,14 +81,17 @@ public class SampleGameAI extends GameAI {
 				}
 			}
 		}
+		*/
 		return choices;
 	}
 	
 	protected double simulateCommand(GameCommand command) {
+		/*
 		@SuppressWarnings("unchecked")
 		GameInstance<?> gameCopy = new GameInstance(game);
 		SampleGameRules ruleCopy = new SampleGameRules((GameInstance<SampleEntity>) gameCopy);
 		ruleCopy.handleCommand(command);
+		*/
 		return Math.random();
 	}
 

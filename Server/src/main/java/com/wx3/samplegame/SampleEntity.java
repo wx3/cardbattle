@@ -56,7 +56,7 @@ public class SampleEntity extends GameEntity {
 	 * @return
 	 */
 	public int getCost() {
-		return getStat(SampleGameRules.COST);
+		return getStat(SampleGameInstance.COST);
 	}
 	
 	/**
@@ -66,43 +66,43 @@ public class SampleEntity extends GameEntity {
 	 * @return
 	 */
 	public int getEnergy() {
-		return getStat(SampleGameRules.ENERGY_PER_TURN) - getVar(SampleGameRules.ENERGY_SPENT);
+		return getStat(SampleGameInstance.ENERGY_PER_TURN) - getVar(SampleGameInstance.ENERGY_SPENT);
 	}
 	
 	public int getCurrentHealth() {
-		return getVar(SampleGameRules.CURRENT_HEALTH);
+		return getVar(SampleGameInstance.CURRENT_HEALTH);
 	}
 	
 	void setCurrentHealth(int health) {
-		setVar(SampleGameRules.CURRENT_HEALTH, health);
+		setVar(SampleGameInstance.CURRENT_HEALTH, health);
 	}
 	
 	public int getMaxHealth() {
-		return getStat(SampleGameRules.MAX_HEALTH);
+		return getStat(SampleGameInstance.MAX_HEALTH);
 	}
 	
 	public void resetAttacks() {
-		setVar(SampleGameRules.ATTACKS_REMAINING, getAttacksPerTurn());
+		setVar(SampleGameInstance.ATTACKS_REMAINING, getAttacksPerTurn());
 	}
 	
 	public int getAttacksPerTurn() {
-		return getStat(SampleGameRules.ATTACKS_PER_TURN);
+		return getStat(SampleGameInstance.ATTACKS_PER_TURN);
 	}
 	
 	public int getAttacksRemaining() {
-		return getVar(SampleGameRules.ATTACKS_REMAINING);
+		return getVar(SampleGameInstance.ATTACKS_REMAINING);
 	}
 	
 	public void setAttacksRemaining(int val) {
-		setVar(SampleGameRules.ATTACKS_REMAINING, val);
+		setVar(SampleGameInstance.ATTACKS_REMAINING, val);
 	}
 	
 	public boolean isInHand() {
-		return hasTag(SampleGameRules.IN_HAND);
+		return hasTag(SampleGameInstance.IN_HAND);
 	}
 	
 	public boolean isMinion() {
-		return hasTag(SampleGameRules.MINION);
+		return hasTag(SampleGameInstance.MINION);
 	}
 	
 	/**
@@ -128,7 +128,7 @@ public class SampleEntity extends GameEntity {
 			view.stats = new HashMap<String, Integer>();
 			view.vars = new HashMap<String, Integer>();
 			view.tags = new HashSet<String>();
-			view.tags.add(SampleGameRules.IN_HAND);
+			view.tags.add(SampleGameInstance.IN_HAND);
 		} else {
 			view.tags = new HashSet<String>(getTags());
 			view.stats = getCurrentStats();

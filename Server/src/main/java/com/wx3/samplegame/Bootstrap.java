@@ -127,25 +127,25 @@ public class Bootstrap {
 			String description = record.get("description");
 			Set<String> tags = new HashSet<String>();
 			Map<String, Integer> stats = new HashMap<String,Integer>();
-			if(record.get(SampleGameRules.MINION).equals("Y")) {
-				tags.add(SampleGameRules.MINION);
+			if(record.get(SampleGameInstance.MINION).equals("Y")) {
+				tags.add(SampleGameInstance.MINION);
 			}
-			if(record.get(SampleGameRules.SPELL).equals("Y")) {
-				tags.add(SampleGameRules.SPELL);
+			if(record.get(SampleGameInstance.SPELL).equals("Y")) {
+				tags.add(SampleGameInstance.SPELL);
 			}
-			int cost = parseIntOrZero(record.get(SampleGameRules.COST));
+			int cost = parseIntOrZero(record.get(SampleGameInstance.COST));
 			if(cost > 0) {
-				stats.put(SampleGameRules.COST, cost);
+				stats.put(SampleGameInstance.COST, cost);
 			}
-			int maxHealth = parseIntOrZero(record.get(SampleGameRules.MAX_HEALTH));
+			int maxHealth = parseIntOrZero(record.get(SampleGameInstance.MAX_HEALTH));
 			if(maxHealth > 0) {
-				stats.put(SampleGameRules.MAX_HEALTH, maxHealth);
+				stats.put(SampleGameInstance.MAX_HEALTH, maxHealth);
 			}
-			int attack = parseIntOrZero(record.get(SampleGameRules.ATTACK));
+			int attack = parseIntOrZero(record.get(SampleGameInstance.ATTACK));
 			if(attack > 0) {
-				stats.put(SampleGameRules.ATTACK, attack);
+				stats.put(SampleGameInstance.ATTACK, attack);
 				// Give all minions 1 attack per turn:
-				stats.put(SampleGameRules.ATTACKS_PER_TURN, 1);
+				stats.put(SampleGameInstance.ATTACKS_PER_TURN, 1);
 			}
 			List<EntityRule> rules = new ArrayList<EntityRule>();
 			String ruleField = record.get("rules");

@@ -36,12 +36,12 @@ import com.wx3.cardbattle.game.gameevents.GameEvent;
 public final class DrawCardEvent extends GameEvent {
 
 	@SuppressWarnings("unused")
-	private long playerId;
+	private String playerName;
 	@SuppressWarnings("unused")
 	private int entityId;
 
 	public DrawCardEvent(GamePlayer player, GameEntity entity, GameEntity cause) {
-		this.playerId = player.getId();
+		this.playerName = player.getUsername();
 		this.entityId = entity.getId();
 		if(cause != null) {
 			this.cause = cause;

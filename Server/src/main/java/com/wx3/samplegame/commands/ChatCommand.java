@@ -39,7 +39,7 @@ public final class ChatCommand extends SampleGameCommand {
 	
 	@Override
 	public void execute() {
-		player.getGame().getRuleSystem().chat(player, message);
+		game.chat(player, message);
 	}
 
 	public String getMessage() {

@@ -25,7 +25,6 @@ package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -45,13 +44,8 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.cardbattle.game.gameevents.GameEvent;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
-import com.wx3.cardbattle.game.messages.EventMessage;
-import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.server.MessageHandler;
 import com.wx3.cardbattle.server.OutboundMessage;
-import com.wx3.samplegame.SampleGameRules;
 
 /**
  * A GamePlayer is a player in a particular game (as opposed to a 
@@ -153,7 +147,7 @@ public final class GamePlayer {
 		command.parse();
 		result = command.validate();
 		if(result.isValid()) {
-			game.getRuleSystem().handleCommand(command);
+			game.handleCommand(command);
 		}
 		return result;
 	}

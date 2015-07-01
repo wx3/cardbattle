@@ -28,13 +28,10 @@ import javax.persistence.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wx3.cardbattle.game.EntityStats;
 import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GameInstance;
-import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.samplegame.SampleEntity;
-import com.wx3.samplegame.SampleGameRules;
+import com.wx3.samplegame.SampleGameInstance;
 
 /**
  * Tell the game to attack a particular target with with a particular attacker.
@@ -70,8 +67,8 @@ public class AttackCommand extends SampleGameCommand {
 	
 	@Override 
 	public void parse() {
-		attacker = rules.getEntity(attackerId);
-		target = rules.getEntity(targetId);
+		attacker = game.getEntity(attackerId);
+		target = game.getEntity(targetId);
 	}
 	
 	/**
@@ -92,7 +89,7 @@ public class AttackCommand extends SampleGameCommand {
 			if(!attacker.isInPlay()) {
 				result.addError("Attacker not in play.");
 			}
-			if(attacker.getStat(SampleGameRules.ATTACK) <= 0) {
+			if(attacker.getStat(SampleGameInstance.ATTACK) <= 0) {
 				result.addError("Attacker has no attack.");
 			}
 			if(attacker.getAttacksRemaining() <= 0) {
@@ -114,7 +111,7 @@ public class AttackCommand extends SampleGameCommand {
 
 	@Override
 	public void execute() {
-		rules.attack(attacker, target);
+		game.attack(attacker, target);
 	}
 
 }

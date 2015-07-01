@@ -36,12 +36,12 @@ import javax.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.RuleException;
-import com.wx3.cardbattle.game.RuleSystem;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
@@ -58,16 +58,9 @@ import com.wx3.samplegame.events.SummonMinionEvent;
  * @author Kevin
  *
  */
-public class SampleGameRules extends RuleSystem<SampleEntity> {
+public class SampleGameInstance extends GameInstance<SampleEntity> {
 	
-	/**
-	 * @param game
-	 */
-	public SampleGameRules(GameInstance<SampleEntity> game) {
-		super(game);
-	}
-
-	private transient final Logger logger = LoggerFactory.getLogger(SampleGameRules.class);
+	private transient final Logger logger = LoggerFactory.getLogger(SampleGameInstance.class);
 	
 	// Our stats:
 	
@@ -92,6 +85,23 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	public static final String CURRENT_HEALTH = "CURRENT_HEALTH";
 	public static final String ATTACKS_REMAINING = "ATTACKS_REMAINING";
 	
+
+	public SampleGameInstance(GameDatastore datastore, long id) {
+		super(datastore, id);
+	}
+	
+	/**
+	 * @param original
+	 */
+	public SampleGameInstance(GameInstance<SampleEntity> original) {
+		super(original);
+	}
+
+	@Override
+	protected SampleEntity createEntityInstance() {
+		return new SampleEntity();
+	}
+	
 	void addGlobalRules() {
 		List<EntityRule> rules = new ArrayList<EntityRule>();
 		EntityRule gameOverRule = EntityRule.createRule(KilledEvent.class, "if(event.getEntity().hasTag('PLAYER')){rules.gameOver()}", "GAME_OVER", "Detects end of game on player death.");
@@ -100,15 +110,13 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	}
 	
 	@Override
-	protected SampleEntity createEntityInstance() {
-		return new SampleEntity();
-	}
-	
-	@Override
 	protected void startTurn() {
+		if(getCurrentPlayer() == null) {
+			throw new RuntimeException("Current player is null");
+		}
 		super.startTurn();
 		// At the start of every turn, set an entity's attacks remaining = max attacks.
-		for(SampleEntity entity : game.getEntities()) {
+		for(SampleEntity entity : getEntities()) {
 			entity.resetAttacks();
 		}
 		// Reset the player's energy spent:
@@ -120,7 +128,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	}
 	
 	public List<SampleEntity> getPlayerHand(GamePlayer player) {
-		List<SampleEntity> hand = game.getEntities().stream().filter(
+		List<SampleEntity> hand = entities.stream().filter(
 				e -> e.getOwner() == player.getUsername() && e.hasTag(IN_HAND)
 				).collect(Collectors.toList());
 		return hand;
@@ -134,17 +142,18 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	 */
 	public SampleEntity getPlayerEntity(GamePlayer player) {
 		// There should be at most one:
-		return game.getEntities().stream().filter(
-				e -> e.getOwner() == player.getUsername() && e.hasTag(SampleGameRules.PLAYER)).findFirst().orElse(null);
+		return entities.stream().filter(
+				e -> e.getOwner() == player.getUsername() && e.hasTag(PLAYER)).findFirst().orElse(null);
 	}
 	
 	
 	@Override
 	public void addPlayer(GamePlayer player) {
+		super.addPlayer(player);
 		GameEntity playerEntity = spawnEntity();
 		playerEntity.name = player.getUsername();
-		playerEntity.setTag(SampleGameRules.PLAYER);
-		playerEntity.setTag(SampleGameRules.IN_PLAY);
+		playerEntity.setTag(PLAYER);
+		playerEntity.setTag(IN_PLAY);
 		
 		playerEntity.setBaseStat(MAX_HEALTH, 100);
 		playerEntity.setVar(CURRENT_HEALTH, playerEntity.getStat(MAX_HEALTH));
@@ -203,7 +212,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		String msg = "Playing " + cardEntity;
 		if(targetEntity != null) msg += " on " + targetEntity;
 		logger.info(msg);
-		cardEntity.setTag(SampleGameRules.IN_PLAY);
+		cardEntity.setTag(IN_PLAY);
 		cardEntity.clearTag(IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
 		addEvent(event);
@@ -211,7 +220,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 			addEvent(new SummonMinionEvent(cardEntity));
 		}
 		else {
-			removeEntity(cardEntity);
+			cardEntity.remove();
 		}
 	}
 	
@@ -300,7 +309,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 	public void gameOver() {
 		super.gameOver();
 		GamePlayer winner = null;
-		for(GamePlayer player : game.getPlayers()) {
+		for(GamePlayer player : players) {
 			SampleEntity entity = getPlayerEntity(player);
 			if(entity != null && entity.getCurrentHealth() > 0) {
 				winner = player;
@@ -339,7 +348,7 @@ public class SampleGameRules extends RuleSystem<SampleEntity> {
 		super.recalculateStats();
 		// Finally, make sure no entity has a health greater than its max health
 		// (this could happen as a result of losing a buff for example):
-		for(SampleEntity entity : game.getEntities()) {
+		for(SampleEntity entity : entities) {
 			if(entity.getCurrentHealth() > entity.getMaxHealth()) {
 				entity.setCurrentHealth(entity.getMaxHealth());
 			}

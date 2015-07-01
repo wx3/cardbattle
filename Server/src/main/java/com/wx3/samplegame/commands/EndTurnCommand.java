@@ -34,7 +34,7 @@ public class EndTurnCommand extends SampleGameCommand {
 
 	@Override
 	public void execute() {
-		player.getGame().getRuleSystem().endTurn();
+		game.endTurn();
 	}
 
 }

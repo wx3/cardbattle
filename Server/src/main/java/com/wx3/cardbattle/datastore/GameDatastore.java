@@ -35,6 +35,7 @@ import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
+import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 
 /**
  * The Datastore stores persistent data that needs to be available outside of 
@@ -69,26 +70,21 @@ public interface GameDatastore {
 	public abstract void createValidator(PlayValidator pv);
 
 	public abstract void createRule(EntityRule rule);
-
-	public abstract void saveNewGame(GameInstance<? extends GameEntity> game);
 	
-	public abstract void removeGame(long gameId);
-
+	public abstract GameRecord newGameRecord();
+	
+	public abstract PlayerAuthtoken newAuthToken(GamePlayer player, GameRecord gameRecord); 
+	
 	public abstract List<PlayerAuthtoken> getAuthtokens(long gameId);
 	
-	public abstract Collection<GameInstance<? extends GameEntity>> getGames();
-
-	public abstract GameInstance<? extends GameEntity> getGame(long id);
-
 	public abstract void createPrototype(EntityPrototype card);
 
 	/**
-	 * Find the GamePlayer with the corresponding authentication token
+	 * Find the PlayerAuthtoken with the corresponding token string
 	 * @param token
 	 * @return
 	 * @throws AuthenticationException 
 	 */
-	public abstract GamePlayer authenticate(String token)
-			throws AuthenticationException;
+	public abstract PlayerAuthtoken authenticate(String token);
 
 }

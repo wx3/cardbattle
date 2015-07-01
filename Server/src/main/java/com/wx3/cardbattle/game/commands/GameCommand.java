@@ -27,8 +27,6 @@ import javax.persistence.Transient;
 
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
-import com.wx3.cardbattle.game.RuleSystem;
-import com.wx3.cardbattle.game.messages.CommandResponseMessage;
 
 /**
  * A GameCommand is how a player communicates actions to the game:

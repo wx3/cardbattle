@@ -32,7 +32,7 @@ import com.wx3.cardbattle.game.EntityPrototype;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.samplegame.SampleEntity;
-import com.wx3.samplegame.SampleGameRules;
+import com.wx3.samplegame.SampleGameInstance;
 
 /**
  * Attempt to play a card, with an optional target. 
@@ -75,12 +75,12 @@ public class PlayCardCommand extends SampleGameCommand {
 	
 	@Override 
 	public void parse() {
-		cardEntity = rules.getEntity(entityId);
+		cardEntity = game.getEntity(entityId);
 		if(cardEntity == null) {
 			throw new RuntimeException("Could not find entity with id '" + entityId + "'");
 		}
 		if(targetId > 0) {
-			targetEntity = rules.getEntity(targetId);
+			targetEntity = game.getEntity(targetId);
 			if(targetEntity == null) {
 				throw new RuntimeException("Could not find target with id '" + targetId + "'");	
 			}
@@ -94,7 +94,7 @@ public class PlayCardCommand extends SampleGameCommand {
 	@Override
 	public ValidationResult validate() {
 		ValidationResult result = super.validate();
-		SampleEntity playerEntity = rules.getPlayerEntity(player);
+		SampleEntity playerEntity = game.getPlayerEntity(player);
 		if(playerEntity == null) {
 			result.addError("Player has no entity.");
 			return result;
@@ -110,22 +110,22 @@ public class PlayCardCommand extends SampleGameCommand {
 			result.addError("Not your entity.");
 			return result;
 		}
-		if(!cardEntity.hasTag(SampleGameRules.IN_HAND)) {
+		if(!cardEntity.hasTag(SampleGameInstance.IN_HAND)) {
 			result.addError("Entity not in hand.");
 			return result;
 		}
 		if(targetEntity != null) {
-			if(!targetEntity.hasTag(SampleGameRules.IN_PLAY)) {
+			if(!targetEntity.hasTag(SampleGameInstance.IN_PLAY)) {
 				result.addError("Target not in play.");
 			}
 		}
-		rules.validatePlayCard(result, this);
+		game.validatePlayCard(result, this);
 		return result;
 	};
 
 	@Override
 	public void execute() {
-		rules.playCard(cardEntity, targetEntity);
+		game.playCard(cardEntity, targetEntity);
 	}
 
 }

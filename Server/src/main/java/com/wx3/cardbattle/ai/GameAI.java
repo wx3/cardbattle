@@ -79,7 +79,7 @@ public abstract class GameAI implements MessageHandler {
 	
 	protected boolean isPlayerTurn() {
 		if(player.getGame() != null) {
-			if(player.getGame().getRuleSystem().getCurrentPlayer() == player) {
+			if(player.getGame().getCurrentPlayer() == player) {
 				return true;
 			}
 			return false;

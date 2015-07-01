@@ -31,7 +31,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**
@@ -48,10 +47,10 @@ public class PlayerAuthtoken {
 	@Id
 	private String authtoken;
 	
-	@OneToOne
-	private GamePlayer player;
-	
+	private long playerId;
 	private long gameId;
+	
+	private String playerName;
 	
 	public static String generateToken() {
 		SecureRandom random = new SecureRandom();
@@ -60,15 +59,17 @@ public class PlayerAuthtoken {
 	
 	public PlayerAuthtoken() {}
 	
-	public PlayerAuthtoken(GamePlayer player, GameInstance game) {
-		this.player = player;
-		this.gameId = game.getId();
+	public PlayerAuthtoken(GamePlayer player, long gameId) {
+		this.playerId = player.getId();
+		this.gameId = gameId;
+		this.playerName = player.getUsername();
 		this.authtoken = generateToken();
 	}
 	
-	public PlayerAuthtoken(GamePlayer player, GameInstance game, String token) {
-		this.player = player;
-		this.gameId = game.getId();
+	public PlayerAuthtoken(GamePlayer player, long gameId, String token) {
+		this.playerId = player.getId();
+		this.gameId = gameId;
+		this.playerName = player.getUsername();
 		this.authtoken = token;
 	}
 	
@@ -80,16 +81,16 @@ public class PlayerAuthtoken {
 		this.authtoken = authtoken;
 	}
 	
-	public GamePlayer getPlayer() {
-		return player;
-	}
-	
-	public void setPlayer(GamePlayer player) {
-		this.player = player;
+	public long getPlayerId() {
+		return playerId;
 	}
 	
 	public long getGameId() {
 		return gameId;
+	}
+	
+	public String getPlayerName() {
+		return playerName;
 	}
 	
 }

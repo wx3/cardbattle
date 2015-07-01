@@ -25,56 +25,43 @@
 /**
  * 
  */
-package com.wx3.cardbattle.game;
+package com.wx3.cardbattle.datastore;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.TimerTask;
+import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-import com.wx3.cardbattle.datastore.GameDatastore;
+import com.wx3.cardbattle.game.GamePlayer;
 
 /**
- * Tries to call the update method on all games in the datastore.
- * 
  * @author Kevin
  *
  */
-public class UpdateGamesTask extends TimerTask {
+@Entity
+@Table(name="game_records")
+public class GameRecord {
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	private long gameId;
 	
-	final Logger logger = LoggerFactory.getLogger(UpdateGamesTask.class);
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="created")
+	private java.util.Date created = new Date();
 	
-	private GameDatastore datastore;
-	private int updates;
-
-	public UpdateGamesTask(GameDatastore datastore) {
-		this.datastore = datastore;
+	private String serverIdentifier = "";
+	
+	public GameRecord() {}
+	
+	public long getGameId() {
+		return gameId;
 	}
-
-	@Override
-	public void run() {
-		Collection<GameInstance<? extends GameEntity>> games = datastore.getGames();
-		for(GameInstance<? extends GameEntity> game : games) {
-			try {
-				if(game.isStopped()) {
-					datastore.removeGame(game.getId());	
-				} else {
-					game.update();
-				}
-			} catch (Exception ex) {
-				logger.error("Exception trying to update '" + game + "': " + ex.getMessage());
-				if(game != null) {
-					datastore.removeGame(game.getId());
-				}
-			}
-		}
-		if(updates % 100 == 0) {
-			logger.info("Update #" + updates + " updated " + games.size() + " games");
-		}
-		++updates;
-	}
-
 }
