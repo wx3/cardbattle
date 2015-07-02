@@ -40,8 +40,8 @@ public final class DrawCardEvent extends GameEvent {
 	@SuppressWarnings("unused")
 	private int entityId;
 
-	public DrawCardEvent(GamePlayer player, GameEntity entity, GameEntity cause) {
-		this.playerName = player.getUsername();
+	public DrawCardEvent(String playerName, GameEntity entity, GameEntity cause) {
+		this.playerName = playerName;
 		this.entityId = entity.getId();
 		if(cause != null) {
 			this.cause = cause;

@@ -47,7 +47,7 @@ public class GameOverEvent extends GameEvent {
 	public GameOverEvent(GamePlayer winner) {
 		this.winner = winner;
 		if(winner != null) {
-			this.winnerName = winner.getUsername();
+			this.winnerName = winner.getPlayerName();
 		}
 	}
 	

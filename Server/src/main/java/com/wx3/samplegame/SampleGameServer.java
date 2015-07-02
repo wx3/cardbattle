@@ -124,9 +124,9 @@ public class SampleGameServer extends GameServer {
 			deck.add(card);
 		}
 		
-		GameInstance<? extends GameEntity>  game = newGame(user1,user2);	
+		SampleGameInstance game = (SampleGameInstance) newGame(user1,user2);	
 		for(GamePlayer player : game.getPlayers()) {
-			player.setPlayerDeck(new ArrayList<EntityPrototype>(deck));
+			game.setPlayerDeck(player.getPlayerName(), deck);
 		}
 		game.start();
 		return datastore.getAuthtokens(game.getId());

@@ -40,15 +40,13 @@ public class GamePlayerView {
 	public String username;
 	public long id;
 	public int position;
-	public int deckSize;
 
 	
 	public static GamePlayerView createViewForPlayer(GamePlayer viewed, GamePlayer viewer) {
 		GamePlayerView view = new GamePlayerView();
-		view.username = viewed.getUsername();
+		view.username = viewed.getPlayerName();
 		view.id = viewed.getId();
 		view.position = viewed.getPosition();
-		view.deckSize = viewed.getPlayerDeck().size();
 		return view;
 	}
 }

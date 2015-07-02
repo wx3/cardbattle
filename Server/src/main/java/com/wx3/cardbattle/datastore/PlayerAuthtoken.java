@@ -62,14 +62,14 @@ public class PlayerAuthtoken {
 	public PlayerAuthtoken(GamePlayer player, long gameId) {
 		this.playerId = player.getId();
 		this.gameId = gameId;
-		this.playerName = player.getUsername();
+		this.playerName = player.getPlayerName();
 		this.authtoken = generateToken();
 	}
 	
 	public PlayerAuthtoken(GamePlayer player, long gameId, String token) {
 		this.playerId = player.getId();
 		this.gameId = gameId;
-		this.playerName = player.getUsername();
+		this.playerName = player.getPlayerName();
 		this.authtoken = token;
 	}
 	

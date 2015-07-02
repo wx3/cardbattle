@@ -337,7 +337,7 @@ public abstract class GameInstance<T extends GameEntity> {
 	}
 	
 	public void chat(GamePlayer player, String message) {
-		addEvent(new ChatEvent(player.getUsername(), message));
+		addEvent(new ChatEvent(player.getPlayerName(), message));
 	}
 	
 	/**

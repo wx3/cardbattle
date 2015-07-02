@@ -106,7 +106,7 @@ public class PlayCardCommand extends SampleGameCommand {
 		if(playerEntity.getEnergy() < cardEntity.getCost()) {
 			result.addError("Insufficient energy.");
 		}
-		if(cardEntity.getOwner() != getPlayer().getUsername()) {
+		if(cardEntity.getOwner() != getPlayer().getPlayerName()) {
 			result.addError("Not your entity.");
 			return result;
 		}

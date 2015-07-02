@@ -57,12 +57,12 @@ public class GameView {
 	
 	public static GameView createViewForPlayer(GameInstance<GameEntity> game, GamePlayer player) {
 		GameView view = new GameView();
-		view.currentPlayer = game.getCurrentPlayer().getUsername();
-		view.playerName = player.getUsername();
+		view.currentPlayer = game.getCurrentPlayer().getPlayerName();
+		view.playerName = player.getPlayerName();
 		view.gameOver = game.isGameOver();
 		for(GamePlayer p : game.getPlayers()) {
 			GamePlayerView pv = GamePlayerView.createViewForPlayer(p, player);
-			view.players.put(p.getUsername(), pv);
+			view.players.put(p.getPlayerName(), pv);
 		}
 		for(GameEntity entity : game.getEntities()) {
 			view.entities.add(entity.getView(player));

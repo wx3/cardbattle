@@ -124,7 +124,7 @@ public class SampleEntity extends GameEntity {
 		}
 		// If the entity is in the opponent's hand, hide all stats 
 		// and tags except IN_HAND:
-		if(this.isInHand() && (getOwner() != player.getUsername())) {
+		if(this.isInHand() && (getOwner() != player.getPlayerName())) {
 			view.stats = new HashMap<String, Integer>();
 			view.vars = new HashMap<String, Integer>();
 			view.tags = new HashSet<String>();

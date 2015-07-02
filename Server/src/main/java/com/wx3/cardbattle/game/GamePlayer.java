@@ -75,13 +75,6 @@ public final class GamePlayer {
 	@ManyToOne(cascade=CascadeType.ALL, optional=false)
 	private User user;
 	
-	@ManyToMany
-	@JoinTable(name="player_ingame_decks", 
-		joinColumns = @JoinColumn(name="playerId"),
-		inverseJoinColumns = @JoinColumn(name="cardId"))
-	@OrderColumn(name="deckOrder")
-	private List<EntityPrototype> playerDeck = new ArrayList<EntityPrototype>();
-	
 	@Transient
 	private GameInstance<? extends GameEntity> game;
 	
@@ -108,7 +101,7 @@ public final class GamePlayer {
 		this.id = id;
 	}
 	
-	public String getUsername() {
+	public String getPlayerName() {
 		return user.getUsername();
 	}
 	
@@ -190,21 +183,4 @@ public final class GamePlayer {
 		if(messageHandler != null) return true;
 		return false;
 	}
-	
-	public EntityPrototype drawCard() {
-		if (playerDeck.size() > 0) {
-			return playerDeck.remove(0);
-		}
-		return null;
-	}
-
-	public List<EntityPrototype> getPlayerDeck() {
-		return playerDeck;
-	}
-
-	public void setPlayerDeck(List<EntityPrototype> playerDeck) {
-		this.playerDeck = playerDeck;
-	}
-	
-	
 }

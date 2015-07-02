@@ -28,7 +28,9 @@
 package com.wx3.samplegame;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.script.ScriptException;
@@ -62,7 +64,7 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	
 	private transient final Logger logger = LoggerFactory.getLogger(SampleGameInstance.class);
 	
-	// Our stats:
+	// Our stats, tags and vars
 	
 	// How much does a card cost to play?
 	public static final String COST = "COST";
@@ -79,12 +81,11 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	// This entity is a card in hand:
 	public static final String IN_HAND = "IN_HAND";
 	
-	// Our vars:
-	
 	public static final String ENERGY_SPENT = "ENERGY_SPENT";
 	public static final String CURRENT_HEALTH = "CURRENT_HEALTH";
 	public static final String ATTACKS_REMAINING = "ATTACKS_REMAINING";
 	
+	private Map<String, List<EntityPrototype>> playerDecks = new HashMap<String, List<EntityPrototype>>();
 
 	public SampleGameInstance(GameDatastore datastore, long id) {
 		super(datastore, id);
@@ -129,7 +130,7 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	
 	public List<SampleEntity> getPlayerHand(GamePlayer player) {
 		List<SampleEntity> hand = entities.stream().filter(
-				e -> e.getOwner() == player.getUsername() && e.hasTag(IN_HAND)
+				e -> e.getOwner() == player.getPlayerName() && e.hasTag(IN_HAND)
 				).collect(Collectors.toList());
 		return hand;
 	}
@@ -143,7 +144,7 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	public SampleEntity getPlayerEntity(GamePlayer player) {
 		// There should be at most one:
 		return entities.stream().filter(
-				e -> e.getOwner() == player.getUsername() && e.hasTag(PLAYER)).findFirst().orElse(null);
+				e -> e.getOwner() == player.getPlayerName() && e.hasTag(PLAYER)).findFirst().orElse(null);
 	}
 	
 	
@@ -151,15 +152,15 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	public void addPlayer(GamePlayer player) {
 		super.addPlayer(player);
 		GameEntity playerEntity = spawnEntity();
-		playerEntity.name = player.getUsername();
+		playerEntity.name = player.getPlayerName();
 		playerEntity.setTag(PLAYER);
 		playerEntity.setTag(IN_PLAY);
 		
 		playerEntity.setBaseStat(MAX_HEALTH, 100);
 		playerEntity.setVar(CURRENT_HEALTH, playerEntity.getStat(MAX_HEALTH));
-		playerEntity.setOwner(player);
+		playerEntity.setOwner(player.getPlayerName());
 		// Eventually player rules should move out of here into the database/bootstrap:
-		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn())) {"
+		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn()).getPlayerName()) {"
 				+ "if(event.getTurn() < 2){"
 				+ "rules.drawCard(entity.getOwner());"
 				+ "rules.drawCard(entity.getOwner());"
@@ -175,8 +176,19 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		player.setEntity(playerEntity);
 	};
 	
-	public GameEntity drawCard(GamePlayer player) {
-		return drawCard(player, null);
+	public void setPlayerDeck(String playerName, List<EntityPrototype> deck) {
+		if(playerDecks.containsKey(playerName)) {
+			logger.warn("Replacing deck for " + playerName);
+		}
+		playerDecks.put(playerName, deck);
+	}
+	
+	public int getPlayerDeckSize(String playerName) {
+		return playerDecks.get(playerName).size();
+	}
+	
+	public GameEntity drawCard(String playerName) {
+		return drawCard(playerName, null);
 	}
 	
 	/**
@@ -187,16 +199,19 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	 * @param cause 	The GameEntity that triggered the draw
 	 * @return The entity created by the draw
 	 */
-	public GameEntity drawCard(GamePlayer player, GameEntity cause) {
-		EntityPrototype card = player.drawCard();
-		if(card != null) {
+	public GameEntity drawCard(String playerName, GameEntity cause) {
+		if(!playerDecks.containsKey(playerName)) {
+			throw new RuntimeException("No such player '" + playerName + "'");
+		}
+		List<EntityPrototype> deck = playerDecks.get(playerName);
+		if(deck.size() > 0) {
+			EntityPrototype card = deck.remove(0);
 			GameEntity entity = instantiatePrototype(card);
 			entity.setTag(IN_HAND);
-			entity.setOwner(player);
-			addEvent(new DrawCardEvent(player, entity, cause));
+			entity.setOwner(playerName);
+			addEvent(new DrawCardEvent(playerName, entity, cause));
 			return entity;
-		}
-		else {
+		} else {
 			logger.info("Hand is empty.");
 			return null;
 		}
@@ -340,6 +355,10 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		} catch (final ScriptException se) {
 			result.addError("Scripting exception: " + se.getMessage());
 		} 
+	}
+	
+	public void trace(String trace) {
+		logger.info("Trace message: " + trace);
 	}
 	
 	@Override

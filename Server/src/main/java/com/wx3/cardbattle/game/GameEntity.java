@@ -136,8 +136,8 @@ public class GameEntity {
 		return owner;
 	}
 
-	public void setOwner(GamePlayer owner) {
-		this.owner = owner.getUsername();
+	public void setOwner(String owner) {
+		this.owner = owner;
 	}
 	
 	public Collection<String> getTags() {
