@@ -23,12 +23,8 @@
  *******************************************************************************/
 package com.wx3.samplegame.events;
 
-import javax.persistence.Transient;
-
 import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
-import com.wx3.cardbattle.game.messages.GameEntityView;
 
 public final class PlayCardEvent extends GameEvent {
 

@@ -23,8 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.gameevents;
 
-import javax.persistence.Transient;
-
 import com.wx3.cardbattle.game.GameEntity;
 
 /**

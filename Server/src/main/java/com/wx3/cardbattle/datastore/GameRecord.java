@@ -28,7 +28,6 @@
 package com.wx3.cardbattle.datastore;
 
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -38,8 +37,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import com.wx3.cardbattle.game.GamePlayer;
 
 /**
  * @author Kevin
@@ -63,5 +60,9 @@ public class GameRecord {
 	
 	public long getGameId() {
 		return gameId;
+	}
+	
+	public String getServerIdentifier() {
+		return serverIdentifier;
 	}
 }

@@ -28,8 +28,6 @@ import javax.persistence.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wx3.cardbattle.game.EntityPrototype;
-import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.samplegame.SampleEntity;
 import com.wx3.samplegame.SampleGameInstance;

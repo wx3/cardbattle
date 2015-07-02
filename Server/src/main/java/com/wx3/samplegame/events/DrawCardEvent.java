@@ -24,7 +24,6 @@
 package com.wx3.samplegame.events;
 
 import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.gameevents.GameEvent;
 
 /**

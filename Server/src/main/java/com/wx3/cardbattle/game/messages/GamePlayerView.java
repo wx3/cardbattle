@@ -23,10 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.messages;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GamePlayer;
 
 /**

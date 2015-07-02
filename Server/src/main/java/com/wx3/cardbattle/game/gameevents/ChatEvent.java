@@ -23,7 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.gameevents;
 
-import com.wx3.cardbattle.game.GamePlayer;
 
 /**
  * Event fired in response to a player sending a ChatCommand.

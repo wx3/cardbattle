@@ -23,7 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.messages;
 
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
 import com.wx3.cardbattle.server.OutboundMessage;

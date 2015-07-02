@@ -25,7 +25,6 @@ package com.wx3.cardbattle.server;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,6 @@ import com.wx3.cardbattle.datastore.AuthenticationException;
 import com.wx3.cardbattle.datastore.GameDatastore;
 import com.wx3.cardbattle.datastore.GameRecord;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
-import com.wx3.cardbattle.game.CommandFactory;
 import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
@@ -54,7 +52,6 @@ public abstract class GameServer {
 	final Logger logger = LoggerFactory.getLogger(GameServer.class);
 
 	protected GameDatastore datastore;
-	private Timer taskTimer;
 	
 	private Map<Long, GameInstance<?>> gameInstances = new HashMap<Long, GameInstance<?>>();
 	

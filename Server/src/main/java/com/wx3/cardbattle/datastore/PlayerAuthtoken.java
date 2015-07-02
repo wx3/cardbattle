@@ -28,7 +28,6 @@ import java.security.SecureRandom;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.wx3.cardbattle.game.GamePlayer;

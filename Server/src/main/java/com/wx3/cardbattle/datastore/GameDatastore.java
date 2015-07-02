@@ -29,13 +29,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.wx3.cardbattle.game.EntityPrototype;
-import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
-import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 
 /**
  * The Datastore stores persistent data that needs to be available outside of 

@@ -25,7 +25,6 @@ package com.wx3.cardbattle.game.commands;
 
 import javax.persistence.Transient;
 
-import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 

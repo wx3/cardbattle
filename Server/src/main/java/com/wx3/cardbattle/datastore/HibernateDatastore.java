@@ -23,9 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.datastore;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -40,13 +37,10 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.service.ServiceRegistry;
 
 import com.wx3.cardbattle.game.EntityPrototype;
-import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
-import com.wx3.samplegame.events.KilledEvent;
 
 /**
  * This implementation handles long-term storage via Hibernate, so 
