@@ -23,9 +23,6 @@
  *******************************************************************************/
 package com.wx3.cardbattle.networking;
 
-import com.wx3.cardbattle.datastore.HibernateDatastore;
-import com.wx3.cardbattle.server.GameServer;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -33,6 +30,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+
+import com.wx3.cardbattle.server.GameServer;
 
 /**
  * Starts Netty listening on the provided port. The 

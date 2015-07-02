@@ -25,21 +25,11 @@ package com.wx3.cardbattle.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -137,7 +127,14 @@ public abstract class GameInstance<T extends GameEntity> {
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
-	public GameInstance(GameInstance<T> original) {
+	/**
+	 * For the AI to simulate game commands, it needs to be able to perform the
+	 * commands on an identical copy of the game. Subclasses should copy any
+	 * additional data needed for an accurate simulation.
+	 * 
+	 * @param original
+	 */
+	protected  GameInstance(GameInstance<T> original) {
 		this.id = original.id;
 		this.datastore = original.datastore;
 		this.entityIdCounter = original.entityIdCounter;
@@ -151,6 +148,8 @@ public abstract class GameInstance<T extends GameEntity> {
 		this.stopped = original.stopped;
 		this.gameOver = original.gameOver;
 	}
+	
+	public abstract GameInstance<?> copy();
 	
 	protected static ScriptEngine getScriptEngine() {
 		if(scriptEngine == null) {
@@ -297,8 +296,8 @@ public abstract class GameInstance<T extends GameEntity> {
 		return turn;
 	}
 	
-	public synchronized void handleCommand(GameCommand command) {
-		command.execute();
+	public synchronized void handleCommand(GameCommand<GameInstance<T>> command) {
+		command.execute(this);
 		List<GameEvent> events = processEvents();
 		for(GameEvent event : events) {
 			broadcastEvent(event);
@@ -309,14 +308,6 @@ public abstract class GameInstance<T extends GameEntity> {
 		
 	}
 	
- 	synchronized void update() {
- 		if(isStopped()) return;
-		int connected = 0;
-		for(GamePlayer player : players) {
-			if(player.isConnected()) ++connected;
-		}
-	}
- 	
  	protected void addEvent(GameEvent event) {
 		logger.info("Adding event " + event);
 		eventQueue.add(event);
@@ -336,8 +327,8 @@ public abstract class GameInstance<T extends GameEntity> {
 		startTurn();
 	}
 	
-	public void chat(GamePlayer player, String message) {
-		addEvent(new ChatEvent(player.getPlayerName(), message));
+	public void chat(String playerName, String message) {
+		addEvent(new ChatEvent(playerName, message));
 	}
 	
 	/**

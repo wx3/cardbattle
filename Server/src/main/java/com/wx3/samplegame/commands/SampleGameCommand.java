@@ -36,7 +36,7 @@ import com.wx3.samplegame.SampleGameInstance;
  * @author Kevin
  *
  */
-public class SampleGameCommand extends GameCommand {
+public abstract class SampleGameCommand extends GameCommand<SampleGameInstance> {
 
 	SampleGameInstance game;
 	
@@ -50,18 +50,12 @@ public class SampleGameCommand extends GameCommand {
 	}
 	
 	@Override
-	public ValidationResult validate() {
-		ValidationResult result = super.validate();
-		if(game.getCurrentPlayer() != player) {
+	public ValidationResult validate(SampleGameInstance game) {
+		ValidationResult result = super.validate(game);
+		if(game.getCurrentPlayer().getPlayerName() != playerName) {
 			result.addError("Not your turn");
 		}
 		return result;
-	}
-	
-	@Override
-	public void execute() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

@@ -137,8 +137,7 @@ public final class GamePlayer {
 	public ValidationResult handleCommand(GameCommand command) {
 		command.setPlayer(this);
 		ValidationResult result;
-		command.parse();
-		result = command.validate();
+		result = command.validate(game);
 		if(result.isValid()) {
 			game.handleCommand(command);
 		}

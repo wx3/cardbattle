@@ -43,6 +43,7 @@ import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
+import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.server.GameServer;
 import com.wx3.cardbattle.server.MessageHandler;
 
@@ -54,12 +55,15 @@ public class SampleGameServer extends GameServer {
 	
 	private AIManager aimanager;
 	
+	private CommandFactory commandFactory;
+	
 	/**
 	 * @param datastore
 	 * @param gameFactory
 	 */
-	public SampleGameServer(GameDatastore datastore, CommandFactory gameFactory) {
-		super(datastore, gameFactory);
+	public SampleGameServer(GameDatastore datastore) {
+		super(datastore);
+		this.commandFactory = new SampleGameCommandFactory(datastore);
 	}
 	
 	@Override
@@ -130,6 +134,11 @@ public class SampleGameServer extends GameServer {
 		}
 		game.start();
 		return datastore.getAuthtokens(game.getId());
+	}
+
+	@Override
+	public GameCommand<?> createCommand(GamePlayer player, JsonObject json) {
+		return commandFactory.createCommand(player, json);
 	}
 	
 	

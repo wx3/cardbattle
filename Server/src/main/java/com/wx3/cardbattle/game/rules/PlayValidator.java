@@ -29,9 +29,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.wx3.cardbattle.game.EntityPrototype;
+
 /**
- * A rule for whether a particular card can be played, and 
- * whether the target is valid.
+ * Most games have rules for when a particular {@link EntityPrototype}
+ * (e.g. cards) can be brought into play. These are put in a PlayValidator. 
+ * If/how validators are used depend on the particular game.
  * 
  * @author Kevin
  *

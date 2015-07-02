@@ -40,6 +40,7 @@ import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.User;
+import com.wx3.cardbattle.game.commands.GameCommand;
 
 /**
  * The gameserver handles the creation of games and connecting players to
@@ -55,13 +56,10 @@ public abstract class GameServer {
 	protected GameDatastore datastore;
 	private Timer taskTimer;
 	
-	private CommandFactory gameFactory;
-	
 	private Map<Long, GameInstance<?>> gameInstances = new HashMap<Long, GameInstance<?>>();
 	
-	public GameServer(GameDatastore datastore, CommandFactory gameFactory) {
+	public GameServer(GameDatastore datastore) {
 		this.datastore = datastore;
-		this.gameFactory = gameFactory;
 	}
 	
 	protected abstract GameInstance<? extends GameEntity> createGame(long id);
@@ -69,9 +67,8 @@ public abstract class GameServer {
 	public void start() {
 	}
 	
-	public CommandFactory getGameFactory() {
-		return gameFactory;
-	}
+	public abstract GameCommand<?> createCommand(GamePlayer player,
+			JsonObject json);
 	
 	public GameInstance<? extends GameEntity> newGame(User user1, User user2) {
 		logger.info("Creating game for " + user1 + " and " + user2);

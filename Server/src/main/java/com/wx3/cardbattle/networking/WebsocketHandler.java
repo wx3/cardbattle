@@ -129,7 +129,7 @@ public class WebsocketHandler extends SimpleChannelInboundHandler<Object> implem
 	        		gameServer.handleJsonCommand(json, this);	
 	        	}
 	        } else {
-	        	GameCommand command = gameServer.getGameFactory().createCommand(player, json);
+	        	GameCommand<?> command = gameServer.createCommand(player, json);
 	        	ValidationResult result = player.handleCommand(command);
 				CommandResponseMessage message = new CommandResponseMessage(command, result);
 				player.sendMessage(message);

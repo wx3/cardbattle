@@ -91,13 +91,20 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		super(datastore, id);
 	}
 	
-	/**
-	 * @param original
-	 */
-	public SampleGameInstance(GameInstance<SampleEntity> original) {
+	protected SampleGameInstance(SampleGameInstance original) {
 		super(original);
+		for(Map.Entry<String, List<EntityPrototype>> entry : original.playerDecks.entrySet()) {
+			List<EntityPrototype> deckCopy = new ArrayList<EntityPrototype>(entry.getValue());
+			this.setPlayerDeck(entry.getKey(), deckCopy);
+		}
 	}
-
+	
+	@Override
+	public GameInstance<?> copy() {
+		SampleGameInstance clone = new SampleGameInstance(this);
+		return clone;
+	}
+	
 	@Override
 	protected SampleEntity createEntityInstance() {
 		return new SampleEntity();
@@ -141,10 +148,14 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	 * @param player
 	 * @return
 	 */
-	public SampleEntity getPlayerEntity(GamePlayer player) {
+	public SampleEntity getPlayerEntity(String playerName) {
 		// There should be at most one:
 		return entities.stream().filter(
-				e -> e.getOwner() == player.getPlayerName() && e.hasTag(PLAYER)).findFirst().orElse(null);
+				e -> e.getOwner() == playerName && e.hasTag(PLAYER)).findFirst().orElse(null);
+	}
+	
+	public SampleEntity getPlayerEntity(GamePlayer player) {
+		return getPlayerEntity(player.getPlayerName());
 	}
 	
 	
@@ -325,7 +336,7 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		super.gameOver();
 		GamePlayer winner = null;
 		for(GamePlayer player : players) {
-			SampleEntity entity = getPlayerEntity(player);
+			SampleEntity entity = getPlayerEntity(player.getPlayerName());
 			if(entity != null && entity.getCurrentHealth() > 0) {
 				winner = player;
 			}
@@ -341,13 +352,16 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	 * @param command
 	 */
 	public void validatePlayCard(ValidationResult result, PlayCardCommand command) {
+		SampleEntity cardEntity = getEntity(command.getEntityId());
+		EntityPrototype card = cardEntity.getCreatingCard();
 		// If the command's card has no validator, we don't need to do anything
-		if(command.getCard().getValidator() == null) return;
+		if(card.getValidator() == null) return;
 		try {
-			scriptScope.put("target", command.getTarget());
+			SampleEntity target = getEntity(command.getTargetId());
+			scriptScope.put("target", target);
 			scriptScope.put("rules", this);
 			scriptScope.put("error", null);
-			PlayValidator validator = command.getCard().getValidator();
+			PlayValidator validator = card.getValidator();
 			getScriptEngine().eval(validator.getScript(), scriptContext);
 			if(scriptScope.get("error") != null) {
 				result.addError(scriptScope.get("error").toString());

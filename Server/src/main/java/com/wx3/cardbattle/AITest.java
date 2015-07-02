@@ -54,7 +54,7 @@ public class AITest {
 		GameDatastore datastore = new HibernateDatastore();
     	bootstrap(datastore);
     	SampleGameCommandFactory gameFactory = new SampleGameCommandFactory(datastore);
-    	GameServer gameserver = new SampleGameServer(datastore, gameFactory);
+    	GameServer gameserver = new SampleGameServer(datastore);
     	gameserver.start();
     	
     	AIManager aimanager = new AIManager(1);

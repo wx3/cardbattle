@@ -23,6 +23,8 @@
  *******************************************************************************/
 package com.wx3.samplegame.commands;
 
+import com.wx3.samplegame.SampleGameInstance;
+
 
 /**
  * Ends our turn.
@@ -33,7 +35,7 @@ package com.wx3.samplegame.commands;
 public class EndTurnCommand extends SampleGameCommand {
 
 	@Override
-	public void execute() {
+	public void execute(SampleGameInstance game) {
 		game.endTurn();
 	}
 

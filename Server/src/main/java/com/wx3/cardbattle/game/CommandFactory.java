@@ -38,7 +38,7 @@ import com.wx3.cardbattle.game.commands.GameCommand;
  */
 public interface CommandFactory {
 
-	public abstract GameCommand createCommand(GamePlayer player,
+	public abstract GameCommand<?> createCommand(GamePlayer player,
 			JsonObject json);
 	
 }

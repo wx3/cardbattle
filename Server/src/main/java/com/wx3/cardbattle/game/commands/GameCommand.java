@@ -25,6 +25,7 @@ package com.wx3.cardbattle.game.commands;
 
 import javax.persistence.Transient;
 
+import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 
@@ -42,20 +43,12 @@ import com.wx3.cardbattle.game.GamePlayer;
  * @author Kevin
  *
  */
-public abstract class GameCommand {
+public abstract class GameCommand<T extends GameInstance<?>> {
 	
 	@Transient
-	protected GamePlayer player;
+	protected String playerName;
 	
 	protected int id;
-	
-	/**
-	 * Parsing the command resolves id references. Eg., if the command refers
-	 * to an entity, parsing will populate the entity property.
-	 */
-	public void parse() {
-		
-	}
 	
 	/**
 	 * Besides making sure the player and game exist, most commands can only
@@ -64,31 +57,26 @@ public abstract class GameCommand {
 	 * 
 	 * @return
 	 */
-	public ValidationResult validate()  {
+	public ValidationResult validate(T game)  {
 		ValidationResult result = new ValidationResult();
-		if(player == null) {
+		if(playerName == null) {
 			result.addError("Player is null");
-			return result;
-		}
-		GameInstance game = player.getGame();
-		if(game == null) {
-			result.addError("Game is null");
 			return result;
 		}
 		return result;
 	}
 	
-	public abstract void execute(); 
+	public abstract void execute(T game); 
 	
 	public int getId() {
 		return id;
 	}
 	
-	public GamePlayer getPlayer() {
-		return player;
+	public String getPlayerName() {
+		return playerName;
 	}
 	
 	public void setPlayer(GamePlayer player) {
-		this.player = player;
+		this.playerName = player.getPlayerName();
 	}
 }

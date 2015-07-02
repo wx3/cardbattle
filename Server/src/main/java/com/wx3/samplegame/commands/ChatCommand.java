@@ -23,6 +23,8 @@
  *******************************************************************************/
 package com.wx3.samplegame.commands;
 
+import com.wx3.samplegame.SampleGameInstance;
+
 
 /**
  * Tells the game that we want to say something to the 
@@ -38,8 +40,8 @@ public final class ChatCommand extends SampleGameCommand {
 	public ChatCommand() {}
 	
 	@Override
-	public void execute() {
-		game.chat(player, message);
+	public void execute(SampleGameInstance game) {
+		game.chat(playerName, message);
 	}
 
 	public String getMessage() {

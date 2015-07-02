@@ -44,9 +44,6 @@ public class AttackCommand extends SampleGameCommand {
 	private int attackerId;
 	private int targetId;
 	
-	private SampleEntity attacker;
-	private SampleEntity target;
-	
 	@Transient
 	final static Logger logger = LoggerFactory.getLogger(AttackCommand.class);
 	
@@ -57,20 +54,6 @@ public class AttackCommand extends SampleGameCommand {
 		this.targetId = targetId;
 	}
 
-	public GameEntity getAttacker() {
-		return attacker;
-	}
-	
-	public GameEntity getTarget() {
-		return target;
-	}
-	
-	@Override 
-	public void parse() {
-		attacker = game.getEntity(attackerId);
-		target = game.getEntity(targetId);
-	}
-	
 	/**
 	 * The attacker should exist, belong to the player, be in play,
 	 * and have an attack value.
@@ -78,12 +61,14 @@ public class AttackCommand extends SampleGameCommand {
 	 * The target should exist, be in play, and have positive health.
 	 */
 	@Override
-	public ValidationResult validate() {
-		ValidationResult result = super.validate();
+	public ValidationResult validate(SampleGameInstance game) {
+		ValidationResult result = super.validate(game);
+		SampleEntity attacker = game.getEntity(attackerId);
+		SampleEntity target = game.getEntity(targetId);
 		if(attacker == null) {
 			result.addError("Attacker not found.");
 		} else {
-			if(attacker.getOwner() != getPlayer().getPlayerName()) {
+			if(attacker.getOwner() != playerName) {
 				result.addError("Not your entity to attack with.");
 			}
 			if(!attacker.isInPlay()) {
@@ -110,7 +95,9 @@ public class AttackCommand extends SampleGameCommand {
 	}
 
 	@Override
-	public void execute() {
+	public void execute(SampleGameInstance game) {
+		SampleEntity attacker = game.getEntity(attackerId);
+		SampleEntity target = game.getEntity(targetId);
 		game.attack(attacker, target);
 	}
 

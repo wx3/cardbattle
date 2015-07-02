@@ -48,43 +48,19 @@ public class PlayCardCommand extends SampleGameCommand {
 	private int entityId;
 	private int targetId;
 	
-	private SampleEntity cardEntity;
-	private SampleEntity targetEntity;
-	
 	public PlayCardCommand() {}
+	
+	public int getEntityId() {
+		return entityId;
+	}
+	
+	public int getTargetId() {
+		return targetId;
+	}
 	
 	public PlayCardCommand(int entityId, int targetId) {
 		this.entityId = entityId;
 		this.targetId = targetId;
-	}
-	
-	public SampleEntity getCardEntity() {
-		return cardEntity;
-	}
-	
-	public EntityPrototype getCard() {
-		return cardEntity.getCreatingCard();
-	}
-	
-	public GameEntity getTarget() {
-		if(targetId > 0 && targetEntity == null) {
-			throw new RuntimeException("Cannot call getTarget() before parse()");
-		}
-		return targetEntity;
-	}
-	
-	@Override 
-	public void parse() {
-		cardEntity = game.getEntity(entityId);
-		if(cardEntity == null) {
-			throw new RuntimeException("Could not find entity with id '" + entityId + "'");
-		}
-		if(targetId > 0) {
-			targetEntity = game.getEntity(targetId);
-			if(targetEntity == null) {
-				throw new RuntimeException("Could not find target with id '" + targetId + "'");	
-			}
-		}
 	}
 	
 	/**
@@ -92,9 +68,12 @@ public class PlayCardCommand extends SampleGameCommand {
 	 * should be in play. Finally the game can do additional validation.
 	 */
 	@Override
-	public ValidationResult validate() {
-		ValidationResult result = super.validate();
-		SampleEntity playerEntity = game.getPlayerEntity(player);
+	public ValidationResult validate(SampleGameInstance game) {
+		SampleEntity cardEntity = game.getEntity(entityId);
+		SampleEntity targetEntity = game.getEntity(targetId);
+		
+		ValidationResult result = super.validate(game);
+		SampleEntity playerEntity = game.getPlayerEntity(playerName);
 		if(playerEntity == null) {
 			result.addError("Player has no entity.");
 			return result;
@@ -106,7 +85,7 @@ public class PlayCardCommand extends SampleGameCommand {
 		if(playerEntity.getEnergy() < cardEntity.getCost()) {
 			result.addError("Insufficient energy.");
 		}
-		if(cardEntity.getOwner() != getPlayer().getPlayerName()) {
+		if(cardEntity.getOwner() != playerName) {
 			result.addError("Not your entity.");
 			return result;
 		}
@@ -124,7 +103,9 @@ public class PlayCardCommand extends SampleGameCommand {
 	};
 
 	@Override
-	public void execute() {
+	public void execute(SampleGameInstance game) {
+		SampleEntity cardEntity = game.getEntity(entityId);
+		SampleEntity targetEntity = game.getEntity(targetId);
 		game.playCard(cardEntity, targetEntity);
 	}
 
