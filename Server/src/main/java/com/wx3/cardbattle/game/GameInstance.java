@@ -69,13 +69,11 @@ import com.wx3.samplegame.events.KilledEvent;
 
 /**
  * The game instance contains the game's state data: the current turn,
- * the entities, players, etc. Game logic is handled by the {@link RuleSystem}.
+ * the entities, players, etc. and handles what the game rules can do.
  * 
  * @author Kevin
  *
  */
-@Entity
-@Table(name="game_instances")
 public abstract class GameInstance<T extends GameEntity> {
 	
 	private static final int MAX_EVENTS = 1000;
@@ -87,45 +85,28 @@ public abstract class GameInstance<T extends GameEntity> {
 	// Represents a player's character:
 	public static final String PLAYER = "PLAYER";
 	
-	@Transient
 	final static Logger logger = LoggerFactory.getLogger(GameInstance.class);
 	
 	// We use a singleton of the script engine for performance (Nashorn seems to take up
 	// a couple 100k per engine instance). Each game gets its own script context and 
 	// bindings scope to avoid polluting other games. 
-	@Transient
 	private static ScriptEngine scriptEngine;
-	@Transient
 	protected ScriptContext scriptContext;
-	@Transient
 	protected Bindings scriptScope;
 
-	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
 	private long id;
-	
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name="created")
-	private java.util.Date created = new Date();	
 	
 	int turn;
 	
-	@Transient
 	private int entityIdCounter = 1;	
 	
-	@Transient
 	protected List<GamePlayer> players = new ArrayList<GamePlayer>();
 	
-	@Transient
 	protected List<T> entities = new ArrayList<T>();
 	
-	@Transient
 	Queue<GameEvent> eventQueue = new ConcurrentLinkedQueue<GameEvent>();
-	
-	@Transient
 	List<GameEvent> eventHistory = new ArrayList<GameEvent>();
 	
-	@Transient
 	private GameDatastore datastore;
 	
 	private boolean started = false;
@@ -159,7 +140,6 @@ public abstract class GameInstance<T extends GameEntity> {
 	public GameInstance(GameInstance<T> original) {
 		this.id = original.id;
 		this.datastore = original.datastore;
-		this.created = original.created;
 		this.entityIdCounter = original.entityIdCounter;
 		this.players = new ArrayList<GamePlayer>(original.players);
 		for(T e : original.entities) {
@@ -186,15 +166,7 @@ public abstract class GameInstance<T extends GameEntity> {
 	public long getId() {
 		return id;
 	}
-	
-	public Date getCreated() {
-		return created;
-	}
 
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-	
 	/**
 	 * Set the general game rules that are not tied to a specific entity by spawning
 	 * a "rule entity" and attaching the rule set to it.
@@ -339,15 +311,9 @@ public abstract class GameInstance<T extends GameEntity> {
 	
  	synchronized void update() {
  		if(isStopped()) return;
- 		// If the game has no connected players and is older than 30 seconds, consider it abandoned:
-		Date now = new Date();
-		int age = (int) ((now.getTime() - created.getTime()) / 1000);
 		int connected = 0;
 		for(GamePlayer player : players) {
 			if(player.isConnected()) ++connected;
-		}
-		if(age > 30 && connected == 0){
-			stop();
 		}
 	}
  	

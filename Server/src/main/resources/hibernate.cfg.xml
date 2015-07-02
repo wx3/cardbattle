@@ -63,7 +63,6 @@
         <property name="hibernate.hbm2ddl.auto">create</property>
         
         <!-- Names the annotated entity class -->
-        <mapping class="com.wx3.cardbattle.game.GameInstance"/>
         <mapping class="com.wx3.cardbattle.game.User"/>
         <mapping class="com.wx3.cardbattle.game.GamePlayer"/>
         <mapping class="com.wx3.cardbattle.game.EntityPrototype"/>
