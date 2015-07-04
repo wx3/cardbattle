@@ -70,8 +70,8 @@ public class SampleGameServer extends GameServer {
 	public void start() {
 		super.start();
 		// Create a new AI manager that updates every 1 second:
-		//aimanager = new AIManager(1);
-		//aimanager.start();
+		aimanager = new AIManager(1);
+		aimanager.start();
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class SampleGameServer extends GameServer {
 			GamePlayer p2 = authenticate(p2Token);
 			SampleGameAI ai = new SampleGameAI(p2);
 			p2.connect(ai);
-			//aimanager.registerAI(ai);
+			aimanager.registerAI(ai);
 		} catch (AuthenticationException e) {
 			e.printStackTrace();
 		}
@@ -130,7 +130,7 @@ public class SampleGameServer extends GameServer {
 		
 		SampleGameInstance game = (SampleGameInstance) newGame(user1,user2);	
 		for(GamePlayer player : game.getPlayers()) {
-			game.setPlayerDeck(player.getPlayerName(), deck);
+			game.setPlayerDeck(player.getPlayerName(), new ArrayList<EntityPrototype>(deck));
 		}
 		game.start();
 		return datastore.getAuthtokens(game.getId());

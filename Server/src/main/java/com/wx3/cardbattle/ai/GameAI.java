@@ -33,11 +33,8 @@ import com.wx3.cardbattle.game.GameEntity;
 import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
-import com.wx3.cardbattle.game.messages.GameView;
-import com.wx3.cardbattle.game.messages.GameViewMessage;
 import com.wx3.cardbattle.server.MessageHandler;
 import com.wx3.cardbattle.server.OutboundMessage;
-import com.wx3.samplegame.commands.EndTurnCommand;
 
 /**
  * Abstract base class for game AIs.
@@ -48,26 +45,20 @@ import com.wx3.samplegame.commands.EndTurnCommand;
 public abstract class GameAI implements MessageHandler {
 	
 	protected GamePlayer player;
-	protected GameInstance<? extends GameEntity> game;
 	
 	protected class CommandSelection {
 		
-		protected GameCommand command;
+		protected GameCommand<?> command;
 		public double value;
 		
-		public CommandSelection(GameCommand command, double value) {
+		public CommandSelection(GameCommand<?> command, double value) {
 			this.command = command;
 			this.value = value;
 		}
 		
-		public GameCommand getCommand() {
+		public GameCommand<?> getCommand() {
 			return command;
 		}
-	}
-	
-	public GameAI(GamePlayer player) {
-		this.player = player;
-		this.game = player.getGame();
 	}
 	
 	boolean gameOver() {
@@ -89,7 +80,7 @@ public abstract class GameAI implements MessageHandler {
 	
 	public void update() {
 		if(isPlayerTurn()) {
-			GameCommand command = getBestCommand();
+			GameCommand<?> command = getBestCommand();
 			player.handleCommand(command);
 		}
 	}
@@ -102,7 +93,7 @@ public abstract class GameAI implements MessageHandler {
 	 */
 	protected abstract Collection<CommandSelection> getCommandChoices();
 	
-	protected abstract GameCommand getBestCommand();
+	public abstract GameCommand<?> getBestCommand();
 	
 	@Override
 	public void disconnect() {}

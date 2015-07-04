@@ -140,6 +140,18 @@ public class GameEntity {
 		this.owner = owner;
 	}
 	
+	/**
+	 * Convenience method to check if the entity's owner
+	 * is the provided player. 
+	 * 
+	 * @param player
+	 * @return
+	 */
+	public boolean isOwnedBy(GamePlayer player) {
+		if(player == null) return false;
+		return player.getPlayerName().equals(owner);
+	}
+	
 	public Collection<String> getTags() {
 		return tags;
 	}

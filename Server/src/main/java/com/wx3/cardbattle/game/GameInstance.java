@@ -147,6 +147,11 @@ public abstract class GameInstance<T extends GameEntity> {
 		this.started = original.started;
 		this.stopped = original.stopped;
 		this.gameOver = original.gameOver;
+		
+		ScriptEngine script = getScriptEngine();
+		this.scriptContext = new SimpleScriptContext();
+		this.scriptContext.setBindings(script.createBindings(), ScriptContext.ENGINE_SCOPE);
+		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
 	public abstract GameInstance<?> copy();
@@ -190,6 +195,19 @@ public abstract class GameInstance<T extends GameEntity> {
 		player.setPosition(players.size());
 		players.add(player);
 		player.setGame(this); 
+	}
+	
+	/**
+	 * Create a {@link GameEntity} from a {@link EntityPrototype}, acquiring the 
+	 * prototype's name, stats, tags and rules.
+	 * 
+	 * @param card
+	 * @return
+	 */
+	public T instantiatePrototype(EntityPrototype card) {
+		T entity = spawnEntity();
+		entity.copyFromPrototype(card);
+		return entity;
 	}
 	
 	/**
@@ -305,7 +323,6 @@ public abstract class GameInstance<T extends GameEntity> {
 		for(GamePlayer player : players) {
 			player.sendMessage(GameViewMessage.createMessage(this, player));
 		}
-		
 	}
 	
  	protected void addEvent(GameEvent event) {
@@ -517,19 +534,6 @@ public abstract class GameInstance<T extends GameEntity> {
 		KilledEvent event = new KilledEvent(entity);
 		addEvent(event);
 		removeEntity(entity);
-	}
-	
-	/**
-	 * Create a {@link GameEntity} from a {@link EntityPrototype}, acquiring the card's
-	 * name, stats, tags and rules.
-	 * 
-	 * @param card
-	 * @return
-	 */
-	public T instantiatePrototype(EntityPrototype card) {
-		T entity = spawnEntity();
-		entity.copyFromPrototype(card);
-		return entity;
 	}
 	
 	/**

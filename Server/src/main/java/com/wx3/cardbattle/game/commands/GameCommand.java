@@ -49,13 +49,6 @@ public abstract class GameCommand<T extends GameInstance<?>> {
 	
 	protected int id;
 	
-	/**
-	 * Besides making sure the player and game exist, most commands can only
-	 * be executed on the player's turn, so we make this part of the default
-	 * validation. 
-	 * 
-	 * @return
-	 */
 	public ValidationResult validate(T game)  {
 		ValidationResult result = new ValidationResult();
 		if(playerName == null) {

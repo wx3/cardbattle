@@ -2,7 +2,7 @@ id,description,trigger,script
 DMG_2_SUMMONED,Deal 2 damage to every minion that's summoned.,SummonMinionEvent,"if(event.minion !== entity) {rules.damageEntity(event.minion, 2, entity)}"
 DMG_2_TARGET,Deal 2 damage to target.,PlayCardEvent,"rules.damageEntity(event.getTarget(), 2, entity)"
 BUFF_3_HEALTH,Add 3 to Max Health.,BuffRecalc,"rules.buffEntity(entity, 'MAX_HEALTH', 3)"
-ENCHANT_BUFF_3_HEALTH,Give enchantment: +3 to Max Health.,PlayCardEvent,"rules.addRule(target, 'BUFF_3_HEALTH', entity); rules.healEntity(target,3)"
-DISENCHANT,Disenchant an Entity.,PlayCardEvent,rules.removeRules(target)
+ENCHANT_BUFF_3_HEALTH,Give enchantment: +3 to Max Health.,PlayCardEvent,"rules.trace(event); rules.addRule(event.getTarget(), 'BUFF_3_HEALTH', entity); rules.healEntity(event.getTarget(),3)"
+DISENCHANT,Disenchant an Entity.,PlayCardEvent,rules.removeRules(event.getTarget())
 DRAW_ON_DAMAGE,Owner of entity draws whenever it takes damage.,DamageEvent,"if(event.entity == entity) {rules.drawCard(entity.getOwner(), entity);}"
 DMG_100_TARGET,Deal 100 damage to a target.,PlayCardEvent,"rules.damageEntity(event.getTarget(), 100, entity)"

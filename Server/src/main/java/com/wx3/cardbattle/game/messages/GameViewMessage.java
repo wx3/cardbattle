@@ -35,7 +35,7 @@ public final class GameViewMessage extends OutboundMessage {
 		return game;
 	}
 	
-	public static GameViewMessage createMessage(GameInstance game, GamePlayer recipient) {
+	public static GameViewMessage createMessage(GameInstance<?> game, GamePlayer recipient) {
 		GameViewMessage message = new GameViewMessage();
 		message.messageClass = GameViewMessage.class.getSimpleName();
 		message.game = GameView.createViewForPlayer(game, recipient);

@@ -194,10 +194,10 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		playerDecks.put(playerName, deck);
 	}
 	
-	public int getPlayerDeckSize(String playerName) {
-		return playerDecks.get(playerName).size();
+	public List<EntityPrototype> getPlayerDeck(String playerName) {
+		return playerDecks.get(playerName);
 	}
-	
+
 	public GameEntity drawCard(String playerName) {
 		return drawCard(playerName, null);
 	}

@@ -30,13 +30,13 @@ package com.wx3.samplegame;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wx3.cardbattle.ai.GameAI;
-import com.wx3.cardbattle.game.GameEntity;
-import com.wx3.cardbattle.game.GameInstance;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
-import com.wx3.cardbattle.server.OutboundMessage;
 import com.wx3.samplegame.commands.EndTurnCommand;
 import com.wx3.samplegame.commands.PlayCardCommand;
 
@@ -46,25 +46,31 @@ import com.wx3.samplegame.commands.PlayCardCommand;
  */
 public class SampleGameAI extends GameAI {
 	
-
+	final Logger logger = LoggerFactory.getLogger(SampleGameAI.class);
+	
+	protected SampleGameInstance game;
+	
 	/**
 	 * @param player
 	 */
 	public SampleGameAI(GamePlayer player) {
-		super(player);
-		
+		this.player = player;
+		this.game = (SampleGameInstance) player.getGame();
+		if(game == null) {
+			throw new RuntimeException("Invalid or null gameinstance");
+		}
 	}
 
 	@Override
 	protected Collection<CommandSelection> getCommandChoices() {
 		Collection<CommandSelection> choices = new ArrayList<CommandSelection>();
-		/*
-		Collection<SampleEntity> hand = rules.getPlayerHand(player);
-		Collection<SampleEntity> entities = rules.getEntities();
+		
+		Collection<SampleEntity> hand = game.getPlayerHand(player);
+		Collection<SampleEntity> entities = game.getEntities();
 		for(SampleEntity card : hand) {
 			PlayCardCommand cmdNull = new PlayCardCommand(card.getId(), 0);
 			cmdNull.setPlayer(player);
-			ValidationResult r1 = cmdNull.validate();
+			ValidationResult r1 = cmdNull.validate(game);
 			if(r1.isValid()) {
 				CommandSelection selection = new CommandSelection(cmdNull, Math.random());
 				choices.add(selection);
@@ -72,8 +78,7 @@ public class SampleGameAI extends GameAI {
 			for(SampleEntity e : entities) {
 				PlayCardCommand cmd = new PlayCardCommand(card.getId(), e.getId());
 				cmd.setPlayer(player);
-				cmd.parse();
-				ValidationResult r2 = cmd.validate();
+				ValidationResult r2 = cmd.validate(game);
 				if(r2.isValid()) {
 					double value = simulateCommand(cmd);
 					CommandSelection selection = new CommandSelection(cmd, value);
@@ -81,25 +86,45 @@ public class SampleGameAI extends GameAI {
 				}
 			}
 		}
-		*/
+		
 		return choices;
 	}
 	
 	protected double simulateCommand(GameCommand command) {
-		/*
-		@SuppressWarnings("unchecked")
-		GameInstance<?> gameCopy = new GameInstance(game);
-		SampleGameRules ruleCopy = new SampleGameRules((GameInstance<SampleEntity>) gameCopy);
-		ruleCopy.handleCommand(command);
-		*/
-		return Math.random();
+		SampleGameInstance gameCopy = (SampleGameInstance) game.copy();
+		
+		return evaluateGame(gameCopy);
+	}
+	
+	private double evaluateGame(SampleGameInstance game) {
+		double val = 10;
+		for(SampleEntity entity : game.getEntities()) {
+			if(entity.isInPlay()) {
+				if(entity.isOwnedBy(player)) {
+					val += entity.getCurrentHealth();
+					logger.info(entity + " is owned by " + player + ", adding " + entity.getCurrentHealth());
+				} else {
+					val -= entity.getCurrentHealth();
+					logger.info(entity + " is owned by " + player + ", subtracting " + entity.getCurrentHealth());
+				}
+			} else {
+				if(entity.isOwnedBy(player)) {
+					if(entity.isInHand()) {
+						val += 1;
+						logger.info(entity + " is in my hand, adding " + 1);
+					}
+				}
+			}
+		}
+		return val;
 	}
 
 	@Override
-	protected GameCommand getBestCommand() {
-		GameCommand choice;
+	public GameCommand<?> getBestCommand() {
+		GameCommand<?> choice;
 		double bestVal = -1;
 		CommandSelection best = null;
+		logger.info("Beginning command selection...");
 		for(CommandSelection selection : getCommandChoices()) {
 			if(selection.value > bestVal) {
 				best = selection;
@@ -113,7 +138,7 @@ public class SampleGameAI extends GameAI {
 		else {
 			choice = new EndTurnCommand();
 		}
-		
+		logger.info("Selection complete, chose " + choice);
 		return choice;
 	}
 
