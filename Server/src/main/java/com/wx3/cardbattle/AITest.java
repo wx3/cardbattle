@@ -53,7 +53,7 @@ public class AITest {
 	public static void main(String[] args) {
 		GameDatastore datastore = new HibernateDatastore();
     	bootstrap(datastore);
-    	SampleGameCommandFactory gameFactory = new SampleGameCommandFactory(datastore);
+    	SampleGameCommandFactory gameFactory = new SampleGameCommandFactory();
     	GameServer gameserver = new SampleGameServer(datastore);
     	gameserver.start();
     	

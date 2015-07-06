@@ -189,7 +189,6 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		// Eventually player rules should move out of here into the database/bootstrap:
 		String s2 = "if(entity.getOwner() == getCurrentPlayer(event.getTurn()).getPlayerName()) {"
 				+ "if(event.getTurn() < 2){"
-				+ "trace(getId());"
 				+ "drawCard(entity.getOwner());"
 				+ "drawCard(entity.getOwner());"
 				+ "drawCard(entity.getOwner());"

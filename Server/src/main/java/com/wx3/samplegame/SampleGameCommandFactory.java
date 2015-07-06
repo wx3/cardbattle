@@ -44,18 +44,15 @@ import com.wx3.samplegame.commands.PlayCardCommand;
  */
 public class SampleGameCommandFactory implements CommandFactory {
 
-	private GameDatastore datastore;
 	
-	public SampleGameCommandFactory(GameDatastore datastore) {
-		this.datastore = datastore;
-	}
+	public SampleGameCommandFactory() {}
 
 	@Override
-	public GameCommand createCommand(GamePlayer player,	JsonObject json) {
+	public GameCommand<?> createCommand(GamePlayer player,	JsonObject json) {
 		if(json == null) {
 			throw new RuntimeException("Suppied Json cannot be null");
 		}
-		GameCommand command = null;
+		GameCommand<?> command = null;
 		String commandName = json.get("command").getAsString();
 		Gson gson = new Gson();
 		switch(commandName) {

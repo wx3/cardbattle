@@ -63,7 +63,7 @@ public class SampleGameServer extends GameServer {
 	 */
 	public SampleGameServer(GameDatastore datastore) {
 		super(datastore);
-		this.commandFactory = new SampleGameCommandFactory(datastore);
+		this.commandFactory = new SampleGameCommandFactory();
 	}
 	
 	@Override
