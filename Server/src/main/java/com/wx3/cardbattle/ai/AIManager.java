@@ -56,6 +56,8 @@ public final class AIManager {
 	private UpdateTask task;
 	private long period;
 	
+	private long updateCount = 0;
+	
 	/**
 	 * Update task runs the the update method on the manager
 	 * @author Kevin
@@ -115,7 +117,9 @@ public final class AIManager {
 			}
 		}
 		long finish = System.nanoTime();
+		++updateCount;
 		double duration = (finish - start) / 1e9;
-		//logger.info("Updated " + i + " ais in " + duration + " seconds");
+			//logger.info("Updated " + i + " ais in " + duration + " seconds");
+		
 	}
 }

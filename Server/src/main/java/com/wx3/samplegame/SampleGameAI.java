@@ -144,7 +144,6 @@ public class SampleGameAI extends GameAI {
 		GameCommand<?> choice;
 		double bestVal = -1;
 		CommandSelection best = null;
-		logger.info("Beginning command selection...");
 		for(CommandSelection selection : getCommandChoices()) {
 			if(selection.value > bestVal) {
 				best = selection;
@@ -158,7 +157,7 @@ public class SampleGameAI extends GameAI {
 		else {
 			choice = new EndTurnCommand();
 		}
-		logger.info("Selection complete, chose " + choice);
+		logger.debug("Chose command " + choice);
 		return choice;
 	}
 

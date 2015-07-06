@@ -69,6 +69,10 @@ public class SampleEntity extends GameEntity {
 		return getStat(SampleGameInstance.ENERGY_PER_TURN) - getVar(SampleGameInstance.ENERGY_SPENT);
 	}
 	
+	public void useEnergy(int amount) {
+		setVar(SampleGameInstance.ENERGY_SPENT, amount);
+	}
+	
 	public int getCurrentHealth() {
 		return getVar(SampleGameInstance.CURRENT_HEALTH);
 	}

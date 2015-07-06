@@ -105,6 +105,7 @@ public class PlayCardCommand extends SampleGameCommand {
 		SampleEntity cardEntity = game.getEntity(entityId);
 		SampleEntity targetEntity = game.getEntity(targetId);
 		game.playCard(cardEntity, targetEntity);
+		
 	}
 
 }

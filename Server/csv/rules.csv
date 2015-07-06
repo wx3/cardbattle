@@ -3,6 +3,8 @@ DMG_2_SUMMONED,Deal 2 damage to every minion that's summoned.,SummonMinionEvent,
 DMG_2_TARGET,Deal 2 damage to target.,PlayCardEvent,"damageEntity(event.getTarget(), 2, entity)"
 BUFF_3_HEALTH,Add 3 to Max Health.,BuffRecalc,"buffEntity(entity, 'MAX_HEALTH', 3)"
 ENCHANT_BUFF_3_HEALTH,Give enchantment: +3 to Max Health.,PlayCardEvent,"addRule(event.getTarget(), 'BUFF_3_HEALTH', entity); healEntity(event.getTarget(),3)"
-DISENCHANT,Disenchant an Entity.,PlayCardEvent,rules.removeRules(event.getTarget())
-DRAW_ON_DAMAGE,Owner of entity draws whenever it takes damage.,DamageEvent,"if(event.entity == entity) {rules.drawCard(entity.getOwner(), entity);}"
-DMG_100_TARGET,Deal 100 damage to a target.,PlayCardEvent,"rules.damageEntity(event.getTarget(), 100, entity)"
+DISENCHANT,Disenchant an Entity.,PlayCardEvent,removeRules(event.getTarget())
+DRAW_ON_DAMAGE,Owner of entity draws whenever it takes damage.,DamageEvent,"if(event.entity == entity) {drawCard(entity.getOwner(), entity);}"
+DMG_100_TARGET,Deal 100 damage to a target.,PlayCardEvent,"damageEntity(event.getTarget(), 100, entity)"
+SUMMON_MEASLEY_EOT,Summon a Measley Minion at the end of your turn.,EndTurnEvent,"if(event.playerName == entity.getOwner()){summonMinion(entity.getOwner(),""Measley Minion"")}"
+DMG_2_ALL_ENEMIES,Deal 2 damage to all enemies.,PlayCardEvent,"var enemies = getEnemyEntities(entity.getOwner()); for(var i = 0; i < enemies.length; i++) {trace(enemies[i]);damageEntity(enemies[i],2,entity)}"

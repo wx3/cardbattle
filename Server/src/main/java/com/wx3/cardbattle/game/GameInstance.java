@@ -365,7 +365,7 @@ public abstract class GameInstance<T extends GameEntity> {
 	}
 	
 	public void endTurn() {
-		addEvent(new EndTurnEvent(turn, entities.size()));
+		addEvent(new EndTurnEvent(turn, entities.size(), getCurrentPlayer()));
 		++turn;
 		startTurn();
 	}
@@ -473,7 +473,6 @@ public abstract class GameInstance<T extends GameEntity> {
 						Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 						bindings.put("rules", this);
 						bindings.put("entity", entity);
-						logger.info("Recalculating buff " + rule + " on " + entity);
 						try {
 							bindGameToScript();
 							getScriptEngine().eval(rule.getScript(), scriptContext);	

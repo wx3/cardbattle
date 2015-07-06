@@ -159,6 +159,23 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	}
 	
 	/**
+	 * Get a list of all entities in play not owned by the player, 
+	 * excluding the rule entity.
+	 * 
+	 * @param playerName
+	 * @return
+	 */
+	public List<SampleEntity> getEnemyEntities(String playerName) {
+		List<SampleEntity> enemies = entities.stream().filter(
+				e -> (e.getOwner() != playerName) &&
+				e.isInPlay() &&
+				!e.hasTag(RULES)
+				).collect(Collectors.toList());
+		
+		return enemies;
+	}
+	
+	/**
 	 * Find the player's entity.
 	 * 
 	 * @param player
@@ -251,9 +268,14 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	 * @param cardEntity
 	 */
 	public void playCard(SampleEntity cardEntity, SampleEntity targetEntity) {
+		SampleEntity playerEntity = getPlayerEntity(cardEntity.getOwner());
+		if(playerEntity == null) {
+			throw new RuntimeException("Could not find player entity for card.");
+		}
+		playerEntity.useEnergy(cardEntity.getCost());
 		String msg = "Playing " + cardEntity;
 		if(targetEntity != null) msg += " on " + targetEntity;
-		logger.info(msg);
+		logger.debug(msg);
 		cardEntity.setTag(IN_PLAY);
 		cardEntity.clearTag(IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
@@ -266,6 +288,26 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		else {
 			cardEntity.remove();
 		}
+	}
+	
+	/**
+	 * Summon a minion for the provided player.
+	 * 
+	 * @param playerName
+	 * @param minionName
+	 */
+	public void summonMinion(String playerName, String minionName) {
+		EntityPrototype prototype = getCard(minionName);
+		if(prototype == null) {
+			throw new RuntimeException("Unable to find card '" + minionName + "'");
+		}
+		SampleEntity entity = instantiatePrototype(prototype);
+		entity.setOwner(playerName);
+		entity.setTag(IN_PLAY);
+		if(!entity.isMinion()) {
+			throw new RuntimeException("Summoned entity was not minion");
+		}
+		addEvent(new SummonMinionEvent(entity));
 	}
 	
 	

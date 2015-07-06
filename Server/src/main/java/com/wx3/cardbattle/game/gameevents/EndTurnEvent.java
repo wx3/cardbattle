@@ -23,6 +23,8 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game.gameevents;
 
+import com.wx3.cardbattle.game.GamePlayer;
+
 /**
  * Event dispatched when a player's turn ends.
  * 
@@ -33,10 +35,12 @@ public final class EndTurnEvent extends GameEvent {
 
 	public int turn;
 	public int entityCount;
+	public String playerName;
 	
-	public EndTurnEvent(int turn, int entityCount) {
+	public EndTurnEvent(int turn, int entityCount, GamePlayer player) {
 		this.turn = turn;
 		this.entityCount = entityCount;
+		this.playerName = player.getPlayerName();
 	}
 	
 	public int getTurn() {

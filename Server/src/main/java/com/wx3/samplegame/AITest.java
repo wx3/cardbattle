@@ -25,7 +25,7 @@
 /**
  * 
  */
-package com.wx3.cardbattle;
+package com.wx3.samplegame;
 
 import java.util.List;
 
@@ -37,9 +37,6 @@ import com.wx3.cardbattle.datastore.HibernateDatastore;
 import com.wx3.cardbattle.datastore.PlayerAuthtoken;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.server.GameServer;
-import com.wx3.samplegame.Bootstrap;
-import com.wx3.samplegame.SampleGameCommandFactory;
-import com.wx3.samplegame.SampleGameServer;
 
 /**
  * @author Kevin
@@ -53,20 +50,19 @@ public class AITest {
 	public static void main(String[] args) {
 		GameDatastore datastore = new HibernateDatastore();
     	bootstrap(datastore);
-    	SampleGameCommandFactory gameFactory = new SampleGameCommandFactory();
-    	GameServer gameserver = new SampleGameServer(datastore);
+    	SampleGameServer gameserver = new SampleGameServer(datastore);
     	gameserver.start();
     	
     	AIManager aimanager = new AIManager(1);
     	
     	aimanager.start();
-    	/*
+    	
     	for(int i = 0; i < 100; i++) {
 	    	List<PlayerAuthtoken> tokens = gameserver.createTestGame();
 	    	for(PlayerAuthtoken token : tokens) {
 	    		try {
 					GamePlayer player = gameserver.authenticate(token.getAuthtoken());
-					GameAI ai = new GameAI(player);
+					GameAI ai = new SampleGameAI(player);
 					player.connect(ai);
 					aimanager.registerAI(ai);
 				} catch (AuthenticationException e) {
@@ -76,7 +72,7 @@ public class AITest {
 				}
 	    	}
     	}
-    	*/
+    	
 	}
 	
 	/**
