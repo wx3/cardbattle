@@ -23,6 +23,8 @@
  *******************************************************************************/
 package com.wx3.cardbattle.game;
 
+import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 import com.wx3.cardbattle.server.MessageHandler;
 import com.wx3.cardbattle.server.OutboundMessage;
 
@@ -132,7 +135,8 @@ public final class GamePlayer {
 		ValidationResult result;
 		result = command.validate(game);
 		if(result.isValid()) {
-			game.handleCommand(command);
+			List<GameEvent> events = game.handleCommand(command);
+			game.broadcastEvents(events);
 		}
 		return result;
 	}

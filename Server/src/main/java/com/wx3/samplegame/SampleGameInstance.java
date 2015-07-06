@@ -49,6 +49,7 @@ import com.wx3.cardbattle.game.gameevents.StartTurnEvent;
 import com.wx3.cardbattle.game.rules.EntityRule;
 import com.wx3.cardbattle.game.rules.PlayValidator;
 import com.wx3.samplegame.commands.PlayCardCommand;
+import com.wx3.samplegame.events.AttackEvent;
 import com.wx3.samplegame.events.DamageEvent;
 import com.wx3.samplegame.events.DrawCardEvent;
 import com.wx3.samplegame.events.GameOverEvent;
@@ -112,7 +113,7 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	
 	void addGlobalRules() {
 		List<EntityRule> rules = new ArrayList<EntityRule>();
-		EntityRule gameOverRule = EntityRule.createRule(KilledEvent.class, "if(event.getEntity().hasTag('PLAYER')){rules.gameOver()}", "GAME_OVER", "Detects end of game on player death.");
+		EntityRule gameOverRule = EntityRule.createRule(KilledEvent.class, "if(event.getEntity().hasTag('PLAYER')){gameOver()}", "GAME_OVER", "Detects end of game on player death.");
 		rules.add(gameOverRule);
 		setGlobalRules(rules);
 	}
@@ -140,6 +141,21 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 				e -> e.getOwner() == player.getPlayerName() && e.hasTag(IN_HAND)
 				).collect(Collectors.toList());
 		return hand;
+	}
+	
+	/**
+	 * Get all the minion's a player has in play.
+	 * 
+	 * @param player
+	 * @return
+	 */
+	public List<SampleEntity> getPlayerMinions(GamePlayer player) {
+		List<SampleEntity> minions = entities.stream().filter(
+				e -> e.getOwner() == player.getPlayerName() && 
+				e.hasTag(MINION) && 
+				e.isInPlay()
+				).collect(Collectors.toList());
+		return minions;
 	}
 	
 	/**
@@ -171,14 +187,15 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		playerEntity.setVar(CURRENT_HEALTH, playerEntity.getStat(MAX_HEALTH));
 		playerEntity.setOwner(player.getPlayerName());
 		// Eventually player rules should move out of here into the database/bootstrap:
-		String s2 = "if(entity.getOwner() == rules.getCurrentPlayer(event.getTurn()).getPlayerName()) {"
+		String s2 = "if(entity.getOwner() == getCurrentPlayer(event.getTurn()).getPlayerName()) {"
 				+ "if(event.getTurn() < 2){"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "rules.drawCard(entity.getOwner());"
-				+ "rules.trace('Initial draw for ' + entity.getOwner());"
+				+ "trace(getId());"
+				+ "drawCard(entity.getOwner());"
+				+ "drawCard(entity.getOwner());"
+				+ "drawCard(entity.getOwner());"
+				+ "trace('Initial draw for ' + entity.getOwner());"
 				+ "} else {"
-				+ "rules.drawCard(entity.getOwner());"
+				+ "drawCard(entity.getOwner());"
 				+ "}"
 				+ "}";
 		EntityRule drawRule = EntityRule.createRule(StartTurnEvent.class, s2, "PLAYER_DRAW", "Player draws at start of turn.");
@@ -242,9 +259,11 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		cardEntity.clearTag(IN_HAND);
 		PlayCardEvent event = new PlayCardEvent(cardEntity, targetEntity);
 		addEvent(event);
+		// If the card played was a minion, add a SummonMinionEvent:
 		if(cardEntity.isMinion()) {
 			addEvent(new SummonMinionEvent(cardEntity));
 		}
+		// Otherwise, the entity should be marked for removal:
 		else {
 			cardEntity.remove();
 		}
@@ -276,9 +295,12 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 		if(attackerAttack <= 0) {
 			throw new RuleException("Attacker has no attack value");
 		}
+		AttackEvent event = new AttackEvent(attacker, target);
+		addEvent(event);
 		damageEntity(target, attackerAttack, attacker);
 		damageEntity(attacker, targetAttack, target);
 		attacker.setAttacksRemaining(attacker.getAttacksRemaining() - 1);
+
 	}
 	
 	/**
@@ -373,6 +395,10 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	
 	public void trace(String trace) {
 		logger.info("Trace message: " + trace);
+	}
+	
+	public void getClass(Object object) {
+		logger.info(object.getClass().getCanonicalName());
 	}
 	
 	@Override

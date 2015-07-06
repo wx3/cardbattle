@@ -21,9 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *******************************************************************************/
-package com.wx3.cardbattle.game.gameevents;
+package com.wx3.samplegame.events;
 
 import com.wx3.cardbattle.game.GameEntity;
+import com.wx3.cardbattle.game.gameevents.GameEvent;
 
 /**
  * Event fired when an entity attacks another entity.
@@ -45,6 +46,6 @@ public final class AttackEvent extends GameEvent {
 		this.attacker = attacker;
 		this.target = target;
 		this.attackerId = attacker.getId();
-		this.targetId = attacker.getId();
+		this.targetId = target.getId();
 	}
 }

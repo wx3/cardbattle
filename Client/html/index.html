@@ -219,8 +219,7 @@ $(document).ready(function(){
                     consoleMessage("End turn.");
                     break;
                 case 'DrawCardEvent' :
-                    player = getPlayerById(event.playerId);
-                    consoleMessage("Player " + player.username + " drew a card.");
+                    consoleMessage("Player " + event.playerName + " drew a card.");
                     break;
                 case 'PlayCardEvent' :
                     var cardEntity = self.getEntityById(event.entityId);
@@ -233,6 +232,11 @@ $(document).ready(function(){
                     break;
                 case 'SummonMinionEvent':
                     consoleMessage("Player " + currentGameState.currentPlayer + " summoned a minion");
+                    break;
+                case 'AttackEvent' :
+                    var attacker = self.getEntityById(event.attackerId);
+                    var target = self.getEntityById(event.targetId);
+                    consoleMessage(attacker.name + " attacked " + target.name);
                     break;
                 case 'DamageEvent':
                     consoleMessage("Entity #" + event.entityId + " took " + event.damage + " damage");

@@ -31,6 +31,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.script.Bindings;
+import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -154,6 +155,12 @@ public abstract class GameInstance<T extends GameEntity> {
 		this.scriptScope = this.scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	}
 	
+	/**
+	 * Concrete subclasses should implement copy to use their copy constructor
+	 * to return a copy of the appropriate class.
+	 * 
+	 * @return
+	 */
 	public abstract GameInstance<?> copy();
 	
 	protected static ScriptEngine getScriptEngine() {
@@ -219,6 +226,12 @@ public abstract class GameInstance<T extends GameEntity> {
 	 */
 	protected abstract T createEntityInstance();	
 	
+	/**
+	 * Create a new entity and assign it an id. Entity ids are how entities are 
+	 * identified over the network, and must be unique per game.
+	 * 
+	 * @return
+	 */
 	public T spawnEntity() {
 		T entity = createEntityInstance();
 		++entityIdCounter;
@@ -227,6 +240,12 @@ public abstract class GameInstance<T extends GameEntity> {
 		return entity;
 	}
 	
+	/**
+	 * Get the entity with the supplied id.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public T getEntity(int id) {
 		return entities.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
 	}
@@ -235,11 +254,6 @@ public abstract class GameInstance<T extends GameEntity> {
 		return new ArrayList<T>(entities);
 	}
 	
-	boolean removeEntity(T entity) {
-		return entities.remove(entity);
-	}
-	
-	
 	void playerConnected(GamePlayer player) {
 		JoinMessage joinMessage = JoinMessage.createMessage(datastore.getCards());
 		player.sendMessage(joinMessage);
@@ -247,6 +261,12 @@ public abstract class GameInstance<T extends GameEntity> {
 		player.sendMessage(viewMessage);
 	}
 	
+	/**
+	 * Get the player in the supplied (0 index) position. 
+	 *  
+	 * @param pos
+	 * @return 
+	 */
 	public GamePlayer getPlayerInPosition(int pos) {
 		if(pos < players.size()) {
 			return players.get(pos);
@@ -254,6 +274,12 @@ public abstract class GameInstance<T extends GameEntity> {
 		return null;
 	}
 	
+	/**
+	 * Get the player with the supplied id.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public GamePlayer getPlayer(long id) {
 		for(GamePlayer player : players) {
 			if(player.getId() == id) {
@@ -266,7 +292,7 @@ public abstract class GameInstance<T extends GameEntity> {
 	public List<GamePlayer> getPlayers() {
 		return players;
 	}
-	
+
 	public EntityPrototype getCard(int cardId) {
 		return datastore.getPrototype(cardId);
 	}
@@ -275,6 +301,12 @@ public abstract class GameInstance<T extends GameEntity> {
 		return datastore.getPrototype(cardName);
 	}
 	
+	/**
+	 * Get the rule with the supplied id.
+	 * 
+	 * @param ruleId
+	 * @return
+	 */
 	public EntityRule getRule(String ruleId) {
 		return datastore.getRule(ruleId);
 	}
@@ -314,19 +346,13 @@ public abstract class GameInstance<T extends GameEntity> {
 		return turn;
 	}
 	
-	public synchronized void handleCommand(GameCommand<GameInstance<T>> command) {
+	public synchronized List<GameEvent> handleCommand(GameCommand<GameInstance<T>> command) {
 		command.execute(this);
 		List<GameEvent> events = processEvents();
-		for(GameEvent event : events) {
-			broadcastEvent(event);
-		}
-		for(GamePlayer player : players) {
-			player.sendMessage(GameViewMessage.createMessage(this, player));
-		}
+		return events;
 	}
 	
  	protected void addEvent(GameEvent event) {
-		logger.info("Adding event " + event);
 		eventQueue.add(event);
 	}
  	
@@ -344,6 +370,12 @@ public abstract class GameInstance<T extends GameEntity> {
 		startTurn();
 	}
 	
+	/**
+	 * Broadcast a Chat message String from a player.
+	 * 
+	 * @param playerName The name of the player who the message is from.
+	 * @param message The message.
+	 */
 	public void chat(String playerName, String message) {
 		addEvent(new ChatEvent(playerName, message));
 	}
@@ -443,6 +475,7 @@ public abstract class GameInstance<T extends GameEntity> {
 						bindings.put("entity", entity);
 						logger.info("Recalculating buff " + rule + " on " + entity);
 						try {
+							bindGameToScript();
 							getScriptEngine().eval(rule.getScript(), scriptContext);	
 						} catch (Exception ex) {
 							throw new RuleException("Exception processing buff " + rule + ":" + ex.getMessage());
@@ -453,6 +486,10 @@ public abstract class GameInstance<T extends GameEntity> {
 		}
 	}
 	
+	// Whenever a command is processed, the game processes all the 
+	// events in the event queue. These events are applied to any 
+	// appropriate rules, which in turn may trigger additional events.
+	// After each event, entity stats are recalculated.
 	List<GameEvent> processEvents() {
 		ArrayList<GameEvent> events = new ArrayList<GameEvent>();
 		int i = 0;
@@ -499,10 +536,12 @@ public abstract class GameInstance<T extends GameEntity> {
 	void processRule(GameEvent event, EntityRule rule, GameEntity entity) {
 		try {
 			if(rule.isTriggered(event)) {
+				
 				// Let the rule access the event, game and entity objects:
 				scriptScope.put("event", event);
 				scriptScope.put("rules", this);
 				scriptScope.put("entity", entity);
+				bindGameToScript();
 				logger.debug("Executing " + rule + " for " + event + " on " + entity);
 				getScriptEngine().eval(rule.getScript(),scriptContext);
 			}
@@ -511,6 +550,21 @@ public abstract class GameInstance<T extends GameEntity> {
 		} catch (Exception ex) {
 			throw new RuntimeException("Unexpected error in processing rule: " + rule.getId(), ex.getCause());
 		}
+	}
+	
+	/**
+	 * Binds "this" to the javascript global object so that GameInstance methods
+	 * can be called without needing to preface every one with an object reference,
+	 * e.g.: "endTurn()" instead of "game.endTurn()".
+	 * 
+	 * @throws ScriptException
+	 * @throws NoSuchMethodException
+	 */
+	private void bindGameToScript() throws ScriptException, NoSuchMethodException {
+		ScriptEngine engine = getScriptEngine();
+		Object global = engine.eval("this", scriptContext);
+		Object jsObject = engine.eval("Object", scriptContext);
+		((Invocable) engine).invokeMethod(jsObject, "bindProperties", global, this);
 	}
 	
 	/**
@@ -527,13 +581,28 @@ public abstract class GameInstance<T extends GameEntity> {
 	}
 	
 	/**
+	 * Sends players a list of game events to players, followed by
+	 * a game view message. 
+	 *  
+	 * @param events
+	 */
+	public void broadcastEvents(List<GameEvent> events) {
+		for(GameEvent event : events) {
+			broadcastEvent(event);
+		}
+		for(GamePlayer player : players) {
+			player.sendMessage(GameViewMessage.createMessage(this, player));
+		}
+	}
+	
+	/**
 	 * Mark an entity for removal and fire a {@link KilledEvent}
 	 * @param entity
 	 */
 	protected void killEntity(T entity) {
 		KilledEvent event = new KilledEvent(entity);
 		addEvent(event);
-		removeEntity(entity);
+		entity.remove();
 	}
 	
 	/**

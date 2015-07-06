@@ -37,6 +37,7 @@ import com.wx3.cardbattle.ai.GameAI;
 import com.wx3.cardbattle.game.GamePlayer;
 import com.wx3.cardbattle.game.commands.GameCommand;
 import com.wx3.cardbattle.game.commands.ValidationResult;
+import com.wx3.samplegame.commands.AttackCommand;
 import com.wx3.samplegame.commands.EndTurnCommand;
 import com.wx3.samplegame.commands.PlayCardCommand;
 
@@ -67,7 +68,9 @@ public class SampleGameAI extends GameAI {
 		
 		Collection<SampleEntity> hand = game.getPlayerHand(player);
 		Collection<SampleEntity> entities = game.getEntities();
+		// For each card in our hand:
 		for(SampleEntity card : hand) {
+			// Check if that card can be played with no target:
 			PlayCardCommand cmdNull = new PlayCardCommand(card.getId(), 0);
 			cmdNull.setPlayer(player);
 			ValidationResult r1 = cmdNull.validate(game);
@@ -75,6 +78,7 @@ public class SampleGameAI extends GameAI {
 				CommandSelection selection = new CommandSelection(cmdNull, Math.random());
 				choices.add(selection);
 			}
+			// The check if it can be played against each other entity in the game:
 			for(SampleEntity e : entities) {
 				PlayCardCommand cmd = new PlayCardCommand(card.getId(), e.getId());
 				cmd.setPlayer(player);
@@ -86,13 +90,29 @@ public class SampleGameAI extends GameAI {
 				}
 			}
 		}
+		// For each of our minions:
+		for(SampleEntity minion : game.getPlayerMinions(player)) {
+			// Check if it can attack each other minion in the game:
+			for(SampleEntity e : entities) {
+				if(e.isInPlay()) {
+					AttackCommand cmd = new AttackCommand(minion.getId(), e.getId());
+					cmd.setPlayer(player);
+					ValidationResult r = cmd.validate(game);
+					if(r.isValid()) {
+						double value = simulateCommand(cmd);
+						CommandSelection selection = new CommandSelection(cmd, value);
+						choices.add(selection);
+					}
+				}
+			}
+		}
 		
 		return choices;
 	}
 	
 	protected double simulateCommand(GameCommand command) {
 		SampleGameInstance gameCopy = (SampleGameInstance) game.copy();
-		
+		gameCopy.handleCommand(command);
 		return evaluateGame(gameCopy);
 	}
 	
@@ -102,16 +122,16 @@ public class SampleGameAI extends GameAI {
 			if(entity.isInPlay()) {
 				if(entity.isOwnedBy(player)) {
 					val += entity.getCurrentHealth();
-					logger.info(entity + " is owned by " + player + ", adding " + entity.getCurrentHealth());
+					//logger.info(entity + " is owned by " + player + ", adding " + entity.getCurrentHealth());
 				} else {
 					val -= entity.getCurrentHealth();
-					logger.info(entity + " is owned by " + player + ", subtracting " + entity.getCurrentHealth());
+					//logger.info(entity + " is owned by " + player + ", subtracting " + entity.getCurrentHealth());
 				}
 			} else {
 				if(entity.isOwnedBy(player)) {
 					if(entity.isInHand()) {
 						val += 1;
-						logger.info(entity + " is in my hand, adding " + 1);
+						//logger.info(entity + " is in my hand, adding " + 1);
 					}
 				}
 			}
