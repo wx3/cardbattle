@@ -149,9 +149,9 @@ public class SampleGameInstance extends GameInstance<SampleEntity> {
 	 * @param player
 	 * @return
 	 */
-	public List<SampleEntity> getPlayerMinions(GamePlayer player) {
+	public List<SampleEntity> getPlayerMinions(String playerName) {
 		List<SampleEntity> minions = entities.stream().filter(
-				e -> e.getOwner() == player.getPlayerName() && 
+				e -> e.getOwner() == playerName && 
 				e.hasTag(MINION) && 
 				e.isInPlay()
 				).collect(Collectors.toList());

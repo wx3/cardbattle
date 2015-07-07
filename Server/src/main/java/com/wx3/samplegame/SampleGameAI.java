@@ -91,7 +91,7 @@ public class SampleGameAI extends GameAI {
 			}
 		}
 		// For each of our minions:
-		for(SampleEntity minion : game.getPlayerMinions(player)) {
+		for(SampleEntity minion : game.getPlayerMinions(player.getPlayerName())) {
 			// Check if it can attack each other minion in the game:
 			for(SampleEntity e : entities) {
 				if(e.isInPlay()) {
