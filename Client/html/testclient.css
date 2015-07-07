@@ -42,7 +42,7 @@ body {
     margin: 10px;
     background-color: #c0d0ff;
     width: 130px;
-    height: 170px;
+    height: 175px;
 }
 .cardDragging {
     font-size: small;
@@ -50,7 +50,7 @@ body {
     margin: 10px;
     background-color: #90a0cc;
     width: 130px;
-    height: 170px;
+    height: 175px;
 }
 .clear {
     clear: both;

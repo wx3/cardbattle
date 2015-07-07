@@ -1,10 +1,11 @@
 name,description,MINION,SPELL,COST,MAX_HEALTH,ATTACK,validator,rules
 Zaptastic,Deal 2 damage to a minion.,,Y,1,,,TARGET_MINION,DMG_2_TARGET
-Measley Minion,A pathetic little guy.,Y,,1,1,1,,
+Measley Minion,A pathetic little guy.,Y,,1,1,1,TARGET_NULL,
 Health Buff +3,Give a minion +3 health.,,Y,2,,,TARGET_MINION,ENCHANT_BUFF_3_HEALTH
-Strong Minion,A really tough minion.,Y,,3,8,2,,
-Sympathy Collector,Owner draws whenever this minion takes damage.,Y,,2,4,1,,DRAW_ON_DAMAGE
+Strong Minion,A really tough minion.,Y,,3,8,2,TARGET_NULL,
+Sympathy Collector,Owner draws whenever this minion takes damage.,Y,,2,4,1,TARGET_NULL,DRAW_ON_DAMAGE
 Disenchant,Disenchant a minion.,,Y,2,,,TARGET_MINION,DISENCHANT
 Death Ray,Deal 100 damage to an entity,,Y,4,,,TARGET_HEALTH,DMG_100_TARGET
-Master of Measley,Summons a Measley Minion at the end of your turn.,Y,,3,3,1,,SUMMON_MEASLEY_EOT
-Zap Spam,Deal 2 damage to all enemies,,Y,1,,,,DMG_2_ALL_ENEMIES
+Master of Measley,Summons a Measley Minion at the end of your turn.,Y,,3,3,1,TARGET_NULL,SUMMON_MEASLEY_EOT
+Zap Spam,Deal 2 damage to all enemies,,Y,1,,,TARGET_NULL,DMG_2_ALL_ENEMIES
+Troll,Regenerates 2 health at the end of every turn.,Y,,3,5,2,TARGET_NULL,REGENERATE_2

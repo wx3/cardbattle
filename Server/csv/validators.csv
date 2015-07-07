@@ -1,3 +1,4 @@
 id,description,script
 TARGET_MINION,Target must be a minion,if(!target || !target.hasTag('MINION')) {error = 'Target must be minion in play.'}
 TARGET_HEALTH,Target must have health,if(!target || (target.getCurrentHealth() <= 0)) {error = 'Target must have health.'}
+TARGET_NULL,No target,if(target){error = 'Card requires no target.'}

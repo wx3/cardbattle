@@ -8,3 +8,4 @@ DRAW_ON_DAMAGE,Owner of entity draws whenever it takes damage.,DamageEvent,"if(e
 DMG_100_TARGET,Deal 100 damage to a target.,PlayCardEvent,"damageEntity(event.getTarget(), 100, entity)"
 SUMMON_MEASLEY_EOT,Summon a Measley Minion at the end of your turn.,EndTurnEvent,"if(event.playerName == entity.getOwner()){summonMinion(entity.getOwner(),""Measley Minion"")}"
 DMG_2_ALL_ENEMIES,Deal 2 damage to all enemies.,PlayCardEvent,"var enemies = getEnemyEntities(entity.getOwner()); for(var i = 0; i < enemies.length; i++) {trace(enemies[i]);damageEntity(enemies[i],2,entity)}"
+REGENERATE_2,Heals 2 health at the end of every turn.,EndTurnEvent,"healEntity(entity, 2);"

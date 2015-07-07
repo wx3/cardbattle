@@ -392,11 +392,13 @@ $(document).ready(function(){
         self.maxHealth = ko.observable(0);
         self.currentHealth = ko.observable(0);
         self.attack = ko.observable(0);
+        self.cost = ko.observable(0);
 
         if(obj.hasOwnProperty('stats')) {
             self.maxHealth(obj.stats['MAX_HEALTH']);
             self.currentHealth(obj.vars['CURRENT_HEALTH']);
             self.attack(obj.stats['ATTACK']);
+            self.cost(obj.stats['COST']);
         }
 
         self.hasTag = function(tag) {
@@ -496,13 +498,14 @@ $(document).ready(function(){
                         dragend: $root.endDrag
                     }" draggable="true">
                         <div data-bind="attr{id : Id}"><strong>Id <span data-bind="text: entityId"></span> : <span data-bind="text: name"></span></strong></div>
+                        <strong data-bind="if: cost">Cost: <span data-bind="text:cost"></span></strong><br/>
                         <em data-bind="text: description"></em>
                         <ul data-bind="foreach: tags">
                             <li data-bind="text: $data"></li>
                         </ul>
 
-                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span>
-                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span>
+                        <span data-bind="if: maxHealth">Health: (<span data-bind="text: currentHealth"></span>/<span data-bind="text: maxHealth"></span>)</span><br/>
+                        <span data-bind="if: attack">Attack: <span data-bind="text: attack"></span></span><br/>
                     </div>
                 </div>
                 <div class="clear"></div>

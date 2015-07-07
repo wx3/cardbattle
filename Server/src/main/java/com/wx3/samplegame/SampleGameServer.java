@@ -125,6 +125,7 @@ public class SampleGameServer extends GameServer {
 		String cardNames[] = new String[]{
 				"Measley Minion",
 				"Master of Measley",
+				"Troll",
 				"Zap Spam",
 				"Zaptastic",
 				"Sympathy Collector",
